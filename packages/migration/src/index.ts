@@ -1,14 +1,19 @@
-import { CURRENT_PHASE, NotImplementedError, type ImplementationStatus } from "@chainport/shared";
+import type { ImplementationStatus } from "@chainport/shared";
 
 export const MIGRATION_IMPLEMENTATION_STATUS =
-  "not_implemented" as const satisfies ImplementationStatus;
+  "implemented" as const satisfies ImplementationStatus;
 
-export interface GeneratedPatch {
-  path: string;
-  description: string;
-  deterministic: true;
-}
-
-export function assertMigrationAvailable(): never {
-  throw new NotImplementedError("migration planning and patch generation", CURRENT_PHASE);
-}
+export { CyclicMigrationDependencyError, topologicalOrder } from "./dependencies.js";
+export { createMigrationPlan, type CreateMigrationPlanInput } from "./engine.js";
+export { MIGRATION_RULES } from "./rules/index.js";
+export { autoFixablePercent, countActions, determinePlanOutcome } from "./status.js";
+export type {
+  MigrationActionDraft,
+  MigrationPlanResult,
+  MigrationRule,
+  OrderedMigrationAction,
+  PlanContext,
+  PlannedEvidence,
+  PlannedFinding,
+} from "./types.js";
+export { MIGRATION_RULESET_VERSION } from "./version.js";

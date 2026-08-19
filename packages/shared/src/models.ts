@@ -12,6 +12,13 @@ import type {
   FindingCategory,
   FindingSeverity,
   JobStatus,
+  MigrationActionCategory,
+  MigrationActionStatus,
+  MigrationAutomationLevel,
+  MigrationPlanOutcome,
+  MigrationPlanRunStatus,
+  MigrationRiskLevel,
+  MigrationStage,
   OrganizationKind,
   ProjectStatus,
   RemediationType,
@@ -300,6 +307,57 @@ export interface CompatibilityFindingSummary {
   warning: number;
   blocker: number;
   unknown: number;
+}
+
+export interface PlannedMigration {
+  id: string;
+  projectId: string;
+  compatibilityRunId: string;
+  repositoryId: string;
+  commitSha: string;
+  sourceChainKey: string;
+  targetChainKey: string;
+  registrySnapshotHash: string;
+  migrationRulesetVersion: string;
+  status: MigrationPlanRunStatus;
+  outcome: MigrationPlanOutcome;
+  migrationReady: boolean;
+  totalActions: number;
+  safeActionCount: number;
+  reviewActionCount: number;
+  manualActionCount: number;
+  blockedActionCount: number;
+  unknownActionCount: number;
+  autoFixablePercent: number;
+  verificationRequired: boolean;
+  idempotencyKey: string;
+  errorCode: string | null;
+  errorMessage: string | null;
+  createdAt: Date;
+  completedAt: Date | null;
+  updatedAt: Date;
+}
+
+export interface PlannedMigrationAction {
+  id: string;
+  planId: string;
+  semanticKey: string;
+  ruleId: string;
+  ruleVersion: string;
+  title: string;
+  description: string;
+  technicalReason: string;
+  category: MigrationActionCategory;
+  stage: MigrationStage;
+  automationLevel: MigrationAutomationLevel;
+  riskLevel: MigrationRiskLevel;
+  actionStatus: MigrationActionStatus;
+  sourceValue: string | null;
+  targetValue: string | null;
+  displayOrder: number;
+  dependencyOrder: number;
+  registryRefs: JsonObject;
+  createdAt: Date;
 }
 
 export function summarizeFindings(findings: readonly Pick<Finding, "severity">[]): FindingSummary {

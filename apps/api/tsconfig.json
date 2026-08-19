@@ -15,6 +15,7 @@
     { "path": "../../packages/chain-registry" },
     { "path": "../../packages/db" },
     { "path": "../../packages/scanner" },
-    { "path": "../../packages/compatibility" }
+    { "path": "../../packages/compatibility" },
+    { "path": "../../packages/migration" }
   ]
 }

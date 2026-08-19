@@ -141,6 +141,69 @@ enum CompatibilityReadiness {
   INSUFFICIENT_DATA
 }
 
+enum MigrationPlanRunStatus {
+  QUEUED
+  PLANNING
+  COMPLETED
+  FAILED
+}
+
+enum MigrationPlanOutcome {
+  READY_TO_APPLY
+  REVIEW_REQUIRED
+  BLOCKED
+  NEEDS_VERIFICATION
+}
+
+enum MigrationAutomationLevel {
+  SAFE_AUTOMATIC
+  REVIEW_REQUIRED
+  MANUAL
+  BLOCKED
+  UNKNOWN
+}
+
+enum MigrationRiskLevel {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum MigrationActionStatus {
+  PLANNED
+  BLOCKED
+  UNKNOWN
+}
+
+enum MigrationStage {
+  NETWORK_CONFIGURATION
+  RPC_AND_EXPLORER
+  TOKEN_MAPPINGS
+  INFRASTRUCTURE_CONTRACTS
+  ORACLES
+  CROSS_CHAIN
+  CONTRACT_CONFIGURATION
+  FRONTEND_CONFIGURATION
+  DEPLOYMENT_CONFIGURATION
+  MANUAL_REVIEW
+}
+
+enum MigrationActionCategory {
+  CHAIN_ID
+  RPC_URL
+  EXPLORER
+  ENV_CONFIG
+  TOKEN_ADDRESS
+  INFRASTRUCTURE_ADDRESS
+  ORACLE_FEED
+  RPC_CAPABILITY
+  CROSS_CHAIN
+  FRONTEND_NETWORK
+  UNKNOWN_ADDRESS
+  BLOCKED_INFRASTRUCTURE
+}
+
 enum RemediationType {
   NONE
   CONFIG_CHANGE
@@ -214,6 +277,7 @@ model Repository {
   jobs                MigrationJob[]
   analyses            RepositoryAnalysis[]
   compatibilityRuns   CompatibilityRun[]
+  plannedMigrations   PlannedMigration[]
 
   @@unique([provider, owner, name])
   @@map("repositories")
@@ -236,6 +300,7 @@ model Project {
   jobs                MigrationJob[]
   analyses            RepositoryAnalysis[]
   compatibilityRuns   CompatibilityRun[]
+  plannedMigrations   PlannedMigration[]
 
   @@unique([githubOwner, githubRepo])
   @@unique([repositoryId])
@@ -521,6 +586,7 @@ model CompatibilityRun {
   findings             CompatibilityFinding[]
   categories           CompatibilityCategoryResult[]
   statusEvents         CompatibilityStatusEvent[]
+  plannedMigrations    PlannedMigration[]
 
   @@unique([analysisId, targetChainKey, rulesetVersion, registrySnapshotHash])
   @@index([projectId, createdAt])
@@ -561,6 +627,7 @@ model CompatibilityFinding {
   confidence         String
   registryEvidence   Json                        @map("registry_evidence")
   createdAt          DateTime                    @default(now()) @map("created_at") @db.Timestamptz(3)
+  plannedEvidence    PlannedMigrationActionEvidence[]
 
   @@index([compatibilityRunId, status])
   @@index([compatibilityRunId, category])
@@ -583,4 +650,115 @@ model CompatibilityCategoryResult {
 
   @@unique([compatibilityRunId, category])
   @@map("compatibility_category_results")
+}
+
+model PlannedMigration {
+  id                       String                 @id @db.Uuid
+  projectId                String                 @map("project_id") @db.Uuid
+  project                  Project                @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  compatibilityRunId       String                 @map("compatibility_run_id") @db.Uuid
+  compatibilityRun         CompatibilityRun       @relation(fields: [compatibilityRunId], references: [id], onDelete: Restrict)
+  repositoryId             String                 @map("repository_id") @db.Uuid
+  repository               Repository             @relation(fields: [repositoryId], references: [id], onDelete: Restrict)
+  commitSha                String                 @map("commit_sha")
+  sourceChainKey           String                 @map("source_chain_key")
+  targetChainKey           String                 @map("target_chain_key")
+  registrySnapshotHash     String                 @map("registry_snapshot_hash")
+  migrationRulesetVersion  String                 @map("migration_ruleset_version")
+  status                   MigrationPlanRunStatus @default(QUEUED)
+  outcome                  MigrationPlanOutcome
+  migrationReady           Boolean                @map("migration_ready")
+  totalActions             Int                    @default(0) @map("total_actions")
+  safeActionCount          Int                    @default(0) @map("safe_action_count")
+  reviewActionCount        Int                    @default(0) @map("review_action_count")
+  manualActionCount        Int                    @default(0) @map("manual_action_count")
+  blockedActionCount       Int                    @default(0) @map("blocked_action_count")
+  unknownActionCount       Int                    @default(0) @map("unknown_action_count")
+  autoFixablePercent       Int                    @default(0) @map("auto_fixable_percent")
+  verificationRequired     Boolean                @map("verification_required")
+  idempotencyKey           String                 @unique @map("idempotency_key")
+  errorCode                String?                @map("error_code")
+  errorMessage             String?                @map("error_message")
+  createdAt                DateTime               @default(now()) @map("created_at") @db.Timestamptz(3)
+  completedAt              DateTime?              @map("completed_at") @db.Timestamptz(3)
+  updatedAt                DateTime               @updatedAt @map("updated_at") @db.Timestamptz(3)
+  actions                  PlannedMigrationAction[]
+  statusEvents             PlannedMigrationStatusEvent[]
+
+  @@unique([compatibilityRunId, migrationRulesetVersion])
+  @@index([projectId, createdAt])
+  @@index([status, createdAt])
+  @@map("planned_migrations")
+}
+
+model PlannedMigrationStatusEvent {
+  id         String                 @id @db.Uuid
+  planId     String                 @map("plan_id") @db.Uuid
+  plan       PlannedMigration       @relation(fields: [planId], references: [id], onDelete: Cascade)
+  fromStatus MigrationPlanRunStatus? @map("from_status")
+  toStatus   MigrationPlanRunStatus @map("to_status")
+  reason     String?
+  createdAt  DateTime               @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  @@index([planId, createdAt])
+  @@map("planned_migration_status_events")
+}
+
+model PlannedMigrationAction {
+  id               String                    @id @db.Uuid
+  planId           String                    @map("plan_id") @db.Uuid
+  plan             PlannedMigration          @relation(fields: [planId], references: [id], onDelete: Cascade)
+  semanticKey      String                    @map("semantic_key")
+  ruleId           String                    @map("rule_id")
+  ruleVersion      String                    @map("rule_version")
+  title            String
+  description      String
+  technicalReason  String                    @map("technical_reason")
+  category         MigrationActionCategory
+  stage            MigrationStage
+  automationLevel  MigrationAutomationLevel  @map("automation_level")
+  riskLevel        MigrationRiskLevel        @map("risk_level")
+  actionStatus     MigrationActionStatus     @map("action_status")
+  sourceValue      String?                   @map("source_value")
+  targetValue      String?                   @map("target_value")
+  displayOrder     Int                       @map("display_order")
+  dependencyOrder  Int                       @map("dependency_order")
+  registryRefs     Json                      @map("registry_refs")
+  createdAt        DateTime                  @default(now()) @map("created_at") @db.Timestamptz(3)
+  evidence         PlannedMigrationActionEvidence[]
+  outgoing         PlannedMigrationActionDependency[] @relation("ActionDepends")
+  incoming         PlannedMigrationActionDependency[] @relation("ActionDependedOn")
+
+  @@index([planId, stage])
+  @@index([planId, automationLevel])
+  @@map("planned_migration_actions")
+}
+
+model PlannedMigrationActionEvidence {
+  id          String                   @id @db.Uuid
+  actionId    String                   @map("action_id") @db.Uuid
+  action      PlannedMigrationAction   @relation(fields: [actionId], references: [id], onDelete: Cascade)
+  findingId   String?                  @map("finding_id") @db.Uuid
+  finding     CompatibilityFinding?    @relation(fields: [findingId], references: [id], onDelete: SetNull)
+  evidenceId  String?                  @map("evidence_id")
+  filePath    String                   @map("file_path")
+  startLine   Int                      @map("start_line")
+  excerpt     String
+  createdAt   DateTime                 @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  @@index([actionId])
+  @@index([findingId])
+  @@map("planned_migration_action_evidence")
+}
+
+model PlannedMigrationActionDependency {
+  id               String                 @id @db.Uuid
+  actionId         String                 @map("action_id") @db.Uuid
+  action           PlannedMigrationAction @relation("ActionDepends", fields: [actionId], references: [id], onDelete: Cascade)
+  dependsOnActionId String                @map("depends_on_action_id") @db.Uuid
+  dependsOn        PlannedMigrationAction @relation("ActionDependedOn", fields: [dependsOnActionId], references: [id], onDelete: Cascade)
+
+  @@unique([actionId, dependsOnActionId])
+  @@index([dependsOnActionId])
+  @@map("planned_migration_action_dependencies")
 }

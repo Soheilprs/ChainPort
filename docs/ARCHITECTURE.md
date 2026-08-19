@@ -15,7 +15,7 @@ packages/
   ingest/       Workspace manager and safe Git clone
   scanner/      Deterministic static analysis
   compatibility/ Deterministic target-chain comparison engine
-  migration/    Contract only
+  migration/    Deterministic migration planner
   sandbox/      Security policy; runner not implemented
   db/           Prisma schema and client
 ```
@@ -65,6 +65,16 @@ See [INGEST.md](INGEST.md).
 5. Findings, category scores, readiness, and the snapshot JSON are persisted.
 
 See [COMPATIBILITY_ENGINE.md](COMPATIBILITY_ENGINE.md).
+
+## Migration planning path
+
+1. API loads a completed compatibility run, its findings, evidence, and **stored** registry snapshot.
+2. `@chainport/migration` maps findings to actions, deduplicates, classifies automation/risk, and
+   orders stages/dependencies.
+3. If a completed plan already exists for `compatibilityRunId + migrationRulesetVersion`, it is reused.
+4. The plan is persisted. No repository I/O.
+
+See [MIGRATION_PLANNER.md](MIGRATION_PLANNER.md).
 
 ## Data
 

@@ -12,10 +12,12 @@ import type { Logger } from "pino";
 import { ApiRequestError } from "./errors.js";
 import type { AnalysisService } from "./analysis-service.js";
 import type { CompatibilityService } from "./compatibility-service.js";
+import type { PlanService } from "./plan-service.js";
 import { registerAnalysisRoutes } from "./routes/analyses.js";
 import { registerChainRoutes } from "./routes/chains.js";
 import { registerCompatibilityRoutes } from "./routes/compatibility.js";
 import { registerJobRoutes } from "./routes/jobs.js";
+import { registerPlanRoutes } from "./routes/plans.js";
 import { registerProjectRoutes } from "./routes/projects.js";
 import type { ProjectsService } from "./projects-service.js";
 
@@ -28,6 +30,7 @@ export interface ApiApplicationOptions {
   projectsService?: ProjectsService;
   analysisService?: AnalysisService;
   compatibilityService?: CompatibilityService;
+  planService?: PlanService;
 }
 
 export async function createApiApplication(options: ApiApplicationOptions) {
@@ -88,6 +91,9 @@ export async function createApiApplication(options: ApiApplicationOptions) {
   }
   if (options.compatibilityService !== undefined) {
     registerCompatibilityRoutes(app, options.compatibilityService);
+  }
+  if (options.planService !== undefined) {
+    registerPlanRoutes(app, options.planService);
   }
 
   app.setNotFoundHandler(async (_request, reply) => {

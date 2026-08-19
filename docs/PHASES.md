@@ -16,16 +16,20 @@ removed.
 Stored SHA → safe rematerialization → file inventory → deterministic static analysis →
 requirements and evidence. No compatibility scoring.
 
-## Phase 4 — Target chain compatibility (current)
+## Phase 4 — Target chain compatibility
 
 Requirements + selected target + versioned registry snapshot + ruleset `"1"` → PASS / WARNING /
 BLOCKER / UNKNOWN findings, score, coverage, and readiness. UNKNOWN is never treated as BLOCKER.
 No migration, patches, compilation, or repository execution.
 
+## Phase 5 — Migration planner (current)
+
+Completed compatibility run + migration ruleset `"1"` → ordered actions with automation and risk
+classification. Plans are immutable. Repository files are not modified.
+
 ## Recommended next phases
 
-5. **Migration planning** — turn compatibility findings into ordered, safe migration actions without
-   modifying repository files.
-6. **Isolated sandbox build/test**.
-7. **Target testnet deploy and verification**.
-8. **Network console analytics**.
+6. **Safe auto-fix / ChangeSet engine** — deterministic patches for `SAFE_AUTOMATIC` actions only.
+7. **Isolated sandbox build/test**.
+8. **Target testnet deploy and verification**.
+9. **Network console analytics**.

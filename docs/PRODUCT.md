@@ -55,6 +55,6 @@ Repository code must never execute on the host. Sandbox execution is isolated.
 
 ## Current phase
 
-Phase 4 compares Phase 3 repository requirements with a versioned target-chain registry snapshot.
-It produces an evidence-backed PASS / WARNING / BLOCKER / UNKNOWN report, a transparent score,
-coverage, and readiness. It does not migrate, patch, compile, or execute repository code.
+Phase 5 turns a completed compatibility report into an ordered migration plan: what must change,
+what can later be automated, and what is blocked or still unverified. It does not modify
+repository files.

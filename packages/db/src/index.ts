@@ -27,4 +27,5 @@ export {
   asJsonObject,
   type PersistCompatibilityReport,
 } from "./compatibility-repository.js";
+export { PlanRepository } from "./plan-repository.js";
 export { mapJobStatusEvent, mapMigrationJob, mapProject, mapRepository } from "./mappers.js";

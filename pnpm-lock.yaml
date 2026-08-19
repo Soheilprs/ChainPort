@@ -47,6 +47,9 @@ importers:
       '@chainport/db':
         specifier: workspace:*
         version: link:../../packages/db
+      '@chainport/migration':
+        specifier: workspace:*
+        version: link:../../packages/migration
       '@chainport/scanner':
         specifier: workspace:*
         version: link:../../packages/scanner
@@ -181,6 +184,9 @@ importers:
 
   packages/db:
     dependencies:
+      '@chainport/migration':
+        specifier: workspace:*
+        version: link:../migration
       '@chainport/shared':
         specifier: workspace:*
         version: link:../shared

@@ -1,0 +1,1 @@
+export const MIGRATION_RULESET_VERSION = "1";

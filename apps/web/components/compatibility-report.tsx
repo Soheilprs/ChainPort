@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 
+import { BuildMigrationPlanButton } from "@/components/build-plan";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 
@@ -155,6 +156,9 @@ export function CompatibilityReport({ payload }: { payload: CompatibilityReportP
           {readinessLabel(payload.run.readiness)}
         </Badge>
       </div>
+      {payload.run.status === "COMPLETED" ? (
+        <BuildMigrationPlanButton compatibilityRunId={payload.run.id} compatibilityComplete />
+      ) : null}
 
       {blocked ? (
         <div className="rounded-xl border border-blocker/30 bg-blocker/5 px-4 py-3 text-sm text-blocker">

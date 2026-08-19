@@ -151,6 +151,62 @@ export type CapabilityAvailability = (typeof CAPABILITY_AVAILABILITIES)[number];
 export const CAPABILITY_PROVENANCES = ["VERIFIED", "DECLARED", "UNKNOWN"] as const;
 export type CapabilityProvenance = (typeof CAPABILITY_PROVENANCES)[number];
 
+export const MIGRATION_PLAN_RUN_STATUSES = ["QUEUED", "PLANNING", "COMPLETED", "FAILED"] as const;
+export type MigrationPlanRunStatus = (typeof MIGRATION_PLAN_RUN_STATUSES)[number];
+
+export const MIGRATION_PLAN_OUTCOMES = [
+  "READY_TO_APPLY",
+  "REVIEW_REQUIRED",
+  "BLOCKED",
+  "NEEDS_VERIFICATION",
+] as const;
+export type MigrationPlanOutcome = (typeof MIGRATION_PLAN_OUTCOMES)[number];
+
+export const MIGRATION_AUTOMATION_LEVELS = [
+  "SAFE_AUTOMATIC",
+  "REVIEW_REQUIRED",
+  "MANUAL",
+  "BLOCKED",
+  "UNKNOWN",
+] as const;
+export type MigrationAutomationLevel = (typeof MIGRATION_AUTOMATION_LEVELS)[number];
+
+export const MIGRATION_RISK_LEVELS = ["LOW", "MEDIUM", "HIGH", "CRITICAL"] as const;
+export type MigrationRiskLevel = (typeof MIGRATION_RISK_LEVELS)[number];
+
+export const MIGRATION_ACTION_STATUSES = ["PLANNED", "BLOCKED", "UNKNOWN"] as const;
+export type MigrationActionStatus = (typeof MIGRATION_ACTION_STATUSES)[number];
+
+export const MIGRATION_STAGES = [
+  "NETWORK_CONFIGURATION",
+  "RPC_AND_EXPLORER",
+  "TOKEN_MAPPINGS",
+  "INFRASTRUCTURE_CONTRACTS",
+  "ORACLES",
+  "CROSS_CHAIN",
+  "CONTRACT_CONFIGURATION",
+  "FRONTEND_CONFIGURATION",
+  "DEPLOYMENT_CONFIGURATION",
+  "MANUAL_REVIEW",
+] as const;
+export type MigrationStage = (typeof MIGRATION_STAGES)[number];
+
+export const MIGRATION_ACTION_CATEGORIES = [
+  "CHAIN_ID",
+  "RPC_URL",
+  "EXPLORER",
+  "ENV_CONFIG",
+  "TOKEN_ADDRESS",
+  "INFRASTRUCTURE_ADDRESS",
+  "ORACLE_FEED",
+  "RPC_CAPABILITY",
+  "CROSS_CHAIN",
+  "FRONTEND_NETWORK",
+  "UNKNOWN_ADDRESS",
+  "BLOCKED_INFRASTRUCTURE",
+] as const;
+export type MigrationActionCategory = (typeof MIGRATION_ACTION_CATEGORIES)[number];
+
 export const FINDING_CATEGORIES = [
   "CHAIN_ID",
   "HARDCODED_ADDRESS",
@@ -291,6 +347,34 @@ export function isCapabilityProvenance(value: unknown): value is CapabilityProve
   return isOneOf(value, CAPABILITY_PROVENANCES);
 }
 
+export function isMigrationPlanRunStatus(value: unknown): value is MigrationPlanRunStatus {
+  return isOneOf(value, MIGRATION_PLAN_RUN_STATUSES);
+}
+
+export function isMigrationPlanOutcome(value: unknown): value is MigrationPlanOutcome {
+  return isOneOf(value, MIGRATION_PLAN_OUTCOMES);
+}
+
+export function isMigrationAutomationLevel(value: unknown): value is MigrationAutomationLevel {
+  return isOneOf(value, MIGRATION_AUTOMATION_LEVELS);
+}
+
+export function isMigrationRiskLevel(value: unknown): value is MigrationRiskLevel {
+  return isOneOf(value, MIGRATION_RISK_LEVELS);
+}
+
+export function isMigrationActionStatus(value: unknown): value is MigrationActionStatus {
+  return isOneOf(value, MIGRATION_ACTION_STATUSES);
+}
+
+export function isMigrationStage(value: unknown): value is MigrationStage {
+  return isOneOf(value, MIGRATION_STAGES);
+}
+
+export function isMigrationActionCategory(value: unknown): value is MigrationActionCategory {
+  return isOneOf(value, MIGRATION_ACTION_CATEGORIES);
+}
+
 export function isFindingCategory(value: unknown): value is FindingCategory {
   return isOneOf(value, FINDING_CATEGORIES);
 }
@@ -360,6 +444,22 @@ export function parseCompatibilityReadiness(value: unknown): CompatibilityReadin
 
 export function parseRemediationType(value: unknown): RemediationType {
   return parseEnum(value, REMEDIATION_TYPES, "remediationType");
+}
+
+export function parseMigrationPlanRunStatus(value: unknown): MigrationPlanRunStatus {
+  return parseEnum(value, MIGRATION_PLAN_RUN_STATUSES, "status");
+}
+
+export function parseMigrationPlanOutcome(value: unknown): MigrationPlanOutcome {
+  return parseEnum(value, MIGRATION_PLAN_OUTCOMES, "outcome");
+}
+
+export function parseMigrationAutomationLevel(value: unknown): MigrationAutomationLevel {
+  return parseEnum(value, MIGRATION_AUTOMATION_LEVELS, "automationLevel");
+}
+
+export function parseMigrationRiskLevel(value: unknown): MigrationRiskLevel {
+  return parseEnum(value, MIGRATION_RISK_LEVELS, "riskLevel");
 }
 
 export function parseFindingCategory(value: unknown): FindingCategory {

@@ -51,3 +51,11 @@ Phase 4 adds compatibility tables:
 - `compatibility_status_events`
 - `compatibility_findings` (link to `project_requirements`, do not copy full evidence)
 - `compatibility_category_results`
+
+Phase 5 adds planning tables (separate from the unused job-linked `migration_plans` stub):
+
+- `planned_migrations` unique on `(compatibility_run_id, migration_ruleset_version)`
+- `planned_migration_status_events`
+- `planned_migration_actions`
+- `planned_migration_action_evidence`
+- `planned_migration_action_dependencies`

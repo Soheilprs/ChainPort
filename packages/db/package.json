@@ -21,6 +21,7 @@
     "db:studio": "node --env-file-if-exists=../../.env node_modules/prisma/build/index.js studio --schema prisma/schema.prisma"
   },
   "dependencies": {
+    "@chainport/migration": "workspace:*",
     "@chainport/shared": "workspace:*",
     "@prisma/client": "6.19.1"
   },

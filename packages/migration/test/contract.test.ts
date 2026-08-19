@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { assertMigrationAvailable, MIGRATION_IMPLEMENTATION_STATUS } from "../src/index.js";
+import { MIGRATION_IMPLEMENTATION_STATUS, MIGRATION_RULESET_VERSION } from "../src/index.js";
 
 describe("migration contract", () => {
-  it("is explicitly unimplemented in phase 1", () => {
-    expect(MIGRATION_IMPLEMENTATION_STATUS).toBe("not_implemented");
-    expect(() => assertMigrationAvailable()).toThrow(/not implemented in phase/);
+  it("is implemented for phase 5", () => {
+    expect(MIGRATION_IMPLEMENTATION_STATUS).toBe("implemented");
+    expect(MIGRATION_RULESET_VERSION).toBe("1");
   });
 });

@@ -14,6 +14,7 @@
     "@chainport/chain-registry": "workspace:*",
     "@chainport/compatibility": "workspace:*",
     "@chainport/db": "workspace:*",
+    "@chainport/migration": "workspace:*",
     "@chainport/scanner": "workspace:*",
     "@chainport/shared": "workspace:*",
     "@fastify/cors": "11.1.0",
