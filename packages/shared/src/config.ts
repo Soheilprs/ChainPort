@@ -65,6 +65,7 @@ const serviceEnvironmentSchema = z.object({
   LOG_LEVEL: logLevelSchema.default("info"),
   WORKER_ID: optionalNonEmptyString,
   WORKSPACE_ROOT: optionalNonEmptyString,
+  ARTIFACT_ROOT: optionalNonEmptyString,
   CLONE_TIMEOUT_MS: z.coerce.number().int().min(1_000).max(600_000).default(60_000),
   CLONE_MAX_BYTES: z.coerce.number().int().min(1_024).max(5_368_709_120).default(104_857_600),
   ANALYSIS_TIMEOUT_MS: z.coerce.number().int().min(1_000).max(600_000).default(120_000),

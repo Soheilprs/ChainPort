@@ -12,8 +12,10 @@ import type { Logger } from "pino";
 import { ApiRequestError } from "./errors.js";
 import type { AnalysisService } from "./analysis-service.js";
 import type { CompatibilityService } from "./compatibility-service.js";
+import type { ChangeSetService } from "./changeset-service.js";
 import type { PlanService } from "./plan-service.js";
 import { registerAnalysisRoutes } from "./routes/analyses.js";
+import { registerChangeSetRoutes } from "./routes/change-sets.js";
 import { registerChainRoutes } from "./routes/chains.js";
 import { registerCompatibilityRoutes } from "./routes/compatibility.js";
 import { registerJobRoutes } from "./routes/jobs.js";
@@ -31,6 +33,7 @@ export interface ApiApplicationOptions {
   analysisService?: AnalysisService;
   compatibilityService?: CompatibilityService;
   planService?: PlanService;
+  changeSetService?: ChangeSetService;
 }
 
 export async function createApiApplication(options: ApiApplicationOptions) {
@@ -94,6 +97,9 @@ export async function createApiApplication(options: ApiApplicationOptions) {
   }
   if (options.planService !== undefined) {
     registerPlanRoutes(app, options.planService);
+  }
+  if (options.changeSetService !== undefined) {
+    registerChangeSetRoutes(app, options.changeSetService);
   }
 
   app.setNotFoundHandler(async (_request, reply) => {

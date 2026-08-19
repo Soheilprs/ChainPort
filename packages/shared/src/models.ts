@@ -4,6 +4,9 @@ import type {
   CompatibilityCategory,
   CompatibilityReadiness,
   CompatibilityRunStatus,
+  ChangeSetStatus,
+  ChangeStatus,
+  ChangeType,
   CompatibilityStatus,
   ComponentKind,
   CoverageConfidence,
@@ -21,6 +24,8 @@ import type {
   MigrationStage,
   OrganizationKind,
   ProjectStatus,
+  RevisionCompleteness,
+  RevisionType,
   RemediationType,
   RepositoryProvider,
   RequirementCategory,
@@ -72,6 +77,7 @@ export interface Project {
   githubRepo: string;
   defaultBranch: string;
   status: ProjectStatus;
+  activeRevisionId: string | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -376,6 +382,64 @@ export function summarizeFindings(findings: readonly Pick<Finding, "severity">[]
 
 export function hasBlockers(findings: readonly Pick<Finding, "severity">[]): boolean {
   return findings.some((finding) => finding.severity === "BLOCKER");
+}
+
+export interface RepositoryRevision {
+  id: string;
+  projectId: string;
+  repositoryId: string;
+  baseRevisionId: string | null;
+  baseCommitSha: string;
+  type: RevisionType;
+  changeSetId: string | null;
+  contentHash: string;
+  completeness: RevisionCompleteness | null;
+  createdAt: Date;
+}
+
+export interface ChangeSetRecord {
+  id: string;
+  projectId: string;
+  migrationPlanId: string;
+  repositoryId: string;
+  originalRevisionId: string;
+  baseCommitSha: string;
+  engineVersion: string;
+  status: ChangeSetStatus;
+  completeness: RevisionCompleteness | null;
+  totalChanges: number;
+  proposedCount: number;
+  acceptedCount: number;
+  rejectedCount: number;
+  skippedCount: number;
+  failedCount: number;
+  idempotencyKey: string;
+  errorCode: string | null;
+  errorMessage: string | null;
+  createdAt: Date;
+  finalizedAt: Date | null;
+  updatedAt: Date;
+}
+
+export interface ChangeSetChangeRecord {
+  id: string;
+  changeSetId: string;
+  migrationActionId: string | null;
+  filePath: string;
+  patcherId: string | null;
+  patcherVersion: string | null;
+  changeType: ChangeType | null;
+  status: ChangeStatus;
+  skipReason: string | null;
+  sourceHash: string | null;
+  resultHash: string | null;
+  beforeExcerpt: string | null;
+  afterExcerpt: string | null;
+  unifiedDiff: string | null;
+  sourceValue: string | null;
+  targetValue: string | null;
+  reason: string;
+  createdAt: Date;
 }
 
 export function summarizeCompatibilityFindings(

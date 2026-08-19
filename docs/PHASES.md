@@ -22,14 +22,19 @@ Requirements + selected target + versioned registry snapshot + ruleset `"1"` →
 BLOCKER / UNKNOWN findings, score, coverage, and readiness. UNKNOWN is never treated as BLOCKER.
 No migration, patches, compilation, or repository execution.
 
-## Phase 5 — Migration planner (current)
+## Phase 5 — Migration planner
 
 Completed compatibility run + migration ruleset `"1"` → ordered actions with automation and risk
 classification. Plans are immutable. Repository files are not modified.
 
+## Phase 6 — Safe auto-fix / ChangeSet engine (current)
+
+Completed migration plan + `SAFE_AUTOMATIC` actions + exact SHA → rematerialize, generate
+reviewable patches, accept/reject, finalize a generated `RepositoryRevision`, rollback to original.
+The original GitHub repository is never modified.
+
 ## Recommended next phases
 
-6. **Safe auto-fix / ChangeSet engine** — deterministic patches for `SAFE_AUTOMATIC` actions only.
-7. **Isolated sandbox build/test**.
+7. **Isolated sandbox build/test** of the generated revision.
 8. **Target testnet deploy and verification**.
 9. **Network console analytics**.

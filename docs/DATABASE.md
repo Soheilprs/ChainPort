@@ -35,6 +35,16 @@ Phase 1 created core product tables. Phase 2 adds repositories and links jobs to
 - `sandbox_runs`
 - `deployments`
 
+Phase 6 adds revision and ChangeSet tables:
+
+- `repository_revisions` (`ORIGINAL` / `GENERATED`, content hash, completeness)
+- `change_sets` unique on plan + SHA + engine version (idempotency key)
+- `change_set_changes` (proposed diffs; `patched_text` is internal)
+- `change_set_status_events`
+- `projects.active_revision_id`
+
+Generated file blobs live on the artifact store, not in PostgreSQL.
+
 Phase 3 adds analysis tables:
 
 - `repository_analyses` unique on `(repository_id, commit_sha, scanner_version)`

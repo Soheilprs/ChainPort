@@ -189,6 +189,39 @@ enum MigrationStage {
   MANUAL_REVIEW
 }
 
+enum ChangeSetStatus {
+  QUEUED
+  MATERIALIZING
+  GENERATING
+  READY_FOR_REVIEW
+  FINALIZING
+  FINALIZED
+  FAILED
+  ROLLED_BACK
+}
+
+enum ChangeStatus {
+  PROPOSED
+  ACCEPTED
+  REJECTED
+  SKIPPED
+  FAILED
+}
+
+enum ChangeType {
+  REPLACE_VALUE
+}
+
+enum RevisionType {
+  ORIGINAL
+  GENERATED
+}
+
+enum RevisionCompleteness {
+  COMPLETE
+  PARTIAL
+}
+
 enum MigrationActionCategory {
   CHAIN_ID
   RPC_URL
@@ -278,6 +311,8 @@ model Repository {
   analyses            RepositoryAnalysis[]
   compatibilityRuns   CompatibilityRun[]
   plannedMigrations   PlannedMigration[]
+  revisions           RepositoryRevision[]
+  changeSets          ChangeSet[]
 
   @@unique([provider, owner, name])
   @@map("repositories")
@@ -293,18 +328,23 @@ model Project {
   githubUrl      String        @map("github_url")
   githubOwner    String        @map("github_owner")
   githubRepo     String        @map("github_repo")
-  defaultBranch  String        @default("main") @map("default_branch")
-  status         ProjectStatus @default(ACTIVE)
-  createdAt      DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt      DateTime      @updatedAt @map("updated_at") @db.Timestamptz(3)
+  defaultBranch      String        @default("main") @map("default_branch")
+  status             ProjectStatus @default(ACTIVE)
+  activeRevisionId   String?       @map("active_revision_id") @db.Uuid
+  activeRevision     RepositoryRevision? @relation("ActiveRevision", fields: [activeRevisionId], references: [id], onDelete: SetNull)
+  createdAt          DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt          DateTime      @updatedAt @map("updated_at") @db.Timestamptz(3)
   jobs                MigrationJob[]
   analyses            RepositoryAnalysis[]
   compatibilityRuns   CompatibilityRun[]
   plannedMigrations   PlannedMigration[]
+  revisions           RepositoryRevision[] @relation("ProjectRevisions")
+  changeSets          ChangeSet[]
 
   @@unique([githubOwner, githubRepo])
   @@unique([repositoryId])
   @@index([organizationId])
+  @@index([activeRevisionId])
   @@map("projects")
 }
 
@@ -684,6 +724,7 @@ model PlannedMigration {
   updatedAt                DateTime               @updatedAt @map("updated_at") @db.Timestamptz(3)
   actions                  PlannedMigrationAction[]
   statusEvents             PlannedMigrationStatusEvent[]
+  changeSets               ChangeSet[]
 
   @@unique([compatibilityRunId, migrationRulesetVersion])
   @@index([projectId, createdAt])
@@ -728,6 +769,7 @@ model PlannedMigrationAction {
   evidence         PlannedMigrationActionEvidence[]
   outgoing         PlannedMigrationActionDependency[] @relation("ActionDepends")
   incoming         PlannedMigrationActionDependency[] @relation("ActionDependedOn")
+  changes          ChangeSetChange[]
 
   @@index([planId, stage])
   @@index([planId, automationLevel])
@@ -761,4 +803,106 @@ model PlannedMigrationActionDependency {
   @@unique([actionId, dependsOnActionId])
   @@index([dependsOnActionId])
   @@map("planned_migration_action_dependencies")
+}
+
+model RepositoryRevision {
+  id              String                 @id @db.Uuid
+  projectId       String                 @map("project_id") @db.Uuid
+  project         Project                @relation("ProjectRevisions", fields: [projectId], references: [id], onDelete: Cascade)
+  repositoryId    String                 @map("repository_id") @db.Uuid
+  repository      Repository             @relation(fields: [repositoryId], references: [id], onDelete: Restrict)
+  baseRevisionId  String?                @map("base_revision_id") @db.Uuid
+  baseRevision    RepositoryRevision?    @relation("RevisionLineage", fields: [baseRevisionId], references: [id], onDelete: SetNull)
+  derived         RepositoryRevision[]   @relation("RevisionLineage")
+  baseCommitSha   String                 @map("base_commit_sha")
+  type            RevisionType
+  changeSetId     String?                @unique @map("change_set_id") @db.Uuid
+  changeSet       ChangeSet?             @relation("GeneratedRevision", fields: [changeSetId], references: [id], onDelete: SetNull)
+  contentHash     String                 @map("content_hash")
+  completeness    RevisionCompleteness?
+  createdAt       DateTime               @default(now()) @map("created_at") @db.Timestamptz(3)
+  activeFor       Project[]              @relation("ActiveRevision")
+  originalOf      ChangeSet[]            @relation("OriginalRevision")
+
+  @@index([repositoryId, baseCommitSha])
+  @@index([projectId, createdAt])
+  @@index([contentHash])
+  @@map("repository_revisions")
+}
+
+model ChangeSet {
+  id                   String              @id @db.Uuid
+  projectId            String              @map("project_id") @db.Uuid
+  project              Project             @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  migrationPlanId      String              @map("migration_plan_id") @db.Uuid
+  migrationPlan        PlannedMigration    @relation(fields: [migrationPlanId], references: [id], onDelete: Restrict)
+  repositoryId         String              @map("repository_id") @db.Uuid
+  repository           Repository          @relation(fields: [repositoryId], references: [id], onDelete: Restrict)
+  originalRevisionId   String              @map("original_revision_id") @db.Uuid
+  originalRevision     RepositoryRevision  @relation("OriginalRevision", fields: [originalRevisionId], references: [id], onDelete: Restrict)
+  baseCommitSha        String              @map("base_commit_sha")
+  engineVersion        String              @map("engine_version")
+  status               ChangeSetStatus     @default(QUEUED)
+  completeness         RevisionCompleteness?
+  totalChanges         Int                 @default(0) @map("total_changes")
+  proposedCount        Int                 @default(0) @map("proposed_count")
+  acceptedCount        Int                 @default(0) @map("accepted_count")
+  rejectedCount        Int                 @default(0) @map("rejected_count")
+  skippedCount         Int                 @default(0) @map("skipped_count")
+  failedCount          Int                 @default(0) @map("failed_count")
+  idempotencyKey       String              @unique @map("idempotency_key")
+  errorCode            String?             @map("error_code")
+  errorMessage         String?             @map("error_message")
+  createdAt            DateTime            @default(now()) @map("created_at") @db.Timestamptz(3)
+  finalizedAt          DateTime?           @map("finalized_at") @db.Timestamptz(3)
+  updatedAt            DateTime            @updatedAt @map("updated_at") @db.Timestamptz(3)
+  changes              ChangeSetChange[]
+  statusEvents         ChangeSetStatusEvent[]
+  generatedRevision    RepositoryRevision? @relation("GeneratedRevision")
+
+  @@index([migrationPlanId, createdAt])
+  @@index([repositoryId, status])
+  @@index([projectId, createdAt])
+  @@map("change_sets")
+}
+
+model ChangeSetStatusEvent {
+  id         String          @id @db.Uuid
+  changeSetId String         @map("change_set_id") @db.Uuid
+  changeSet  ChangeSet       @relation(fields: [changeSetId], references: [id], onDelete: Cascade)
+  fromStatus ChangeSetStatus? @map("from_status")
+  toStatus   ChangeSetStatus @map("to_status")
+  reason     String?
+  createdAt  DateTime        @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  @@index([changeSetId, createdAt])
+  @@map("change_set_status_events")
+}
+
+model ChangeSetChange {
+  id                 String                   @id @db.Uuid
+  changeSetId        String                   @map("change_set_id") @db.Uuid
+  changeSet          ChangeSet                @relation(fields: [changeSetId], references: [id], onDelete: Cascade)
+  migrationActionId  String?                  @map("migration_action_id") @db.Uuid
+  migrationAction    PlannedMigrationAction?  @relation(fields: [migrationActionId], references: [id], onDelete: SetNull)
+  filePath           String                   @map("file_path")
+  patcherId          String?                  @map("patcher_id")
+  patcherVersion     String?                  @map("patcher_version")
+  changeType         ChangeType?              @map("change_type")
+  status             ChangeStatus
+  skipReason         String?                  @map("skip_reason")
+  sourceHash         String?                  @map("source_hash")
+  resultHash         String?                  @map("result_hash")
+  beforeExcerpt      String?                  @map("before_excerpt")
+  afterExcerpt       String?                  @map("after_excerpt")
+  unifiedDiff        String?                  @map("unified_diff") @db.Text
+  patchedText        String?                  @map("patched_text") @db.Text
+  sourceValue        String?                  @map("source_value")
+  targetValue        String?                  @map("target_value")
+  reason             String
+  createdAt          DateTime                 @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  @@index([changeSetId, status])
+  @@index([migrationActionId])
+  @@map("change_set_changes")
 }

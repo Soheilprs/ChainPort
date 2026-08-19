@@ -55,6 +55,6 @@ Repository code must never execute on the host. Sandbox execution is isolated.
 
 ## Current phase
 
-Phase 5 turns a completed compatibility report into an ordered migration plan: what must change,
-what can later be automated, and what is blocked or still unverified. It does not modify
-repository files.
+Phase 6 turns a completed migration plan into a reviewable ChangeSet of deterministic patches for
+`SAFE_AUTOMATIC` actions only. Developers accept or reject each diff and may finalize a generated
+revision. The original GitHub repository is never modified. Sandbox build/test is not implemented.

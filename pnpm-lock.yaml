@@ -127,6 +127,9 @@ importers:
 
   apps/worker:
     dependencies:
+      '@chainport/changeset':
+        specifier: workspace:*
+        version: link:../../packages/changeset
       '@chainport/db':
         specifier: workspace:*
         version: link:../../packages/db
@@ -161,6 +164,22 @@ importers:
       viem:
         specifier: 2.37.9
         version: 2.37.9(typescript@5.9.3)(zod@3.25.76)
+    devDependencies:
+      '@types/node':
+        specifier: 24.10.1
+        version: 24.10.1
+
+  packages/changeset:
+    dependencies:
+      '@chainport/shared':
+        specifier: workspace:*
+        version: link:../shared
+      smol-toml:
+        specifier: 1.4.2
+        version: 1.4.2
+      typescript:
+        specifier: 5.9.3
+        version: 5.9.3
     devDependencies:
       '@types/node':
         specifier: 24.10.1

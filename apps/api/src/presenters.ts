@@ -9,6 +9,7 @@ export function presentProject(project: Project) {
     githubRepo: project.githubRepo,
     githubUrl: project.githubUrl,
     status: project.status,
+    activeRevisionId: project.activeRevisionId,
     createdAt: project.createdAt.toISOString(),
     updatedAt: project.updatedAt.toISOString(),
   };

@@ -191,6 +191,32 @@ export const MIGRATION_STAGES = [
 ] as const;
 export type MigrationStage = (typeof MIGRATION_STAGES)[number];
 
+export const CHANGESET_ENGINE_VERSION = "1";
+
+export const CHANGESET_STATUSES = [
+  "QUEUED",
+  "MATERIALIZING",
+  "GENERATING",
+  "READY_FOR_REVIEW",
+  "FINALIZING",
+  "FINALIZED",
+  "FAILED",
+  "ROLLED_BACK",
+] as const;
+export type ChangeSetStatus = (typeof CHANGESET_STATUSES)[number];
+
+export const CHANGE_STATUSES = ["PROPOSED", "ACCEPTED", "REJECTED", "SKIPPED", "FAILED"] as const;
+export type ChangeStatus = (typeof CHANGE_STATUSES)[number];
+
+export const CHANGE_TYPES = ["REPLACE_VALUE"] as const;
+export type ChangeType = (typeof CHANGE_TYPES)[number];
+
+export const REVISION_TYPES = ["ORIGINAL", "GENERATED"] as const;
+export type RevisionType = (typeof REVISION_TYPES)[number];
+
+export const REVISION_COMPLETENESS = ["COMPLETE", "PARTIAL"] as const;
+export type RevisionCompleteness = (typeof REVISION_COMPLETENESS)[number];
+
 export const MIGRATION_ACTION_CATEGORIES = [
   "CHAIN_ID",
   "RPC_URL",
@@ -373,6 +399,18 @@ export function isMigrationStage(value: unknown): value is MigrationStage {
 
 export function isMigrationActionCategory(value: unknown): value is MigrationActionCategory {
   return isOneOf(value, MIGRATION_ACTION_CATEGORIES);
+}
+
+export function isChangeSetStatus(value: unknown): value is ChangeSetStatus {
+  return isOneOf(value, CHANGESET_STATUSES);
+}
+
+export function isChangeStatus(value: unknown): value is ChangeStatus {
+  return isOneOf(value, CHANGE_STATUSES);
+}
+
+export function isRevisionType(value: unknown): value is RevisionType {
+  return isOneOf(value, REVISION_TYPES);
 }
 
 export function isFindingCategory(value: unknown): value is FindingCategory {

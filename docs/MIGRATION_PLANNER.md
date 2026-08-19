@@ -3,7 +3,8 @@
 Phase 5 turns a completed compatibility run into an ordered, evidence-backed plan answering:
 **what exactly must change before this application can run on the target network?**
 
-It does not edit repository files, generate patches, open PRs, compile, or execute code.
+The planner itself does not edit repository files. Phase 6 consumes completed plans and may
+generate reviewable patches for `SAFE_AUTOMATIC` actions only.
 
 ## Rule contract
 

@@ -12,6 +12,7 @@
   "include": ["src/**/*.ts"],
   "references": [
     { "path": "../../packages/shared" },
+    { "path": "../../packages/changeset" },
     { "path": "../../packages/db" },
     { "path": "../../packages/ingest" },
     { "path": "../../packages/scanner" }

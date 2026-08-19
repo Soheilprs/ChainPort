@@ -7,6 +7,7 @@
     { "path": "packages/scanner" },
     { "path": "packages/compatibility" },
     { "path": "packages/migration" },
+    { "path": "packages/changeset" },
     { "path": "packages/sandbox" },
     { "path": "packages/ingest" },
     { "path": "packages/db" },

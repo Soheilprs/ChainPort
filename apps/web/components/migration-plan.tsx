@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 
+import { GenerateSafeFixesButton } from "@/components/generate-safe-fixes";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 
@@ -192,7 +193,8 @@ export function MigrationPlanView({ payload }: { payload: MigrationPlanPayload }
         <Card>
           <CardTitle>No migration actions</CardTitle>
           <CardDescription>
-            Compatibility findings were PASS or non-actionable. Phase 6 will have nothing to patch.
+            Compatibility findings were PASS or non-actionable. Safe auto-fix will generate a no-op
+            ChangeSet.
           </CardDescription>
         </Card>
       ) : (
@@ -232,10 +234,13 @@ export function MigrationPlanView({ payload }: { payload: MigrationPlanPayload }
         </div>
       )}
 
+      {payload.plan.status === "COMPLETED" ? (
+        <GenerateSafeFixesButton planId={payload.plan.id} planComplete />
+      ) : null}
+
       <p className="font-mono text-[11px] leading-5 text-muted">
         migration ruleset v{payload.plan.migrationRulesetVersion} · snapshot{" "}
-        {payload.plan.registrySnapshotHash.slice(0, 16)}… · Phase 6 will apply only SAFE AUTOMATIC
-        actions.
+        {payload.plan.registrySnapshotHash.slice(0, 16)}… · only SAFE AUTOMATIC actions are patched.
       </p>
     </div>
   );
@@ -294,9 +299,11 @@ function ActionDetail({ action }: { action: MigrationActionView }) {
       ) : null}
       {action.automationLevel === "SAFE_AUTOMATIC" ? (
         <p className="mt-4 text-xs text-muted">
-          Will be auto-fixable in Phase 6. No Apply in this phase.
+          Eligible for a safe patch after Generate safe fixes. Review is still required.
         </p>
-      ) : null}
+      ) : (
+        <p className="mt-4 text-xs text-muted">Not eligible for automatic patching.</p>
+      )}
     </Card>
   );
 }

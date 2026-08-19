@@ -11,6 +11,7 @@
     "typecheck": "tsc -b --pretty false"
   },
   "dependencies": {
+    "@chainport/changeset": "workspace:*",
     "@chainport/db": "workspace:*",
     "@chainport/ingest": "workspace:*",
     "@chainport/scanner": "workspace:*",

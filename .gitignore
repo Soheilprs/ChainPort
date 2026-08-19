@@ -18,3 +18,4 @@ coverage/
 infrastructure/.data/
 .data/
 workspaces/
+artifacts/

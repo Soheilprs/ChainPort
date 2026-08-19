@@ -1,9 +1,12 @@
+import { FileSystemArtifactStore } from "@chainport/changeset";
 import {
   AnalysisRepository,
+  ChangeSetRepository,
   checkDatabase,
   disconnectDatabase,
   getDatabaseClient,
   IngestRepository,
+  PlanRepository,
 } from "@chainport/db";
 import { WorkspaceManager } from "@chainport/ingest";
 import { createId, loadServiceConfig } from "@chainport/shared";
@@ -24,8 +27,13 @@ export async function runWorker(): Promise<void> {
   await redis.connect();
 
   const workspaces = new WorkspaceManager(config.WORKSPACE_ROOT ?? WorkspaceManager.defaultRoot());
+  const artifacts = new FileSystemArtifactStore(
+    config.ARTIFACT_ROOT ?? FileSystemArtifactStore.defaultRoot(),
+  );
   const ingest = new IngestRepository(database);
   const analyses = new AnalysisRepository(database);
+  const plans = new PlanRepository(database);
+  const changeSets = new ChangeSetRepository(database);
 
   const runtime = await startWorkerRuntime({
     workerId,
@@ -43,6 +51,15 @@ export async function runWorker(): Promise<void> {
       ingest,
       analyses,
       workspaces,
+      config,
+      logger,
+    },
+    changeSetProcessor: {
+      ingest,
+      plans,
+      changeSets,
+      workspaces,
+      artifacts,
       config,
       logger,
     },

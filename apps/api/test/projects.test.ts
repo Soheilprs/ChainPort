@@ -73,7 +73,13 @@ describe("project ingest routes", () => {
       {
         upsertRepository: vi.fn(),
       } as never,
-      { enqueueIngest: vi.fn(), enqueueAnalysis: vi.fn(), close: () => Promise.resolve() },
+      {
+        enqueueIngest: vi.fn(),
+        enqueueAnalysis: vi.fn(),
+        enqueueGenerateChangeSet: vi.fn(),
+        enqueueFinalizeChangeSet: vi.fn(),
+        close: () => Promise.resolve(),
+      },
     );
     const app = await createApiApplication({
       logger: createLogger({ service: "api", level: "silent" }),
@@ -101,6 +107,8 @@ describe("project ingest routes", () => {
     const service = new ProjectsService({ upsertRepository: vi.fn() } as never, {
       enqueueIngest: vi.fn(),
       enqueueAnalysis: vi.fn(),
+      enqueueGenerateChangeSet: vi.fn(),
+      enqueueFinalizeChangeSet: vi.fn(),
       close: () => Promise.resolve(),
     });
     const app = await createApiApplication({

@@ -53,6 +53,7 @@ export function mapProject(row: PrismaProject): Project {
     githubRepo: row.githubRepo,
     defaultBranch: row.defaultBranch,
     status: row.status as ProjectStatus,
+    activeRevisionId: row.activeRevisionId,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
   };

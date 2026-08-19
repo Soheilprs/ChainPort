@@ -5,6 +5,7 @@ import {
   disconnectDatabase,
   getDatabaseClient,
   IngestRepository,
+  ChangeSetRepository,
   PlanRepository,
 } from "@chainport/db";
 import { loadServiceConfig } from "@chainport/shared";
@@ -12,6 +13,7 @@ import { Redis } from "ioredis";
 
 import { AnalysisService } from "./analysis-service.js";
 import { CompatibilityService } from "./compatibility-service.js";
+import { ChangeSetService } from "./changeset-service.js";
 import { PlanService } from "./plan-service.js";
 import { createApiApplication } from "./app.js";
 import { createLogger } from "./logger.js";
@@ -33,7 +35,13 @@ async function main(): Promise<void> {
   const analysisService = new AnalysisService(ingest, analyses, queue);
   const compatibility = new CompatibilityRepository(database);
   const compatibilityService = new CompatibilityService(ingest, analyses, compatibility);
-  const planService = new PlanService(compatibility, new PlanRepository(database));
+  const planRepository = new PlanRepository(database);
+  const planService = new PlanService(compatibility, planRepository);
+  const changeSetService = new ChangeSetService(
+    planRepository,
+    new ChangeSetRepository(database),
+    queue,
+  );
 
   const app = await createApiApplication({
     logger,
@@ -42,6 +50,7 @@ async function main(): Promise<void> {
     analysisService,
     compatibilityService,
     planService,
+    changeSetService,
     readinessProbe: async () => {
       await checkDatabase(database);
       await checkRedis(redis);

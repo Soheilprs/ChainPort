@@ -6,7 +6,7 @@ TypeScript monorepo. Domain logic lives in packages. Apps are thin adapters.
 apps/
   web/          Next.js UI
   api/          Fastify HTTP API
-  worker/       BullMQ ingest + analysis processors
+  worker/       BullMQ ingest + analysis + changeset processors
 
 packages/
   shared/       Product constants, enums, job state machine, config, GitHub URL parsing
@@ -16,6 +16,7 @@ packages/
   scanner/      Deterministic static analysis
   compatibility/ Deterministic target-chain comparison engine
   migration/    Deterministic migration planner
+  changeset/    Safe patchers, diffs, content hash, artifact store
   sandbox/      Security policy; runner not implemented
   db/           Prisma schema and client
 ```
@@ -75,6 +76,17 @@ See [COMPATIBILITY_ENGINE.md](COMPATIBILITY_ENGINE.md).
 4. The plan is persisted. No repository I/O.
 
 See [MIGRATION_PLANNER.md](MIGRATION_PLANNER.md).
+
+## ChangeSet path
+
+1. API loads a completed migration plan and creates or reuses a ChangeSet keyed by
+   `plan + SHA + engine version`.
+2. Worker rematerializes the stored SHA, runs safe patchers, and persists `PROPOSED` diffs.
+3. API accept/reject (and optional accept-all) update change rows only.
+4. Worker finalizes accepted patches into a generated `RepositoryRevision` under the artifact store.
+5. Rollback reselects the original revision. The GitHub repository is never written.
+
+See [CHANGESET_ENGINE.md](CHANGESET_ENGINE.md) and [REVISION_STORAGE.md](REVISION_STORAGE.md).
 
 ## Data
 

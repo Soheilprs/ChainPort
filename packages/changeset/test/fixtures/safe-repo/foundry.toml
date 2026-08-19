@@ -1,0 +1,3 @@
+[profile.default]
+src = "src"
+eth_rpc_url = "https://mainnet.base.org"

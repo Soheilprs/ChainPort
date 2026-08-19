@@ -8,10 +8,11 @@ a target chain, and how to migrate it safely.
 It is not an RPC provider, explorer, indexer, generic AI coding assistant, generic GitHub scanner,
 or generic CI/CD tool.
 
-> **CURRENT STATUS: PHASE 5 — MIGRATION PLANNER**
+> **CURRENT STATUS: PHASE 6 — SAFE AUTO-FIX / CHANGESET ENGINE**
 >
-> Completed compatibility reports produce an ordered migration plan: safe automatic changes, review
-> items, blockers, and unverified target capabilities. ChainPort still does not modify repositories.
+> Completed migration plans produce reviewable, deterministic patches for `SAFE_AUTOMATIC` actions
+> only. Developers accept or reject each diff, then finalize a generated revision. The original
+> GitHub repository is never modified.
 
 ## Prerequisites
 
@@ -38,23 +39,27 @@ secret values have application defaults.
 
 ## Service URLs
 
-| Service               | URL                                               |
-| --------------------- | ------------------------------------------------- |
-| Web                   | <http://localhost:3000>                           |
-| API health            | <http://localhost:3001/health>                    |
-| API readiness         | <http://localhost:3001/ready>                     |
-| Product metadata      | <http://localhost:3001/v1/meta>                   |
-| Chain catalog         | <http://localhost:3001/v1/chains>                 |
-| Create project        | `POST /v1/projects`                               |
-| Get project           | `GET /v1/projects/:id`                            |
-| Project jobs          | `GET /v1/projects/:id/jobs`                       |
-| Get job               | `GET /v1/jobs/:id`                                |
-| Create analysis       | `POST /v1/projects/:id/analyses`                  |
-| Get analysis          | `GET /v1/analyses/:id`                            |
-| Create compatibility  | `POST /v1/projects/:id/compatibility-runs`        |
-| Get compatibility     | `GET /v1/compatibility-runs/:id`                  |
-| Create migration plan | `POST /v1/compatibility-runs/:id/migration-plans` |
-| Get migration plan    | `GET /v1/migration-plans/:id`                     |
+| Service               | URL                                                 |
+| --------------------- | --------------------------------------------------- |
+| Web                   | <http://localhost:3000>                             |
+| API health            | <http://localhost:3001/health>                      |
+| API readiness         | <http://localhost:3001/ready>                       |
+| Product metadata      | <http://localhost:3001/v1/meta>                     |
+| Chain catalog         | <http://localhost:3001/v1/chains>                   |
+| Create project        | `POST /v1/projects`                                 |
+| Get project           | `GET /v1/projects/:id`                              |
+| Project jobs          | `GET /v1/projects/:id/jobs`                         |
+| Get job               | `GET /v1/jobs/:id`                                  |
+| Create analysis       | `POST /v1/projects/:id/analyses`                    |
+| Get analysis          | `GET /v1/analyses/:id`                              |
+| Create compatibility  | `POST /v1/projects/:id/compatibility-runs`          |
+| Get compatibility     | `GET /v1/compatibility-runs/:id`                    |
+| Create migration plan | `POST /v1/compatibility-runs/:id/migration-plans`   |
+| Get migration plan    | `GET /v1/migration-plans/:id`                       |
+| Create ChangeSet      | `POST /v1/migration-plans/:id/change-sets`          |
+| Get ChangeSet         | `GET /v1/change-sets/:id`                           |
+| Accept / reject       | `POST /v1/change-sets/:id/changes/:changeId/accept` |
+| Finalize / rollback   | `POST /v1/change-sets/:id/finalize`                 |
 
 `/health` does not touch PostgreSQL or Redis. `/ready` returns HTTP 503 when either is unavailable.
 
@@ -83,5 +88,7 @@ pnpm db:studio
 - [Phases](docs/PHASES.md)
 - [Compatibility engine](docs/COMPATIBILITY_ENGINE.md)
 - [Migration planner](docs/MIGRATION_PLANNER.md)
+- [ChangeSet engine](docs/CHANGESET_ENGINE.md)
+- [Revision storage](docs/REVISION_STORAGE.md)
 - [Repository ingest](docs/INGEST.md)
 - [Scanner](docs/SCANNER.md)
