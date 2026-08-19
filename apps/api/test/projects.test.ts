@@ -78,6 +78,7 @@ describe("project ingest routes", () => {
         enqueueAnalysis: vi.fn(),
         enqueueGenerateChangeSet: vi.fn(),
         enqueueFinalizeChangeSet: vi.fn(),
+        enqueueValidate: vi.fn(),
         close: () => Promise.resolve(),
       },
     );
@@ -109,6 +110,7 @@ describe("project ingest routes", () => {
       enqueueAnalysis: vi.fn(),
       enqueueGenerateChangeSet: vi.fn(),
       enqueueFinalizeChangeSet: vi.fn(),
+      enqueueValidate: vi.fn(),
       close: () => Promise.resolve(),
     });
     const app = await createApiApplication({

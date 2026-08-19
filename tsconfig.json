@@ -9,6 +9,7 @@
     { "path": "packages/migration" },
     { "path": "packages/changeset" },
     { "path": "packages/sandbox" },
+    { "path": "packages/validation" },
     { "path": "packages/ingest" },
     { "path": "packages/db" },
     { "path": "apps/api" },

@@ -12,6 +12,13 @@ import type {
   CoverageConfidence,
   DetectionConfidence,
   FileCategory,
+  RegressionStatus,
+  ValidationFramework,
+  ValidationOutcome,
+  ValidationProfile,
+  ValidationRunStatus,
+  ValidationStepName,
+  ValidationStepStatus,
   FindingCategory,
   FindingSeverity,
   JobStatus,
@@ -419,6 +426,73 @@ export interface ChangeSetRecord {
   createdAt: Date;
   finalizedAt: Date | null;
   updatedAt: Date;
+}
+
+export interface ValidationRunRecord {
+  id: string;
+  projectId: string;
+  repositoryRevisionId: string;
+  revisionType: RevisionType;
+  baseCommitSha: string;
+  revisionContentHash: string;
+  engineVersion: string;
+  profile: ValidationProfile;
+  framework: ValidationFramework | null;
+  status: ValidationRunStatus;
+  outcome: ValidationOutcome | null;
+  sandboxImage: string | null;
+  sandboxImageDigest: string | null;
+  runtimeVersion: string | null;
+  buildStatus: ValidationStepStatus | null;
+  testStatus: ValidationStepStatus | null;
+  countsAvailable: boolean;
+  testTotal: number | null;
+  testPassed: number | null;
+  testFailed: number | null;
+  testSkipped: number | null;
+  durationMs: number | null;
+  errorCode: string | null;
+  errorMessage: string | null;
+  idempotencyKey: string;
+  limitsJson: JsonObject;
+  networkPolicy: string;
+  leaseOwner: string | null;
+  leaseExpiresAt: Date | null;
+  startedAt: Date | null;
+  completedAt: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface ValidationStepRecord {
+  id: string;
+  validationRunId: string;
+  name: ValidationStepName;
+  status: ValidationStepStatus;
+  exitCode: number | null;
+  durationMs: number | null;
+  logTruncated: boolean;
+  logText: string | null;
+  errorCode: string | null;
+  startedAt: Date | null;
+  completedAt: Date | null;
+}
+
+export interface ValidationTestResultRecord {
+  id: string;
+  validationRunId: string;
+  suite: string | null;
+  testName: string;
+  status: string;
+  durationMs: number | null;
+  failureSummary: string | null;
+}
+
+export interface ValidationComparison {
+  original: ValidationRunRecord | null;
+  generated: ValidationRunRecord | null;
+  regressionStatus: RegressionStatus;
+  summary: string;
 }
 
 export interface ChangeSetChangeRecord {

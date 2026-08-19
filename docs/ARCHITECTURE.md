@@ -6,7 +6,7 @@ TypeScript monorepo. Domain logic lives in packages. Apps are thin adapters.
 apps/
   web/          Next.js UI
   api/          Fastify HTTP API
-  worker/       BullMQ ingest + analysis + changeset processors
+  worker/       BullMQ ingest + analysis + changeset + validation processors
 
 packages/
   shared/       Product constants, enums, job state machine, config, GitHub URL parsing
@@ -17,7 +17,8 @@ packages/
   compatibility/ Deterministic target-chain comparison engine
   migration/    Deterministic migration planner
   changeset/    Safe patchers, diffs, content hash, artifact store
-  sandbox/      Security policy; runner not implemented
+  sandbox/      Hardened Docker runner and policy
+  validation/   Profiles, parsers, log redaction, regression comparison
   db/           Prisma schema and client
 ```
 
@@ -87,6 +88,16 @@ See [MIGRATION_PLANNER.md](MIGRATION_PLANNER.md).
 5. Rollback reselects the original revision. The GitHub repository is never written.
 
 See [CHANGESET_ENGINE.md](CHANGESET_ENGINE.md) and [REVISION_STORAGE.md](REVISION_STORAGE.md).
+
+## Validation path
+
+1. API creates a ValidationRun for a RepositoryRevision (idempotent).
+2. Worker rematerializes ORIGINAL via Git or GENERATED via the artifact store.
+3. Content hash is recomputed. Mismatch fails closed.
+4. `DockerSandboxRunner` starts an ephemeral container and runs profile commands.
+5. Results, bounded redacted logs, and outcomes are persisted. The sandbox is destroyed.
+
+See [VALIDATION_ENGINE.md](VALIDATION_ENGINE.md) and [SANDBOX_SECURITY.md](SANDBOX_SECURITY.md).
 
 ## Data
 

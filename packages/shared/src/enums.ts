@@ -217,6 +217,66 @@ export type RevisionType = (typeof REVISION_TYPES)[number];
 export const REVISION_COMPLETENESS = ["COMPLETE", "PARTIAL"] as const;
 export type RevisionCompleteness = (typeof REVISION_COMPLETENESS)[number];
 
+export const VALIDATION_ENGINE_VERSION = "1";
+export const VALIDATION_PROFILE_ID = "STANDARD_LOCAL";
+export const VALIDATION_PROFILE_VERSION = "1";
+
+export const VALIDATION_RUN_STATUSES = [
+  "QUEUED",
+  "PREPARING",
+  "INSTALLING",
+  "BUILDING",
+  "TESTING",
+  "COMPLETED",
+  "FAILED",
+  "TIMED_OUT",
+] as const;
+export type ValidationRunStatus = (typeof VALIDATION_RUN_STATUSES)[number];
+
+export const VALIDATION_OUTCOMES = [
+  "PASSED",
+  "FAILED",
+  "PARTIAL",
+  "UNSUPPORTED",
+  "INFRA_FAILURE",
+] as const;
+export type ValidationOutcome = (typeof VALIDATION_OUTCOMES)[number];
+
+export const VALIDATION_STEP_NAMES = [
+  "MATERIALIZE",
+  "VERIFY_REVISION",
+  "INSTALL",
+  "BUILD",
+  "TEST",
+  "CLEANUP",
+] as const;
+export type ValidationStepName = (typeof VALIDATION_STEP_NAMES)[number];
+
+export const VALIDATION_STEP_STATUSES = [
+  "PENDING",
+  "RUNNING",
+  "PASSED",
+  "FAILED",
+  "SKIPPED",
+  "TIMED_OUT",
+] as const;
+export type ValidationStepStatus = (typeof VALIDATION_STEP_STATUSES)[number];
+
+export const VALIDATION_FRAMEWORKS = ["FOUNDRY", "HARDHAT"] as const;
+export type ValidationFramework = (typeof VALIDATION_FRAMEWORKS)[number];
+
+export const VALIDATION_PROFILES = ["STANDARD_LOCAL"] as const;
+export type ValidationProfile = (typeof VALIDATION_PROFILES)[number];
+
+export const REGRESSION_STATUSES = [
+  "NOT_COMPARED",
+  "NO_REGRESSION",
+  "REGRESSION_DETECTED",
+  "BASELINE_ALREADY_FAILING",
+  "INCONCLUSIVE",
+] as const;
+export type RegressionStatus = (typeof REGRESSION_STATUSES)[number];
+
 export const MIGRATION_ACTION_CATEGORIES = [
   "CHAIN_ID",
   "RPC_URL",
@@ -411,6 +471,22 @@ export function isChangeStatus(value: unknown): value is ChangeStatus {
 
 export function isRevisionType(value: unknown): value is RevisionType {
   return isOneOf(value, REVISION_TYPES);
+}
+
+export function isValidationRunStatus(value: unknown): value is ValidationRunStatus {
+  return isOneOf(value, VALIDATION_RUN_STATUSES);
+}
+
+export function isValidationOutcome(value: unknown): value is ValidationOutcome {
+  return isOneOf(value, VALIDATION_OUTCOMES);
+}
+
+export function isValidationFramework(value: unknown): value is ValidationFramework {
+  return isOneOf(value, VALIDATION_FRAMEWORKS);
+}
+
+export function isRegressionStatus(value: unknown): value is RegressionStatus {
+  return isOneOf(value, REGRESSION_STATUSES);
 }
 
 export function isFindingCategory(value: unknown): value is FindingCategory {

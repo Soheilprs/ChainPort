@@ -46,6 +46,7 @@ async function makeApp() {
       enqueueAnalysis: vi.fn(() => Promise.resolve()),
       enqueueGenerateChangeSet: vi.fn(() => Promise.resolve()),
       enqueueFinalizeChangeSet: vi.fn(() => Promise.resolve()),
+      enqueueValidate: vi.fn(() => Promise.resolve()),
       close: () => Promise.resolve(),
     }),
     compatibilityService: new CompatibilityService(ingest, analyses, compatibility),

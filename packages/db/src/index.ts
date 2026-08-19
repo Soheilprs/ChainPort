@@ -29,4 +29,5 @@ export {
 } from "./compatibility-repository.js";
 export { PlanRepository } from "./plan-repository.js";
 export { ChangeSetRepository, type PersistGeneratedChange } from "./changeset-repository.js";
+export { ValidationRepository } from "./validation-repository.js";
 export { mapJobStatusEvent, mapMigrationJob, mapProject, mapRepository } from "./mappers.js";

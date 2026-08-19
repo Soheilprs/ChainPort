@@ -27,14 +27,19 @@ No migration, patches, compilation, or repository execution.
 Completed compatibility run + migration ruleset `"1"` → ordered actions with automation and risk
 classification. Plans are immutable. Repository files are not modified.
 
-## Phase 6 — Safe auto-fix / ChangeSet engine (current)
+## Phase 6 — Safe auto-fix / ChangeSet engine
 
 Completed migration plan + `SAFE_AUTOMATIC` actions + exact SHA → rematerialize, generate
 reviewable patches, accept/reject, finalize a generated `RepositoryRevision`, rollback to original.
 The original GitHub repository is never modified.
 
+## Phase 7 — Isolated build & test validation (current)
+
+A `RepositoryRevision` is rematerialized, hash-verified, and executed inside an ephemeral
+container: install (policy) → build → test. Results are immutable ValidationRuns. Original vs
+generated comparison detects regressions without claiming causation when the baseline already failed.
+
 ## Recommended next phases
 
-7. **Isolated sandbox build/test** of the generated revision.
 8. **Target testnet deploy and verification**.
 9. **Network console analytics**.

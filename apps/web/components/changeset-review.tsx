@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 
+import { ValidateRevisionButton } from "@/components/validate-revision";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
@@ -207,13 +208,25 @@ export function ChangeSetReview({ initial }: { initial: ChangeSetPayload }) {
                 </p>
               ) : null}
             </div>
-            <Button
-              variant="outline"
-              disabled={pending}
-              onClick={() => void mutate(`/v1/change-sets/${payload.changeSet.id}/rollback`)}
-            >
-              Roll back to original
-            </Button>
+            <div className="flex flex-wrap gap-2">
+              {payload.generatedRevision ? (
+                <ValidateRevisionButton
+                  revisionId={payload.generatedRevision.id}
+                  label="Validate generated revision"
+                />
+              ) : null}
+              <ValidateRevisionButton
+                revisionId={payload.originalRevision.id}
+                label="Validate original baseline"
+              />
+              <Button
+                variant="outline"
+                disabled={pending}
+                onClick={() => void mutate(`/v1/change-sets/${payload.changeSet.id}/rollback`)}
+              >
+                Roll back to original
+              </Button>
+            </div>
           </div>
         </Card>
       ) : null}

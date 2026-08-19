@@ -64,8 +64,9 @@ export default function HomePage() {
             <CardTitle className="mt-4">Port an application</CardTitle>
             <CardDescription>
               Submit a public GitHub URL, ingest the SHA, analyze requirements, evaluate target
-              compatibility, plan the migration, and review deterministic safe patches. Sandbox
-              validation is not implemented in this phase.
+              compatibility, plan the migration, review deterministic safe patches, and validate
+              generated revisions in an isolated sandbox. Deployment is not implemented in this
+              phase.
             </CardDescription>
             <ol className="mt-5 space-y-2 text-sm text-muted">
               {developerSteps.map((step, index) => (

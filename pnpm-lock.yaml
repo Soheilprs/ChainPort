@@ -50,12 +50,18 @@ importers:
       '@chainport/migration':
         specifier: workspace:*
         version: link:../../packages/migration
+      '@chainport/sandbox':
+        specifier: workspace:*
+        version: link:../../packages/sandbox
       '@chainport/scanner':
         specifier: workspace:*
         version: link:../../packages/scanner
       '@chainport/shared':
         specifier: workspace:*
         version: link:../../packages/shared
+      '@chainport/validation':
+        specifier: workspace:*
+        version: link:../../packages/validation
       '@fastify/cors':
         specifier: 11.1.0
         version: 11.1.0
@@ -136,12 +142,18 @@ importers:
       '@chainport/ingest':
         specifier: workspace:*
         version: link:../../packages/ingest
+      '@chainport/sandbox':
+        specifier: workspace:*
+        version: link:../../packages/sandbox
       '@chainport/scanner':
         specifier: workspace:*
         version: link:../../packages/scanner
       '@chainport/shared':
         specifier: workspace:*
         version: link:../../packages/shared
+      '@chainport/validation':
+        specifier: workspace:*
+        version: link:../../packages/validation
       bullmq:
         specifier: 5.61.0
         version: 5.61.0(supports-color@8.1.1)
@@ -248,6 +260,10 @@ importers:
       '@chainport/shared':
         specifier: workspace:*
         version: link:../shared
+    devDependencies:
+      '@types/node':
+        specifier: 24.10.1
+        version: 24.10.1
 
   packages/scanner:
     dependencies:
@@ -276,6 +292,22 @@ importers:
       zod:
         specifier: 3.25.76
         version: 3.25.76
+    devDependencies:
+      '@types/node':
+        specifier: 24.10.1
+        version: 24.10.1
+
+  packages/validation:
+    dependencies:
+      '@chainport/changeset':
+        specifier: workspace:*
+        version: link:../changeset
+      '@chainport/sandbox':
+        specifier: workspace:*
+        version: link:../sandbox
+      '@chainport/shared':
+        specifier: workspace:*
+        version: link:../shared
     devDependencies:
       '@types/node':
         specifier: 24.10.1

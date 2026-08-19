@@ -58,6 +58,7 @@ describe("changeset API", () => {
         enqueueAnalysis: vi.fn(() => Promise.resolve()),
         enqueueGenerateChangeSet: enqueueGenerate,
         enqueueFinalizeChangeSet: enqueueFinalize,
+        enqueueValidate: vi.fn(() => Promise.resolve()),
         close: () => Promise.resolve(),
       }),
     });

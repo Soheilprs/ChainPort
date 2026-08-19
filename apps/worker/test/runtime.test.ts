@@ -9,5 +9,7 @@ describe("worker ingest registration", () => {
     expect(QUEUE_NAMES.CHANGESET_JOBS).toBe("changeset-jobs");
     expect(JOB_NAMES.GENERATE_CHANGESET).toBe("generate-changeset");
     expect(JOB_NAMES.FINALIZE_CHANGESET).toBe("finalize-changeset");
+    expect(QUEUE_NAMES.VALIDATION_JOBS).toBe("validation-jobs");
+    expect(JOB_NAMES.VALIDATE_REVISION).toBe("validate-revision");
   });
 });

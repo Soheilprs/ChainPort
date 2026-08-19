@@ -1,0 +1,15 @@
+FROM node:20.19.2-bookworm-slim
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends git ca-certificates coreutils \
+  && rm -rf /var/lib/apt/lists/* \
+  && groupadd --gid 10001 chainport \
+  && useradd --uid 10001 --gid 10001 --create-home --home-dir /home/chainport chainport \
+  && mkdir -p /workspace \
+  && chown chainport:chainport /workspace /home/chainport \
+  && corepack enable
+USER 10001:10001
+WORKDIR /workspace
+ENV HOME=/home/chainport
+ENV npm_config_ignore_scripts=true
+ENV npm_config_audit=false
+ENV npm_config_fund=false

@@ -1,5 +1,3 @@
-import { CURRENT_PHASE, NotImplementedError } from "@chainport/shared";
-
 export class SandboxPolicyError extends Error {
   public constructor(message: string) {
     super(message);
@@ -15,6 +13,8 @@ export const SANDBOX_POLICY = {
   readOnlyRootFilesystem: true,
   dropAllCapabilities: true,
   noNewPrivileges: true,
+  inheritHostEnvironment: false,
+  installScripts: false,
 } as const;
 
 export type ExecutionLocation = "host" | "isolated-container";
@@ -37,6 +37,6 @@ export function assertSandboxPolicy(request: SandboxExecutionRequest): void {
   }
 }
 
-export function assertSandboxRunnerAvailable(): never {
-  throw new NotImplementedError("isolated sandbox runner", CURRENT_PHASE);
+export function assertSandboxRunnerAvailable(): void {
+  // Runner is implemented in this phase. Callers still must use DockerSandboxRunner.
 }

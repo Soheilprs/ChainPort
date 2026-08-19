@@ -4,6 +4,7 @@ import {
   type AnalysisJobPayload,
   type ChangeSetJobPayload,
   type IngestJobPayload,
+  type ValidationJobPayload,
 } from "@chainport/shared";
 import { Worker, type Job } from "bullmq";
 import type { Redis } from "ioredis";
@@ -16,6 +17,10 @@ import {
   type ChangeSetProcessorDependencies,
 } from "./changeset-processor.js";
 import { processIngestJob, type IngestProcessorDependencies } from "./ingest-processor.js";
+import {
+  processValidationJob,
+  type ValidationProcessorDependencies,
+} from "./validation-processor.js";
 
 export interface WorkerRuntimeOptions {
   workerId: string;
@@ -24,6 +29,7 @@ export interface WorkerRuntimeOptions {
   processor: IngestProcessorDependencies;
   analysisProcessor: AnalysisProcessorDependencies;
   changeSetProcessor: ChangeSetProcessorDependencies;
+  validationProcessor: ValidationProcessorDependencies;
 }
 
 export interface WorkerRuntime {
@@ -64,6 +70,13 @@ export async function startWorkerRuntime(options: WorkerRuntimeOptions): Promise
     },
     { connection: options.redis, concurrency: 1 },
   );
+  const validationWorker = new Worker<ValidationJobPayload>(
+    QUEUE_NAMES.VALIDATION_JOBS,
+    async (job: Job<ValidationJobPayload>) => {
+      await processValidationJob(job.data.validationId, options.validationProcessor);
+    },
+    { connection: options.redis, concurrency: 1 },
+  );
 
   ingestWorker.on("failed", (job, error) => {
     options.logger.error({ err: error, jobId: job?.data.jobId }, "ingest job failed");
@@ -77,19 +90,31 @@ export async function startWorkerRuntime(options: WorkerRuntimeOptions): Promise
       "changeset job failed",
     );
   });
+  validationWorker.on("failed", (job, error) => {
+    options.logger.error(
+      { err: error, validationId: job?.data.validationId },
+      "validation job failed",
+    );
+  });
 
   options.logger.info(
     {
       workerId: options.workerId,
-      queues: [QUEUE_NAMES.MIGRATION_JOBS, QUEUE_NAMES.ANALYSIS_JOBS, QUEUE_NAMES.CHANGESET_JOBS],
+      queues: [
+        QUEUE_NAMES.MIGRATION_JOBS,
+        QUEUE_NAMES.ANALYSIS_JOBS,
+        QUEUE_NAMES.CHANGESET_JOBS,
+        QUEUE_NAMES.VALIDATION_JOBS,
+      ],
       processors: [
         JOB_NAMES.INGEST_REPOSITORY,
         JOB_NAMES.ANALYZE_REPOSITORY,
         JOB_NAMES.GENERATE_CHANGESET,
         JOB_NAMES.FINALIZE_CHANGESET,
+        JOB_NAMES.VALIDATE_REVISION,
       ],
     },
-    "Worker started; ingest, analysis, and changeset processors registered",
+    "Worker started; ingest, analysis, changeset, and validation processors registered",
   );
 
   let stopped = false;
@@ -99,12 +124,14 @@ export async function startWorkerRuntime(options: WorkerRuntimeOptions): Promise
       QUEUE_NAMES.MIGRATION_JOBS,
       QUEUE_NAMES.ANALYSIS_JOBS,
       QUEUE_NAMES.CHANGESET_JOBS,
+      QUEUE_NAMES.VALIDATION_JOBS,
     ],
     registeredProcessors: [
       JOB_NAMES.INGEST_REPOSITORY,
       JOB_NAMES.ANALYZE_REPOSITORY,
       JOB_NAMES.GENERATE_CHANGESET,
       JOB_NAMES.FINALIZE_CHANGESET,
+      JOB_NAMES.VALIDATE_REVISION,
     ],
     async stop(signal) {
       if (stopped) {
@@ -115,6 +142,7 @@ export async function startWorkerRuntime(options: WorkerRuntimeOptions): Promise
       await ingestWorker.close();
       await analysisWorker.close();
       await changeSetWorker.close();
+      await validationWorker.close();
       await options.redis.quit();
       options.logger.info({ workerId: options.workerId }, "Worker shutdown complete");
     },

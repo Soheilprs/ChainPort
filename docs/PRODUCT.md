@@ -55,6 +55,6 @@ Repository code must never execute on the host. Sandbox execution is isolated.
 
 ## Current phase
 
-Phase 6 turns a completed migration plan into a reviewable ChangeSet of deterministic patches for
-`SAFE_AUTOMATIC` actions only. Developers accept or reject each diff and may finalize a generated
-revision. The original GitHub repository is never modified. Sandbox build/test is not implemented.
+Phase 7 executes a generated (or original) repository revision inside a hardened ephemeral sandbox
+and reports whether it compiles and whether its existing local tests pass. It does not deploy,
+open pull requests, or repair failing tests.

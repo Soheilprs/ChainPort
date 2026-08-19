@@ -7,13 +7,16 @@ import {
   IngestRepository,
   ChangeSetRepository,
   PlanRepository,
+  ValidationRepository,
 } from "@chainport/db";
+import { DockerSandboxRunner } from "@chainport/sandbox";
 import { loadServiceConfig } from "@chainport/shared";
 import { Redis } from "ioredis";
 
 import { AnalysisService } from "./analysis-service.js";
 import { CompatibilityService } from "./compatibility-service.js";
 import { ChangeSetService } from "./changeset-service.js";
+import { ValidationService } from "./validation-service.js";
 import { PlanService } from "./plan-service.js";
 import { createApiApplication } from "./app.js";
 import { createLogger } from "./logger.js";
@@ -37,10 +40,25 @@ async function main(): Promise<void> {
   const compatibilityService = new CompatibilityService(ingest, analyses, compatibility);
   const planRepository = new PlanRepository(database);
   const planService = new PlanService(compatibility, planRepository);
-  const changeSetService = new ChangeSetService(
-    planRepository,
-    new ChangeSetRepository(database),
+  const changeSetRepository = new ChangeSetRepository(database);
+  const changeSetService = new ChangeSetService(planRepository, changeSetRepository, queue);
+  const validationService = new ValidationService(
+    changeSetRepository,
+    new ValidationRepository(database),
     queue,
+    new DockerSandboxRunner(),
+    {
+      ...(config.SANDBOX_IMAGE_FOUNDRY === undefined
+        ? {}
+        : { foundry: config.SANDBOX_IMAGE_FOUNDRY }),
+      ...(config.SANDBOX_IMAGE_NODE20 === undefined ? {} : { node20: config.SANDBOX_IMAGE_NODE20 }),
+      ...(config.SANDBOX_IMAGE_NODE22 === undefined ? {} : { node22: config.SANDBOX_IMAGE_NODE22 }),
+    },
+    {
+      memoryBytes: config.VALIDATION_MEMORY_BYTES,
+      cpus: config.VALIDATION_CPUS,
+      pids: config.VALIDATION_PIDS,
+    },
   );
 
   const app = await createApiApplication({
@@ -51,6 +69,7 @@ async function main(): Promise<void> {
     compatibilityService,
     planService,
     changeSetService,
+    validationService,
     readinessProbe: async () => {
       await checkDatabase(database);
       await checkRedis(redis);

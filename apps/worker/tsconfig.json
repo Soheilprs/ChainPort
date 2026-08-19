@@ -15,6 +15,8 @@
     { "path": "../../packages/changeset" },
     { "path": "../../packages/db" },
     { "path": "../../packages/ingest" },
+    { "path": "../../packages/sandbox" },
+    { "path": "../../packages/validation" },
     { "path": "../../packages/scanner" }
   ]
 }

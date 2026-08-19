@@ -45,6 +45,13 @@ Phase 6 adds revision and ChangeSet tables:
 
 Generated file blobs live on the artifact store, not in PostgreSQL.
 
+Phase 7 adds validation tables:
+
+- `validation_runs` (revision, hash, profile, sandbox image/digest, outcome)
+- `validation_status_events`
+- `validation_steps` (bounded logs)
+- `validation_test_results`
+
 Phase 3 adds analysis tables:
 
 - `repository_analyses` unique on `(repository_id, commit_sha, scanner_version)`

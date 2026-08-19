@@ -8,11 +8,10 @@ a target chain, and how to migrate it safely.
 It is not an RPC provider, explorer, indexer, generic AI coding assistant, generic GitHub scanner,
 or generic CI/CD tool.
 
-> **CURRENT STATUS: PHASE 6 — SAFE AUTO-FIX / CHANGESET ENGINE**
+> **CURRENT STATUS: PHASE 7 — ISOLATED BUILD & TEST VALIDATION**
 >
-> Completed migration plans produce reviewable, deterministic patches for `SAFE_AUTOMATIC` actions
-> only. Developers accept or reject each diff, then finalize a generated revision. The original
-> GitHub repository is never modified.
+> Generated revisions can be executed in a hardened ephemeral sandbox: install under policy, build,
+> and run existing local tests. ChainPort still does not deploy or write back to GitHub.
 
 ## Prerequisites
 
@@ -60,6 +59,8 @@ secret values have application defaults.
 | Get ChangeSet         | `GET /v1/change-sets/:id`                           |
 | Accept / reject       | `POST /v1/change-sets/:id/changes/:changeId/accept` |
 | Finalize / rollback   | `POST /v1/change-sets/:id/finalize`                 |
+| Validate revision     | `POST /v1/revisions/:id/validations`                |
+| Get validation        | `GET /v1/validations/:id`                           |
 
 `/health` does not touch PostgreSQL or Redis. `/ready` returns HTTP 503 when either is unavailable.
 
@@ -90,5 +91,7 @@ pnpm db:studio
 - [Migration planner](docs/MIGRATION_PLANNER.md)
 - [ChangeSet engine](docs/CHANGESET_ENGINE.md)
 - [Revision storage](docs/REVISION_STORAGE.md)
+- [Validation engine](docs/VALIDATION_ENGINE.md)
+- [Sandbox security](docs/SANDBOX_SECURITY.md)
 - [Repository ingest](docs/INGEST.md)
 - [Scanner](docs/SCANNER.md)

@@ -222,6 +222,52 @@ enum RevisionCompleteness {
   PARTIAL
 }
 
+enum ValidationRunStatus {
+  QUEUED
+  PREPARING
+  INSTALLING
+  BUILDING
+  TESTING
+  COMPLETED
+  FAILED
+  TIMED_OUT
+}
+
+enum ValidationOutcome {
+  PASSED
+  FAILED
+  PARTIAL
+  UNSUPPORTED
+  INFRA_FAILURE
+}
+
+enum ValidationStepName {
+  MATERIALIZE
+  VERIFY_REVISION
+  INSTALL
+  BUILD
+  TEST
+  CLEANUP
+}
+
+enum ValidationStepStatus {
+  PENDING
+  RUNNING
+  PASSED
+  FAILED
+  SKIPPED
+  TIMED_OUT
+}
+
+enum ValidationFramework {
+  FOUNDRY
+  HARDHAT
+}
+
+enum ValidationProfile {
+  STANDARD_LOCAL
+}
+
 enum MigrationActionCategory {
   CHAIN_ID
   RPC_URL
@@ -340,6 +386,7 @@ model Project {
   plannedMigrations   PlannedMigration[]
   revisions           RepositoryRevision[] @relation("ProjectRevisions")
   changeSets          ChangeSet[]
+  validationRuns      ValidationRun[]
 
   @@unique([githubOwner, githubRepo])
   @@unique([repositoryId])
@@ -823,6 +870,7 @@ model RepositoryRevision {
   createdAt       DateTime               @default(now()) @map("created_at") @db.Timestamptz(3)
   activeFor       Project[]              @relation("ActiveRevision")
   originalOf      ChangeSet[]            @relation("OriginalRevision")
+  validationRuns  ValidationRun[]
 
   @@index([repositoryId, baseCommitSha])
   @@index([projectId, createdAt])
@@ -905,4 +953,96 @@ model ChangeSetChange {
   @@index([changeSetId, status])
   @@index([migrationActionId])
   @@map("change_set_changes")
+}
+
+model ValidationRun {
+  id                   String                @id @db.Uuid
+  projectId            String                @map("project_id") @db.Uuid
+  project              Project               @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  repositoryRevisionId String                @map("repository_revision_id") @db.Uuid
+  repositoryRevision   RepositoryRevision    @relation(fields: [repositoryRevisionId], references: [id], onDelete: Restrict)
+  revisionType         RevisionType          @map("revision_type")
+  baseCommitSha        String                @map("base_commit_sha")
+  revisionContentHash  String                @map("revision_content_hash")
+  engineVersion        String                @map("engine_version")
+  profile              ValidationProfile
+  framework            ValidationFramework?
+  status               ValidationRunStatus   @default(QUEUED)
+  outcome              ValidationOutcome?
+  sandboxImage         String?               @map("sandbox_image")
+  sandboxImageDigest   String?               @map("sandbox_image_digest")
+  runtimeVersion       String?               @map("runtime_version")
+  buildStatus          ValidationStepStatus? @map("build_status")
+  testStatus           ValidationStepStatus? @map("test_status")
+  countsAvailable      Boolean               @default(false) @map("counts_available")
+  testTotal            Int?                  @map("test_total")
+  testPassed           Int?                  @map("test_passed")
+  testFailed           Int?                  @map("test_failed")
+  testSkipped          Int?                  @map("test_skipped")
+  durationMs           Int?                  @map("duration_ms")
+  errorCode            String?               @map("error_code")
+  errorMessage         String?               @map("error_message")
+  idempotencyKey       String                @unique @map("idempotency_key")
+  limitsJson           Json                  @map("limits_json")
+  networkPolicy        String                @map("network_policy")
+  leaseOwner           String?               @map("lease_owner")
+  leaseExpiresAt       DateTime?             @map("lease_expires_at") @db.Timestamptz(3)
+  startedAt            DateTime?             @map("started_at") @db.Timestamptz(3)
+  completedAt          DateTime?             @map("completed_at") @db.Timestamptz(3)
+  createdAt            DateTime              @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt            DateTime              @updatedAt @map("updated_at") @db.Timestamptz(3)
+  steps                ValidationStep[]
+  tests                ValidationTestResult[]
+  events               ValidationStatusEvent[]
+
+  @@index([repositoryRevisionId, createdAt])
+  @@index([projectId, createdAt])
+  @@index([status, createdAt])
+  @@index([revisionContentHash])
+  @@map("validation_runs")
+}
+
+model ValidationStatusEvent {
+  id              String              @id @db.Uuid
+  validationRunId String              @map("validation_run_id") @db.Uuid
+  validationRun   ValidationRun       @relation(fields: [validationRunId], references: [id], onDelete: Cascade)
+  fromStatus      ValidationRunStatus? @map("from_status")
+  toStatus        ValidationRunStatus @map("to_status")
+  reason          String?
+  createdAt       DateTime            @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  @@index([validationRunId, createdAt])
+  @@map("validation_status_events")
+}
+
+model ValidationStep {
+  id              String               @id @db.Uuid
+  validationRunId String               @map("validation_run_id") @db.Uuid
+  validationRun   ValidationRun        @relation(fields: [validationRunId], references: [id], onDelete: Cascade)
+  name            ValidationStepName
+  status          ValidationStepStatus @default(PENDING)
+  exitCode        Int?                 @map("exit_code")
+  durationMs      Int?                 @map("duration_ms")
+  logTruncated    Boolean              @default(false) @map("log_truncated")
+  logText         String?              @map("log_text") @db.Text
+  errorCode       String?              @map("error_code")
+  startedAt       DateTime?            @map("started_at") @db.Timestamptz(3)
+  completedAt     DateTime?            @map("completed_at") @db.Timestamptz(3)
+
+  @@index([validationRunId, name])
+  @@map("validation_steps")
+}
+
+model ValidationTestResult {
+  id              String        @id @db.Uuid
+  validationRunId String        @map("validation_run_id") @db.Uuid
+  validationRun   ValidationRun @relation(fields: [validationRunId], references: [id], onDelete: Cascade)
+  suite           String?
+  testName        String        @map("test_name")
+  status          String
+  durationMs      Int?          @map("duration_ms")
+  failureSummary  String?       @map("failure_summary")
+
+  @@index([validationRunId])
+  @@map("validation_test_results")
 }

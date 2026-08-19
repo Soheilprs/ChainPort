@@ -7,8 +7,10 @@ import {
   getDatabaseClient,
   IngestRepository,
   PlanRepository,
+  ValidationRepository,
 } from "@chainport/db";
 import { WorkspaceManager } from "@chainport/ingest";
+import { DockerSandboxRunner } from "@chainport/sandbox";
 import { createId, loadServiceConfig } from "@chainport/shared";
 import { Redis } from "ioredis";
 
@@ -34,6 +36,8 @@ export async function runWorker(): Promise<void> {
   const analyses = new AnalysisRepository(database);
   const plans = new PlanRepository(database);
   const changeSets = new ChangeSetRepository(database);
+  const validations = new ValidationRepository(database);
+  const sandbox = new DockerSandboxRunner();
 
   const runtime = await startWorkerRuntime({
     workerId,
@@ -60,6 +64,16 @@ export async function runWorker(): Promise<void> {
       changeSets,
       workspaces,
       artifacts,
+      config,
+      logger,
+    },
+    validationProcessor: {
+      ingest,
+      revisions: changeSets,
+      validations,
+      workspaces,
+      artifacts,
+      sandbox,
       config,
       logger,
     },

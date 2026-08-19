@@ -1,0 +1,10 @@
+{
+  "name": "hardhat-scripts-fixture",
+  "private": true,
+  "scripts": {
+    "postinstall": "node -e \"require('fs').writeFileSync('generated.js','module.exports=1')\""
+  },
+  "devDependencies": {
+    "hardhat": "2.22.17"
+  }
+}

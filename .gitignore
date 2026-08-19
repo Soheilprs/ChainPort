@@ -19,3 +19,5 @@ infrastructure/.data/
 .data/
 workspaces/
 artifacts/
+packages/validation/test/fixtures/**/cache/
+packages/validation/test/fixtures/**/out/

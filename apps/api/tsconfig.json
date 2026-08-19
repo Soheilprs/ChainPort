@@ -16,6 +16,8 @@
     { "path": "../../packages/db" },
     { "path": "../../packages/scanner" },
     { "path": "../../packages/compatibility" },
-    { "path": "../../packages/migration" }
+    { "path": "../../packages/migration" },
+    { "path": "../../packages/sandbox" },
+    { "path": "../../packages/validation" }
   ]
 }

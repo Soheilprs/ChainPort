@@ -14,12 +14,14 @@ import type { AnalysisService } from "./analysis-service.js";
 import type { CompatibilityService } from "./compatibility-service.js";
 import type { ChangeSetService } from "./changeset-service.js";
 import type { PlanService } from "./plan-service.js";
+import type { ValidationService } from "./validation-service.js";
 import { registerAnalysisRoutes } from "./routes/analyses.js";
 import { registerChangeSetRoutes } from "./routes/change-sets.js";
 import { registerChainRoutes } from "./routes/chains.js";
 import { registerCompatibilityRoutes } from "./routes/compatibility.js";
 import { registerJobRoutes } from "./routes/jobs.js";
 import { registerPlanRoutes } from "./routes/plans.js";
+import { registerValidationRoutes } from "./routes/validations.js";
 import { registerProjectRoutes } from "./routes/projects.js";
 import type { ProjectsService } from "./projects-service.js";
 
@@ -34,6 +36,7 @@ export interface ApiApplicationOptions {
   compatibilityService?: CompatibilityService;
   planService?: PlanService;
   changeSetService?: ChangeSetService;
+  validationService?: ValidationService;
 }
 
 export async function createApiApplication(options: ApiApplicationOptions) {
@@ -100,6 +103,9 @@ export async function createApiApplication(options: ApiApplicationOptions) {
   }
   if (options.changeSetService !== undefined) {
     registerChangeSetRoutes(app, options.changeSetService);
+  }
+  if (options.validationService !== undefined) {
+    registerValidationRoutes(app, options.validationService);
   }
 
   app.setNotFoundHandler(async (_request, reply) => {

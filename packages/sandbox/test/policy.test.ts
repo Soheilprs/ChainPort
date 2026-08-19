@@ -22,7 +22,7 @@ describe("sandbox policy", () => {
 
   it("accepts an isolated unprivileged request without claiming a runner exists", () => {
     expect(() => assertSandboxPolicy({ location: "isolated-container" })).not.toThrow();
-    expect(SANDBOX_IMPLEMENTATION_STATUS).toBe("not_implemented");
-    expect(() => assertSandboxRunnerAvailable()).toThrow(/not implemented in phase/);
+    expect(SANDBOX_IMPLEMENTATION_STATUS).toBe("implemented");
+    expect(() => assertSandboxRunnerAvailable()).not.toThrow();
   });
 });

@@ -1,0 +1,7 @@
+{
+  "name": "hardhat-fail-build-fixture",
+  "private": true,
+  "devDependencies": {
+    "hardhat": "2.22.17"
+  }
+}

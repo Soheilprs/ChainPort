@@ -2,6 +2,7 @@ export const QUEUE_NAMES = {
   MIGRATION_JOBS: "migration-jobs",
   ANALYSIS_JOBS: "analysis-jobs",
   CHANGESET_JOBS: "changeset-jobs",
+  VALIDATION_JOBS: "validation-jobs",
 } as const;
 
 export type QueueName = (typeof QUEUE_NAMES)[keyof typeof QUEUE_NAMES];
@@ -11,6 +12,7 @@ export const JOB_NAMES = {
   ANALYZE_REPOSITORY: "analyze-repository",
   GENERATE_CHANGESET: "generate-changeset",
   FINALIZE_CHANGESET: "finalize-changeset",
+  VALIDATE_REVISION: "validate-revision",
   RUN_MIGRATION: "run-migration",
 } as const;
 
@@ -32,4 +34,8 @@ export interface AnalysisJobPayload {
 
 export interface ChangeSetJobPayload {
   changeSetId: string;
+}
+
+export interface ValidationJobPayload {
+  validationId: string;
 }

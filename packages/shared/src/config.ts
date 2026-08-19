@@ -73,6 +73,23 @@ const serviceEnvironmentSchema = z.object({
   ANALYSIS_MAX_FILE_BYTES: z.coerce.number().int().min(1_024).max(10_485_760).default(524_288),
   ANALYSIS_MAX_TOTAL_BYTES: z.coerce.number().int().min(1_024).max(524_288_000).default(20_971_520),
   ANALYSIS_MAX_DEPTH: z.coerce.number().int().min(1).max(64).default(20),
+  VALIDATION_INSTALL_TIMEOUT_MS: z.coerce.number().int().min(1_000).max(600_000).default(180_000),
+  VALIDATION_BUILD_TIMEOUT_MS: z.coerce.number().int().min(1_000).max(600_000).default(180_000),
+  VALIDATION_TEST_TIMEOUT_MS: z.coerce.number().int().min(1_000).max(600_000).default(180_000),
+  VALIDATION_TOTAL_TIMEOUT_MS: z.coerce.number().int().min(1_000).max(1_800_000).default(600_000),
+  VALIDATION_MEMORY_BYTES: z.coerce
+    .number()
+    .int()
+    .min(64 * 1024 * 1024)
+    .max(16 * 1024 * 1024 * 1024)
+    .default(2 * 1024 * 1024 * 1024),
+  VALIDATION_CPUS: z.coerce.number().min(0.1).max(16).default(2),
+  VALIDATION_PIDS: z.coerce.number().int().min(16).max(10_000).default(256),
+  VALIDATION_LOG_STEP_BYTES: z.coerce.number().int().min(1_024).max(10_485_760).default(262_144),
+  VALIDATION_LOG_TOTAL_BYTES: z.coerce.number().int().min(1_024).max(20_971_520).default(1_048_576),
+  SANDBOX_IMAGE_FOUNDRY: optionalNonEmptyString,
+  SANDBOX_IMAGE_NODE20: optionalNonEmptyString,
+  SANDBOX_IMAGE_NODE22: optionalNonEmptyString,
   GITHUB_API_BASE_URL: z
     .string()
     .trim()
