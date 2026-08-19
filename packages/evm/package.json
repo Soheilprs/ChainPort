@@ -1,0 +1,24 @@
+{
+  "name": "@chainport/evm",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "typecheck": "tsc -b --pretty false"
+  },
+  "dependencies": {
+    "viem": "2.37.9"
+  },
+  "devDependencies": {
+    "@types/node": "24.10.1"
+  }
+}

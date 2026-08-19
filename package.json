@@ -1,0 +1,42 @@
+{
+  "name": "chain-port",
+  "version": "0.0.0",
+  "private": true,
+  "packageManager": "pnpm@11.17.0",
+  "engines": {
+    "node": ">=22.0.0",
+    "pnpm": ">=10.0.0"
+  },
+  "scripts": {
+    "dev": "pnpm build:packages && concurrently --kill-others-on-fail --names api,worker,web --prefix-colors blue,magenta,green \"pnpm --filter @chainport/api dev\" \"pnpm --filter @chainport/worker dev\" \"pnpm --filter @chainport/web dev\"",
+    "build": "pnpm build:services && pnpm --filter @chainport/web build",
+    "build:packages": "pnpm db:generate && tsc -b packages/shared packages/evm packages/chain-registry packages/scanner packages/compatibility packages/migration packages/sandbox packages/db",
+    "build:services": "pnpm db:generate && tsc -b packages/shared packages/evm packages/chain-registry packages/scanner packages/compatibility packages/migration packages/sandbox packages/db apps/api apps/worker",
+    "test": "pnpm build:packages && vitest run",
+    "test:watch": "vitest",
+    "test:integration": "pnpm build:packages && node --env-file=.env.integration scripts/assert-integration-test-database.mjs && pnpm db:deploy:integration && node --env-file=.env.integration node_modules/vitest/vitest.mjs run --config vitest.integration.config.ts",
+    "typecheck": "pnpm db:generate && tsc -b packages/shared packages/evm packages/chain-registry packages/scanner packages/compatibility packages/migration packages/sandbox packages/db apps/api apps/worker --pretty false && pnpm --filter @chainport/web typecheck",
+    "lint": "pnpm db:generate && eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "db:generate": "pnpm --filter @chainport/db db:generate",
+    "db:migrate": "pnpm --filter @chainport/db db:migrate",
+    "db:deploy": "pnpm --filter @chainport/db db:deploy",
+    "db:deploy:integration": "node --env-file=.env.integration scripts/assert-integration-test-database.mjs && pnpm --filter @chainport/db db:deploy:integration",
+    "db:prepare-local": "node scripts/ensure-local-databases.mjs && pnpm db:deploy:integration",
+    "db:studio": "pnpm --filter @chainport/db db:studio",
+    "infra:up": "docker compose -f infrastructure/docker-compose.yml up -d",
+    "infra:down": "docker compose -f infrastructure/docker-compose.yml down"
+  },
+  "devDependencies": {
+    "@eslint/js": "9.39.1",
+    "@types/node": "24.10.1",
+    "concurrently": "9.2.1",
+    "eslint": "9.39.1",
+    "prettier": "3.7.4",
+    "tsx": "4.21.0",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.48.1",
+    "vitest": "4.0.15"
+  }
+}

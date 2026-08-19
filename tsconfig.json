@@ -1,0 +1,15 @@
+{
+  "files": [],
+  "references": [
+    { "path": "packages/shared" },
+    { "path": "packages/evm" },
+    { "path": "packages/chain-registry" },
+    { "path": "packages/scanner" },
+    { "path": "packages/compatibility" },
+    { "path": "packages/migration" },
+    { "path": "packages/sandbox" },
+    { "path": "packages/db" },
+    { "path": "apps/api" },
+    { "path": "apps/worker" }
+  ]
+}

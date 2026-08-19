@@ -1,0 +1,26 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "jsx": "preserve",
+    "baseUrl": ".",
+    "paths": {
+      "@chainport/shared": ["packages/shared/src/index.ts"],
+      "@chainport/evm": ["packages/evm/src/index.ts"],
+      "@chainport/chain-registry": ["packages/chain-registry/src/index.ts"],
+      "@chainport/scanner": ["packages/scanner/src/index.ts"],
+      "@chainport/compatibility": ["packages/compatibility/src/index.ts"],
+      "@chainport/migration": ["packages/migration/src/index.ts"],
+      "@chainport/sandbox": ["packages/sandbox/src/index.ts"],
+      "@chainport/db": ["packages/db/src/index.ts"]
+    }
+  },
+  "include": [
+    "apps/api/**/*.ts",
+    "apps/worker/**/*.ts",
+    "packages/**/*.ts",
+    "vitest.config.ts",
+    "vitest.integration.config.ts"
+  ],
+  "exclude": ["node_modules", "dist", ".next", "packages/db/src/generated", "apps/web"]
+}

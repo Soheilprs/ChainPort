@@ -1,0 +1,23 @@
+{
+  "name": "@chainport/worker",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/main.js",
+  "scripts": {
+    "dev": "node --env-file-if-exists=../../.env --import tsx src/main.ts",
+    "build": "tsc -b",
+    "start": "node --env-file-if-exists=../../.env dist/main.js",
+    "typecheck": "tsc -b --pretty false"
+  },
+  "dependencies": {
+    "@chainport/db": "workspace:*",
+    "@chainport/shared": "workspace:*",
+    "bullmq": "5.61.0",
+    "ioredis": "5.8.2",
+    "pino": "10.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "24.10.1"
+  }
+}

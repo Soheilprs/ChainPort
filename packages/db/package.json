@@ -1,0 +1,30 @@
+{
+  "name": "@chainport/db",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "typecheck": "tsc -b --pretty false",
+    "db:generate": "node --env-file-if-exists=../../.env node_modules/prisma/build/index.js generate --schema prisma/schema.prisma",
+    "db:migrate": "node --env-file-if-exists=../../.env node_modules/prisma/build/index.js migrate dev --schema prisma/schema.prisma",
+    "db:deploy": "node --env-file-if-exists=../../.env node_modules/prisma/build/index.js migrate deploy --schema prisma/schema.prisma",
+    "db:deploy:integration": "node --env-file=../../.env.integration node_modules/prisma/build/index.js migrate deploy --schema prisma/schema.prisma",
+    "db:studio": "node --env-file-if-exists=../../.env node_modules/prisma/build/index.js studio --schema prisma/schema.prisma"
+  },
+  "dependencies": {
+    "@chainport/shared": "workspace:*",
+    "@prisma/client": "6.19.1"
+  },
+  "devDependencies": {
+    "prisma": "6.19.1"
+  }
+}

@@ -1,0 +1,208 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum OrganizationKind {
+  NETWORK
+  FOUNDATION
+  ECOSYSTEM
+  RAAS
+  INTERNAL
+}
+
+enum ProjectStatus {
+  ACTIVE
+  ARCHIVED
+}
+
+enum JobStatus {
+  QUEUED
+  INGESTING
+  ANALYZING
+  COMPARING
+  PLANNING
+  PATCHING
+  BUILDING
+  TESTING
+  DEPLOYING
+  VERIFYING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum FindingSeverity {
+  PASS
+  WARNING
+  BLOCKER
+}
+
+enum FindingCategory {
+  CHAIN_ID
+  HARDCODED_ADDRESS
+  RPC
+  TOKEN
+  ORACLE
+  BRIDGE
+  PRECOMPILE
+  OPCODE
+  FRAMEWORK
+  DEPENDENCY
+  FRONTEND_CONFIG
+  PROTOCOL
+  GAS
+  FINALITY
+  INFRASTRUCTURE
+  OTHER
+}
+
+model Organization {
+  id        String           @id @db.Uuid
+  name      String
+  slug      String           @unique
+  kind      OrganizationKind
+  createdAt DateTime         @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime         @updatedAt @map("updated_at") @db.Timestamptz(3)
+  users     User[]
+  projects  Project[]
+
+  @@map("organizations")
+}
+
+model User {
+  id             String        @id @db.Uuid
+  email          String        @unique
+  name           String?
+  organizationId String?       @map("organization_id") @db.Uuid
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  createdAt      DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt      DateTime      @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@index([organizationId])
+  @@map("users")
+}
+
+model Project {
+  id             String        @id @db.Uuid
+  organizationId String?       @map("organization_id") @db.Uuid
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  name           String
+  githubUrl      String        @map("github_url")
+  githubOwner    String        @map("github_owner")
+  githubRepo     String        @map("github_repo")
+  defaultBranch  String        @default("main") @map("default_branch")
+  status         ProjectStatus @default(ACTIVE)
+  createdAt      DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt      DateTime      @updatedAt @map("updated_at") @db.Timestamptz(3)
+  jobs           MigrationJob[]
+
+  @@unique([githubOwner, githubRepo])
+  @@index([organizationId])
+  @@map("projects")
+}
+
+model MigrationJob {
+  id             String           @id @db.Uuid
+  projectId      String           @map("project_id") @db.Uuid
+  project        Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  sourceChainKey String           @map("source_chain_key")
+  targetChainKey String           @map("target_chain_key")
+  repoSha        String?          @map("repo_sha")
+  status         JobStatus        @default(QUEUED)
+  attempt        Int              @default(0)
+  maxAttempts    Int              @default(3) @map("max_attempts")
+  idempotencyKey String           @unique @map("idempotency_key")
+  leaseOwner     String?          @map("lease_owner")
+  leaseExpiresAt DateTime?        @map("lease_expires_at") @db.Timestamptz(3)
+  errorCode      String?          @map("error_code")
+  errorMessage   String?          @map("error_message")
+  startedAt      DateTime?        @map("started_at") @db.Timestamptz(3)
+  finishedAt     DateTime?        @map("finished_at") @db.Timestamptz(3)
+  createdAt      DateTime         @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt      DateTime         @updatedAt @map("updated_at") @db.Timestamptz(3)
+  findings       Finding[]
+  plan           MigrationPlan?
+  sandboxRuns    SandboxRun[]
+  deployments    Deployment[]
+  statusEvents   JobStatusEvent[]
+
+  @@index([status, createdAt])
+  @@index([projectId])
+  @@map("migration_jobs")
+}
+
+model JobStatusEvent {
+  id         String     @id @db.Uuid
+  jobId      String     @map("job_id") @db.Uuid
+  job        MigrationJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  fromStatus JobStatus? @map("from_status")
+  toStatus   JobStatus  @map("to_status")
+  reason     String?
+  createdAt  DateTime   @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  @@index([jobId, createdAt])
+  @@map("job_status_events")
+}
+
+model Finding {
+  id          String          @id @db.Uuid
+  jobId       String          @map("job_id") @db.Uuid
+  job         MigrationJob    @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  code        String
+  severity    FindingSeverity
+  category    FindingCategory
+  title       String
+  description String
+  filePath    String?         @map("file_path")
+  evidence    Json
+  remediation String?
+  createdAt   DateTime        @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  @@index([jobId, severity])
+  @@map("findings")
+}
+
+model MigrationPlan {
+  id        String       @id @db.Uuid
+  jobId     String       @unique @map("job_id") @db.Uuid
+  job       MigrationJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  summary   String
+  steps     Json
+  createdAt DateTime     @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime     @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@map("migration_plans")
+}
+
+model SandboxRun {
+  id          String       @id @db.Uuid
+  jobId       String       @map("job_id") @db.Uuid
+  job         MigrationJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  status      JobStatus
+  imageDigest String?      @map("image_digest")
+  createdAt   DateTime     @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime     @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@index([jobId])
+  @@map("sandbox_runs")
+}
+
+model Deployment {
+  id              String       @id @db.Uuid
+  jobId           String       @map("job_id") @db.Uuid
+  job             MigrationJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  targetChainKey  String       @map("target_chain_key")
+  transactionHash String?      @map("transaction_hash")
+  contractAddress String?      @map("contract_address")
+  verified        Boolean      @default(false)
+  createdAt       DateTime     @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt       DateTime     @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@index([jobId])
+  @@map("deployments")
+}
