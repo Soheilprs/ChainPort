@@ -1,11 +1,16 @@
 import type {
+  AnalysisStatus,
   CloneStatus,
+  ComponentKind,
+  DetectionConfidence,
+  FileCategory,
   FindingCategory,
   FindingSeverity,
   JobStatus,
   OrganizationKind,
   ProjectStatus,
   RepositoryProvider,
+  RequirementCategory,
 } from "./enums.js";
 import type { JsonObject } from "./json.js";
 
@@ -141,6 +146,79 @@ export interface Deployment {
   verified: boolean;
   createdAt: Date;
   updatedAt: Date;
+}
+
+export interface RepositoryAnalysis {
+  id: string;
+  projectId: string;
+  repositoryId: string;
+  commitSha: string;
+  scannerVersion: string;
+  status: AnalysisStatus;
+  idempotencyKey: string;
+  fileCount: number;
+  analyzedFileCount: number;
+  skippedFileCount: number;
+  totalAnalyzedBytes: number;
+  errorCode: string | null;
+  errorMessage: string | null;
+  startedAt: Date | null;
+  completedAt: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface AnalysisStatusEvent {
+  id: string;
+  analysisId: string;
+  fromStatus: AnalysisStatus | null;
+  toStatus: AnalysisStatus;
+  reason: string | null;
+  createdAt: Date;
+}
+
+export interface RepositoryFileRecord {
+  id: string;
+  analysisId: string;
+  path: string;
+  extension: string;
+  category: FileCategory;
+  sizeBytes: number;
+  analyzed: boolean;
+  skipReason: string | null;
+}
+
+export interface RepositoryComponentRecord {
+  id: string;
+  analysisId: string;
+  kind: ComponentKind;
+  name: string;
+  detail: string | null;
+  filePath: string | null;
+}
+
+export interface ProjectRequirementRecord {
+  id: string;
+  analysisId: string;
+  category: RequirementCategory;
+  key: string;
+  requirementType: string;
+  detectedValue: string;
+  normalizedValue: string;
+  confidence: DetectionConfidence;
+  detector: string;
+  detectorVersion: string;
+}
+
+export interface AnalysisEvidenceRecord {
+  id: string;
+  analysisId: string;
+  requirementId: string | null;
+  filePath: string;
+  startLine: number;
+  endLine: number;
+  evidenceType: string;
+  excerpt: string;
 }
 
 export interface FindingSummary {

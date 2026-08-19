@@ -13,6 +13,7 @@
   "references": [
     { "path": "../../packages/shared" },
     { "path": "../../packages/db" },
-    { "path": "../../packages/ingest" }
+    { "path": "../../packages/ingest" },
+    { "path": "../../packages/scanner" }
   ]
 }

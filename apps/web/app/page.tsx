@@ -63,8 +63,8 @@ export default function HomePage() {
             <Badge>Developers</Badge>
             <CardTitle className="mt-4">Port an application</CardTitle>
             <CardDescription>
-              Submit a public GitHub URL to ingest the repository. Analysis, planning, and sandbox
-              execution are not implemented in this phase.
+              Submit a public GitHub URL, ingest the SHA, then run repository intelligence.
+              Compatibility scoring and migration are not implemented in this phase.
             </CardDescription>
             <ol className="mt-5 space-y-2 text-sm text-muted">
               {developerSteps.map((step, index) => (

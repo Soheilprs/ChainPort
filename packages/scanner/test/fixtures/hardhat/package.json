@@ -1,0 +1,8 @@
+{
+  "name": "hardhat-fixture",
+  "private": true,
+  "devDependencies": {
+    "hardhat": "2.22.0",
+    "ethers": "6.13.0"
+  }
+}

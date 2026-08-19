@@ -21,4 +21,5 @@ export {
   type IngestBundle,
   type UpsertRepositoryInput,
 } from "./ingest-repository.js";
+export { AnalysisRepository } from "./analysis-repository.js";
 export { mapJobStatusEvent, mapMigrationJob, mapProject, mapRepository } from "./mappers.js";

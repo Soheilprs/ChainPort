@@ -6,14 +6,14 @@ TypeScript monorepo. Domain logic lives in packages. Apps are thin adapters.
 apps/
   web/          Next.js UI
   api/          Fastify HTTP API
-  worker/       BullMQ ingest processor
+  worker/       BullMQ ingest + analysis processors
 
 packages/
   shared/       Product constants, enums, job state machine, config, GitHub URL parsing
   evm/          Address and chain ID utilities
   chain-registry/ Static catalog of source and target chains
   ingest/       Workspace manager and safe Git clone
-  scanner/      Contract only
+  scanner/      Deterministic static analysis
   compatibility/ Contract only
   migration/    Contract only
   sandbox/      Security policy; runner not implemented

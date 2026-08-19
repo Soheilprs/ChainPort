@@ -1,4 +1,5 @@
 import {
+  AnalysisRepository,
   checkDatabase,
   disconnectDatabase,
   getDatabaseClient,
@@ -7,6 +8,7 @@ import {
 import { loadServiceConfig } from "@chainport/shared";
 import { Redis } from "ioredis";
 
+import { AnalysisService } from "./analysis-service.js";
 import { createApiApplication } from "./app.js";
 import { createLogger } from "./logger.js";
 import { ProjectsService } from "./projects-service.js";
@@ -21,12 +23,15 @@ async function main(): Promise<void> {
   await redis.connect();
 
   const queue = createIngestJobQueue(redis);
-  const projectsService = new ProjectsService(new IngestRepository(database), queue);
+  const ingest = new IngestRepository(database);
+  const projectsService = new ProjectsService(ingest, queue);
+  const analysisService = new AnalysisService(ingest, new AnalysisRepository(database), queue);
 
   const app = await createApiApplication({
     logger,
     webOrigin: config.WEB_ORIGIN,
     projectsService,
+    analysisService,
     readinessProbe: async () => {
       await checkDatabase(database);
       await checkRedis(redis);

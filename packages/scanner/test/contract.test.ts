@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { assertScannerAvailable, SCANNER_IMPLEMENTATION_STATUS } from "../src/index.js";
+import { SCANNER_IMPLEMENTATION_STATUS, SCANNER_VERSION } from "../src/index.js";
 
 describe("scanner contract", () => {
-  it("is explicitly unimplemented in phase 1", () => {
-    expect(SCANNER_IMPLEMENTATION_STATUS).toBe("not_implemented");
-    expect(() => assertScannerAvailable()).toThrow(/not implemented in phase/);
+  it("is implemented and versioned", () => {
+    expect(SCANNER_IMPLEMENTATION_STATUS).toBe("implemented");
+    expect(SCANNER_VERSION).toBe("1");
   });
 });

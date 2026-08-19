@@ -8,11 +8,11 @@ a target chain, and how to migrate it safely.
 It is not an RPC provider, explorer, indexer, generic AI coding assistant, generic GitHub scanner,
 or generic CI/CD tool.
 
-> **CURRENT STATUS: PHASE 2 — REPOSITORY INGEST**
+> **CURRENT STATUS: PHASE 3 — REPOSITORY INTELLIGENCE**
 >
-> Public GitHub repositories can be validated, persisted, queued, cloned into an isolated
-> workspace, and recorded by immutable commit SHA. Analysis, migration, sandbox execution, and
-> deployments are not implemented.
+> Ingested repositories can be scanned at their stored commit SHA. The scanner records frameworks,
+> contracts, dependencies, and network assumptions with evidence. It does not execute repository
+> code or score target-chain compatibility.
 
 ## Prerequisites
 
@@ -50,6 +50,8 @@ secret values have application defaults.
 | Get project      | `GET /v1/projects/:id`            |
 | Project jobs     | `GET /v1/projects/:id/jobs`       |
 | Get job          | `GET /v1/jobs/:id`                |
+| Create analysis  | `POST /v1/projects/:id/analyses`  |
+| Get analysis     | `GET /v1/analyses/:id`            |
 
 `/health` does not touch PostgreSQL or Redis. `/ready` returns HTTP 503 when either is unavailable.
 
@@ -77,3 +79,4 @@ pnpm db:studio
 - [Database](docs/DATABASE.md)
 - [Phases](docs/PHASES.md)
 - [Repository ingest](docs/INGEST.md)
+- [Scanner](docs/SCANNER.md)

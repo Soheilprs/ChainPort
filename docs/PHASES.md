@@ -4,23 +4,23 @@ Work proceeds one phase at a time. A phase must not implement later product capa
 
 ## Phase 1 — Foundation
 
-Monorepo, domain model, chain catalog, database schema, API/worker/web shells, and UI empty
-states. Real chain catalog. No repository analysis.
+Monorepo, domain model, chain catalog, database schema, API/worker/web shells.
 
-## Phase 2 — Repository ingest (current)
+## Phase 2 — Repository ingest
 
-Public GitHub URL → Project + Repository + MigrationJob → worker clones into an isolated workspace
-→ exact commit SHA persisted → workspace removed → job `COMPLETED`.
+Public GitHub URL → clone into an isolated workspace → exact commit SHA persisted → workspace
+removed.
 
-No scanning, dependency detection, compatibility, findings, or repository execution.
+## Phase 3 — Repository intelligence (current)
+
+Stored SHA → safe rematerialization → file inventory → deterministic static analysis →
+requirements and evidence. No compatibility scoring.
 
 ## Recommended next phases
 
-3. **Deterministic scanner** — detect frameworks, Solidity files, dependencies, hardcoded chain IDs
-   and addresses, RPC and frontend config.
-4. **Compatibility engine** — compare scanned requirements with `@chainport/chain-registry`
-   capabilities and emit PASS / WARNING / BLOCKER findings.
+4. **Compatibility engine** — compare requirements with `@chainport/chain-registry` and emit PASS /
+   WARNING / BLOCKER findings.
 5. **Migration planning and deterministic patches**.
-6. **Isolated sandbox build/test** (Docker; never on the host).
+6. **Isolated sandbox build/test**.
 7. **Target testnet deploy and verification**.
-8. **Network console analytics** from real jobs and findings.
+8. **Network console analytics**.

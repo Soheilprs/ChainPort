@@ -16,6 +16,13 @@
     "typecheck": "tsc -b --pretty false"
   },
   "dependencies": {
-    "@chainport/shared": "workspace:*"
+    "@chainport/chain-registry": "workspace:*",
+    "@chainport/evm": "workspace:*",
+    "@chainport/shared": "workspace:*",
+    "smol-toml": "1.4.2",
+    "typescript": "5.9.3"
+  },
+  "devDependencies": {
+    "@types/node": "24.10.1"
   }
 }

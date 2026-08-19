@@ -35,4 +35,11 @@ Phase 1 created core product tables. Phase 2 adds repositories and links jobs to
 - `sandbox_runs`
 - `deployments`
 
-Temporary clone paths are never stored. Fake projects and findings are not seeded.
+Phase 3 adds analysis tables:
+
+- `repository_analyses` unique on `(repository_id, commit_sha, scanner_version)`
+- `analysis_status_events`, `analysis_detector_runs`
+- `repository_files`, `repository_components`
+- `project_requirements`, `analysis_evidence`
+
+Temporary clone paths and file contents are never stored. Evidence excerpts are bounded.

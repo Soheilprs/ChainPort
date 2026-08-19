@@ -67,6 +67,11 @@ const serviceEnvironmentSchema = z.object({
   WORKSPACE_ROOT: optionalNonEmptyString,
   CLONE_TIMEOUT_MS: z.coerce.number().int().min(1_000).max(600_000).default(60_000),
   CLONE_MAX_BYTES: z.coerce.number().int().min(1_024).max(5_368_709_120).default(104_857_600),
+  ANALYSIS_TIMEOUT_MS: z.coerce.number().int().min(1_000).max(600_000).default(120_000),
+  ANALYSIS_MAX_FILES: z.coerce.number().int().min(1).max(100_000).default(8_000),
+  ANALYSIS_MAX_FILE_BYTES: z.coerce.number().int().min(1_024).max(10_485_760).default(524_288),
+  ANALYSIS_MAX_TOTAL_BYTES: z.coerce.number().int().min(1_024).max(524_288_000).default(20_971_520),
+  ANALYSIS_MAX_DEPTH: z.coerce.number().int().min(1).max(64).default(20),
   GITHUB_API_BASE_URL: z
     .string()
     .trim()

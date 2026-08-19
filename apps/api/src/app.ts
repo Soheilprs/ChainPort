@@ -10,6 +10,8 @@ import Fastify from "fastify";
 import type { Logger } from "pino";
 
 import { ApiRequestError } from "./errors.js";
+import type { AnalysisService } from "./analysis-service.js";
+import { registerAnalysisRoutes } from "./routes/analyses.js";
 import { registerChainRoutes } from "./routes/chains.js";
 import { registerJobRoutes } from "./routes/jobs.js";
 import { registerProjectRoutes } from "./routes/projects.js";
@@ -22,6 +24,7 @@ export interface ApiApplicationOptions {
   readinessProbe: ReadinessProbe;
   webOrigin: string;
   projectsService?: ProjectsService;
+  analysisService?: AnalysisService;
 }
 
 export async function createApiApplication(options: ApiApplicationOptions) {
@@ -76,6 +79,9 @@ export async function createApiApplication(options: ApiApplicationOptions) {
   if (options.projectsService !== undefined) {
     registerProjectRoutes(app, options.projectsService);
     registerJobRoutes(app, options.projectsService);
+  }
+  if (options.analysisService !== undefined) {
+    registerAnalysisRoutes(app, options.analysisService);
   }
 
   app.setNotFoundHandler(async (_request, reply) => {

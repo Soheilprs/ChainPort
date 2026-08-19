@@ -55,6 +55,6 @@ Repository code must never execute on the host. Sandbox execution is isolated.
 
 ## Current phase
 
-Phase 2 ingests public GitHub repositories and records an immutable commit SHA. Analysis,
-migration, sandbox execution, and deployments are not implemented and must not be presented as
-working.
+Phase 3 inspects an ingested repository at its stored SHA and records deterministic requirements
+with evidence. Compatibility scoring, migration, sandbox execution, and deployments are not
+implemented.

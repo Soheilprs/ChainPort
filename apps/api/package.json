@@ -13,6 +13,7 @@
   "dependencies": {
     "@chainport/chain-registry": "workspace:*",
     "@chainport/db": "workspace:*",
+    "@chainport/scanner": "workspace:*",
     "@chainport/shared": "workspace:*",
     "@fastify/cors": "11.1.0",
     "bullmq": "5.61.0",

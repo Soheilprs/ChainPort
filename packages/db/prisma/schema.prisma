@@ -53,6 +53,62 @@ enum FindingSeverity {
   BLOCKER
 }
 
+enum AnalysisStatus {
+  QUEUED
+  MATERIALIZING
+  INVENTORYING
+  ANALYZING
+  COMPLETED
+  FAILED
+}
+
+enum FileCategory {
+  SOLIDITY
+  TYPESCRIPT
+  JAVASCRIPT
+  JSON
+  TOML
+  YAML
+  MARKDOWN
+  ENV_TEMPLATE
+  CONFIG
+  OTHER
+}
+
+enum RequirementCategory {
+  NETWORK
+  TOKEN
+  ORACLE
+  PROTOCOL
+  CROSS_CHAIN
+  RPC
+  FRONTEND
+  CONFIGURATION
+  FRAMEWORK
+}
+
+enum DetectionConfidence {
+  DETECTED
+  LIKELY
+  UNKNOWN
+}
+
+enum ComponentKind {
+  FRAMEWORK
+  LANGUAGE
+  PACKAGE_MANAGER
+  CONTRACT
+  INTERFACE
+  LIBRARY
+  FRONTEND
+  DEPENDENCY
+}
+
+enum DetectorRunStatus {
+  COMPLETED
+  FAILED
+}
+
 enum FindingCategory {
   CHAIN_ID
   HARDCODED_ADDRESS
@@ -115,6 +171,7 @@ model Repository {
   updatedAt          DateTime           @updatedAt @map("updated_at") @db.Timestamptz(3)
   projects           Project[]
   jobs               MigrationJob[]
+  analyses           RepositoryAnalysis[]
 
   @@unique([provider, owner, name])
   @@map("repositories")
@@ -135,6 +192,7 @@ model Project {
   createdAt      DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt      DateTime      @updatedAt @map("updated_at") @db.Timestamptz(3)
   jobs           MigrationJob[]
+  analyses       RepositoryAnalysis[]
 
   @@unique([githubOwner, githubRepo])
   @@unique([repositoryId])
@@ -244,4 +302,129 @@ model Deployment {
 
   @@index([jobId])
   @@map("deployments")
+}
+
+model RepositoryAnalysis {
+  id                 String                 @id @db.Uuid
+  projectId          String                 @map("project_id") @db.Uuid
+  project            Project                @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  repositoryId       String                 @map("repository_id") @db.Uuid
+  repository         Repository             @relation(fields: [repositoryId], references: [id], onDelete: Restrict)
+  commitSha          String                 @map("commit_sha")
+  scannerVersion     String                 @map("scanner_version")
+  status             AnalysisStatus         @default(QUEUED)
+  idempotencyKey     String                 @unique @map("idempotency_key")
+  fileCount          Int                    @default(0) @map("file_count")
+  analyzedFileCount  Int                    @default(0) @map("analyzed_file_count")
+  skippedFileCount   Int                    @default(0) @map("skipped_file_count")
+  totalAnalyzedBytes Int                    @default(0) @map("total_analyzed_bytes")
+  errorCode          String?                @map("error_code")
+  errorMessage       String?                @map("error_message")
+  startedAt          DateTime?              @map("started_at") @db.Timestamptz(3)
+  completedAt        DateTime?              @map("completed_at") @db.Timestamptz(3)
+  createdAt          DateTime               @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt          DateTime               @updatedAt @map("updated_at") @db.Timestamptz(3)
+  statusEvents       AnalysisStatusEvent[]
+  detectorRuns       AnalysisDetectorRun[]
+  files              RepositoryFile[]
+  components         RepositoryComponent[]
+  requirements       ProjectRequirement[]
+  evidence           AnalysisEvidence[]
+
+  @@unique([repositoryId, commitSha, scannerVersion])
+  @@index([projectId, createdAt])
+  @@index([status, createdAt])
+  @@map("repository_analyses")
+}
+
+model AnalysisStatusEvent {
+  id         String             @id @db.Uuid
+  analysisId String             @map("analysis_id") @db.Uuid
+  analysis   RepositoryAnalysis @relation(fields: [analysisId], references: [id], onDelete: Cascade)
+  fromStatus AnalysisStatus?    @map("from_status")
+  toStatus   AnalysisStatus     @map("to_status")
+  reason     String?
+  createdAt  DateTime           @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  @@index([analysisId, createdAt])
+  @@map("analysis_status_events")
+}
+
+model AnalysisDetectorRun {
+  id           String             @id @db.Uuid
+  analysisId   String             @map("analysis_id") @db.Uuid
+  analysis     RepositoryAnalysis @relation(fields: [analysisId], references: [id], onDelete: Cascade)
+  detectorId   String             @map("detector_id")
+  detectorVersion String          @map("detector_version")
+  status       DetectorRunStatus
+  durationMs   Int                @map("duration_ms")
+  errorMessage String?            @map("error_message")
+  createdAt    DateTime           @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  @@index([analysisId])
+  @@map("analysis_detector_runs")
+}
+
+model RepositoryFile {
+  id         String             @id @db.Uuid
+  analysisId String             @map("analysis_id") @db.Uuid
+  analysis   RepositoryAnalysis @relation(fields: [analysisId], references: [id], onDelete: Cascade)
+  path       String
+  extension  String
+  category   FileCategory
+  sizeBytes  Int                @map("size_bytes")
+  analyzed   Boolean
+  skipReason String?            @map("skip_reason")
+
+  @@index([analysisId, category])
+  @@map("repository_files")
+}
+
+model RepositoryComponent {
+  id         String             @id @db.Uuid
+  analysisId String             @map("analysis_id") @db.Uuid
+  analysis   RepositoryAnalysis @relation(fields: [analysisId], references: [id], onDelete: Cascade)
+  kind       ComponentKind
+  name       String
+  detail     String?
+  filePath   String?            @map("file_path")
+
+  @@index([analysisId, kind])
+  @@map("repository_components")
+}
+
+model ProjectRequirement {
+  id              String               @id @db.Uuid
+  analysisId      String               @map("analysis_id") @db.Uuid
+  analysis        RepositoryAnalysis   @relation(fields: [analysisId], references: [id], onDelete: Cascade)
+  category        RequirementCategory
+  key             String
+  requirementType String               @map("requirement_type")
+  detectedValue   String               @map("detected_value")
+  normalizedValue String               @map("normalized_value")
+  confidence      DetectionConfidence
+  detector        String
+  detectorVersion String               @map("detector_version")
+  evidence        AnalysisEvidence[]
+
+  @@index([analysisId, category])
+  @@index([analysisId, key])
+  @@map("project_requirements")
+}
+
+model AnalysisEvidence {
+  id            String              @id @db.Uuid
+  analysisId    String              @map("analysis_id") @db.Uuid
+  analysis      RepositoryAnalysis  @relation(fields: [analysisId], references: [id], onDelete: Cascade)
+  requirementId String?             @map("requirement_id") @db.Uuid
+  requirement   ProjectRequirement? @relation(fields: [requirementId], references: [id], onDelete: Cascade)
+  filePath      String              @map("file_path")
+  startLine     Int                 @map("start_line")
+  endLine       Int                 @map("end_line")
+  evidenceType  String              @map("evidence_type")
+  excerpt       String
+
+  @@index([analysisId])
+  @@index([requirementId])
+  @@map("analysis_evidence")
 }

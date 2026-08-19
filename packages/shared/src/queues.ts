@@ -1,11 +1,13 @@
 export const QUEUE_NAMES = {
   MIGRATION_JOBS: "migration-jobs",
+  ANALYSIS_JOBS: "analysis-jobs",
 } as const;
 
 export type QueueName = (typeof QUEUE_NAMES)[keyof typeof QUEUE_NAMES];
 
 export const JOB_NAMES = {
   INGEST_REPOSITORY: "ingest-repository",
+  ANALYZE_REPOSITORY: "analyze-repository",
   RUN_MIGRATION: "run-migration",
 } as const;
 
@@ -19,4 +21,8 @@ export interface MigrationJobPayload {
 
 export interface IngestJobPayload {
   jobId: string;
+}
+
+export interface AnalysisJobPayload {
+  analysisId: string;
 }

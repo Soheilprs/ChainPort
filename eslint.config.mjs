@@ -10,6 +10,7 @@ export default tseslint.config(
       "**/node_modules/**",
       "next-env.d.ts",
       "packages/db/src/generated/**",
+      "packages/scanner/test/fixtures/**",
       "scripts/**",
     ],
   },

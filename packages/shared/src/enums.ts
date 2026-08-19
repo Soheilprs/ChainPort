@@ -18,6 +18,58 @@ export type RepositoryProvider = (typeof REPOSITORY_PROVIDERS)[number];
 export const CLONE_STATUSES = ["PENDING", "CLONING", "READY", "FAILED"] as const;
 export type CloneStatus = (typeof CLONE_STATUSES)[number];
 
+export const ANALYSIS_STATUSES = [
+  "QUEUED",
+  "MATERIALIZING",
+  "INVENTORYING",
+  "ANALYZING",
+  "COMPLETED",
+  "FAILED",
+] as const;
+export type AnalysisStatus = (typeof ANALYSIS_STATUSES)[number];
+
+export const FILE_CATEGORIES = [
+  "SOLIDITY",
+  "TYPESCRIPT",
+  "JAVASCRIPT",
+  "JSON",
+  "TOML",
+  "YAML",
+  "MARKDOWN",
+  "ENV_TEMPLATE",
+  "CONFIG",
+  "OTHER",
+] as const;
+export type FileCategory = (typeof FILE_CATEGORIES)[number];
+
+export const REQUIREMENT_CATEGORIES = [
+  "NETWORK",
+  "TOKEN",
+  "ORACLE",
+  "PROTOCOL",
+  "CROSS_CHAIN",
+  "RPC",
+  "FRONTEND",
+  "CONFIGURATION",
+  "FRAMEWORK",
+] as const;
+export type RequirementCategory = (typeof REQUIREMENT_CATEGORIES)[number];
+
+export const DETECTION_CONFIDENCES = ["DETECTED", "LIKELY", "UNKNOWN"] as const;
+export type DetectionConfidence = (typeof DETECTION_CONFIDENCES)[number];
+
+export const COMPONENT_KINDS = [
+  "FRAMEWORK",
+  "LANGUAGE",
+  "PACKAGE_MANAGER",
+  "CONTRACT",
+  "INTERFACE",
+  "LIBRARY",
+  "FRONTEND",
+  "DEPENDENCY",
+] as const;
+export type ComponentKind = (typeof COMPONENT_KINDS)[number];
+
 export const JOB_STATUSES = [
   "QUEUED",
   "INGESTING",
@@ -128,6 +180,22 @@ export function isRepositoryProvider(value: unknown): value is RepositoryProvide
 
 export function isCloneStatus(value: unknown): value is CloneStatus {
   return isOneOf(value, CLONE_STATUSES);
+}
+
+export function isAnalysisStatus(value: unknown): value is AnalysisStatus {
+  return isOneOf(value, ANALYSIS_STATUSES);
+}
+
+export function isFileCategory(value: unknown): value is FileCategory {
+  return isOneOf(value, FILE_CATEGORIES);
+}
+
+export function isRequirementCategory(value: unknown): value is RequirementCategory {
+  return isOneOf(value, REQUIREMENT_CATEGORIES);
+}
+
+export function isDetectionConfidence(value: unknown): value is DetectionConfidence {
+  return isOneOf(value, DETECTION_CONFIDENCES);
 }
 
 export function isJobStatus(value: unknown): value is JobStatus {

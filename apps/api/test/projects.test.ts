@@ -73,7 +73,7 @@ describe("project ingest routes", () => {
       {
         upsertRepository: vi.fn(),
       } as never,
-      { enqueueIngest: vi.fn(), close: () => Promise.resolve() },
+      { enqueueIngest: vi.fn(), enqueueAnalysis: vi.fn(), close: () => Promise.resolve() },
     );
     const app = await createApiApplication({
       logger: createLogger({ service: "api", level: "silent" }),
@@ -100,6 +100,7 @@ describe("project ingest routes", () => {
   it("rejects unknown chains and identical source/target", async () => {
     const service = new ProjectsService({ upsertRepository: vi.fn() } as never, {
       enqueueIngest: vi.fn(),
+      enqueueAnalysis: vi.fn(),
       close: () => Promise.resolve(),
     });
     const app = await createApiApplication({

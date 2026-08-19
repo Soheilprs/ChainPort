@@ -1,4 +1,5 @@
 import {
+  AnalysisRepository,
   checkDatabase,
   disconnectDatabase,
   getDatabaseClient,
@@ -24,6 +25,7 @@ export async function runWorker(): Promise<void> {
 
   const workspaces = new WorkspaceManager(config.WORKSPACE_ROOT ?? WorkspaceManager.defaultRoot());
   const ingest = new IngestRepository(database);
+  const analyses = new AnalysisRepository(database);
 
   const runtime = await startWorkerRuntime({
     workerId,
@@ -36,6 +38,13 @@ export async function runWorker(): Promise<void> {
       config,
       logger,
       workerId,
+    },
+    analysisProcessor: {
+      ingest,
+      analyses,
+      workspaces,
+      config,
+      logger,
     },
   });
 

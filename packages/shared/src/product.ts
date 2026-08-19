@@ -3,8 +3,8 @@ export const PRODUCT_TAGLINE = "EVM application portability and ecosystem intell
 export const PRODUCT_QUESTION =
   "What prevents this existing Web3 application from working correctly on this target blockchain, and how can we safely migrate it?";
 export const PRODUCT_PRINCIPLE = "Compatibility evidence before migration.";
-export const CURRENT_PHASE = 2;
-export const CURRENT_PHASE_NAME = "Repository ingest";
+export const CURRENT_PHASE = 3;
+export const CURRENT_PHASE_NAME = "Repository intelligence";
 
 export const PRODUCT_IS_NOT = [
   "an RPC provider",

@@ -5,6 +5,7 @@ export {
   type CloneResult,
   type CloneSource,
 } from "./clone.js";
+export { materializeRevision, type MaterializeResult } from "./materialize.js";
 export { classifyGitFailure, runGit, safeGitEnv } from "./git.js";
 export {
   HttpGitHubMetadataClient,

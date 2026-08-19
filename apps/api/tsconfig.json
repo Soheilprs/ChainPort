@@ -13,6 +13,7 @@
   "references": [
     { "path": "../../packages/shared" },
     { "path": "../../packages/chain-registry" },
-    { "path": "../../packages/db" }
+    { "path": "../../packages/db" },
+    { "path": "../../packages/scanner" }
   ]
 }

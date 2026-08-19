@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 
+import { AnalyzeButton } from "@/components/analysis-panel";
 import { jobStatusLabel, jobStatusTone } from "@/components/job-status";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
@@ -43,7 +44,8 @@ export function JobDetail({
         <Badge tone={jobStatusTone(job.status)}>{jobStatusLabel(job.status)}</Badge>
       </div>
       <p className="text-sm text-muted">
-        Ingest only. ChainPort has not scanned this repository or produced findings.
+        Ingest stores an immutable SHA. Analysis inspects that SHA as data only — it does not
+        execute the repository or score target-chain compatibility.
       </p>
       <div className="grid gap-4 md:grid-cols-2">
         <Card>
@@ -84,6 +86,9 @@ export function JobDetail({
           </dl>
         </Card>
       </div>
+      {job.status === "COMPLETED" ? (
+        <AnalyzeButton projectId={initialProject.id} ingestComplete />
+      ) : null}
       {job.status === "FAILED" ? (
         <Card className="border-blocker/30">
           <CardTitle>Ingest failed</CardTitle>

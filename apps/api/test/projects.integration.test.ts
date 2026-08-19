@@ -27,6 +27,7 @@ async function makeApp() {
   const enqueueIngest = vi.fn(() => Promise.resolve());
   const service = new ProjectsService(new IngestRepository(database), {
     enqueueIngest,
+    enqueueAnalysis: vi.fn(() => Promise.resolve()),
     close: () => Promise.resolve(),
   });
   const app = await createApiApplication({
