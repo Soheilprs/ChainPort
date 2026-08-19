@@ -5,6 +5,6 @@ import { assertMigrationAvailable, MIGRATION_IMPLEMENTATION_STATUS } from "../sr
 describe("migration contract", () => {
   it("is explicitly unimplemented in phase 1", () => {
     expect(MIGRATION_IMPLEMENTATION_STATUS).toBe("not_implemented");
-    expect(() => assertMigrationAvailable()).toThrow(/not implemented in phase 1/);
+    expect(() => assertMigrationAvailable()).toThrow(/not implemented in phase/);
   });
 });

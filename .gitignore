@@ -16,3 +16,5 @@ coverage/
 .vscode/
 
 infrastructure/.data/
+.data/
+workspaces/

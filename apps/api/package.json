@@ -15,9 +15,11 @@
     "@chainport/db": "workspace:*",
     "@chainport/shared": "workspace:*",
     "@fastify/cors": "11.1.0",
+    "bullmq": "5.61.0",
     "fastify": "5.6.2",
     "ioredis": "5.8.2",
-    "pino": "10.1.0"
+    "pino": "10.1.0",
+    "zod": "3.25.76"
   },
   "devDependencies": {
     "@types/node": "24.10.1"

@@ -8,6 +8,7 @@
     { "path": "packages/compatibility" },
     { "path": "packages/migration" },
     { "path": "packages/sandbox" },
+    { "path": "packages/ingest" },
     { "path": "packages/db" },
     { "path": "apps/api" },
     { "path": "apps/worker" }

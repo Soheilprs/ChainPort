@@ -12,6 +12,12 @@ export type OrganizationKind = (typeof ORGANIZATION_KINDS)[number];
 export const PROJECT_STATUSES = ["ACTIVE", "ARCHIVED"] as const;
 export type ProjectStatus = (typeof PROJECT_STATUSES)[number];
 
+export const REPOSITORY_PROVIDERS = ["GITHUB"] as const;
+export type RepositoryProvider = (typeof REPOSITORY_PROVIDERS)[number];
+
+export const CLONE_STATUSES = ["PENDING", "CLONING", "READY", "FAILED"] as const;
+export type CloneStatus = (typeof CLONE_STATUSES)[number];
+
 export const JOB_STATUSES = [
   "QUEUED",
   "INGESTING",
@@ -114,6 +120,14 @@ export function isOrganizationKind(value: unknown): value is OrganizationKind {
 
 export function isProjectStatus(value: unknown): value is ProjectStatus {
   return isOneOf(value, PROJECT_STATUSES);
+}
+
+export function isRepositoryProvider(value: unknown): value is RepositoryProvider {
+  return isOneOf(value, REPOSITORY_PROVIDERS);
+}
+
+export function isCloneStatus(value: unknown): value is CloneStatus {
+  return isOneOf(value, CLONE_STATUSES);
 }
 
 export function isJobStatus(value: unknown): value is JobStatus {

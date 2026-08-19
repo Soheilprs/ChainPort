@@ -50,6 +50,9 @@ importers:
       '@fastify/cors':
         specifier: 11.1.0
         version: 11.1.0
+      bullmq:
+        specifier: 5.61.0
+        version: 5.61.0(supports-color@8.1.1)
       fastify:
         specifier: 5.6.2
         version: 5.6.2
@@ -59,6 +62,9 @@ importers:
       pino:
         specifier: 10.1.0
         version: 10.1.0
+      zod:
+        specifier: 3.25.76
+        version: 3.25.76
     devDependencies:
       '@types/node':
         specifier: 24.10.1
@@ -115,6 +121,9 @@ importers:
       '@chainport/db':
         specifier: workspace:*
         version: link:../../packages/db
+      '@chainport/ingest':
+        specifier: workspace:*
+        version: link:../../packages/ingest
       '@chainport/shared':
         specifier: workspace:*
         version: link:../../packages/shared
@@ -172,6 +181,16 @@ importers:
       viem:
         specifier: 2.37.9
         version: 2.37.9(typescript@5.9.3)(zod@3.25.76)
+    devDependencies:
+      '@types/node':
+        specifier: 24.10.1
+        version: 24.10.1
+
+  packages/ingest:
+    dependencies:
+      '@chainport/shared':
+        specifier: workspace:*
+        version: link:../shared
     devDependencies:
       '@types/node':
         specifier: 24.10.1

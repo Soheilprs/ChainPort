@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   assertJobTransition,
+  buildIngestIdempotencyKey,
   buildJobIdempotencyKey,
   canRetryJob,
   executableStageIndex,
@@ -14,6 +15,8 @@ import {
 describe("job transitions", () => {
   it("allows the documented happy path", () => {
     expect(isJobTransitionAllowed("QUEUED", "INGESTING")).toBe(true);
+    expect(isJobTransitionAllowed("INGESTING", "COMPLETED")).toBe(true);
+    expect(isJobTransitionAllowed("INGESTING", "ANALYZING")).toBe(true);
     expect(isJobTransitionAllowed("PLANNING", "PATCHING")).toBe(true);
     expect(isJobTransitionAllowed("PLANNING", "COMPLETED")).toBe(true);
     expect(isJobTransitionAllowed("TESTING", "COMPLETED")).toBe(true);
@@ -57,5 +60,13 @@ describe("job transitions", () => {
         repoSha: "abc123",
       }),
     ).toBe("project-1:ethereum:base:abc123");
+    expect(
+      buildIngestIdempotencyKey({
+        owner: "Acme",
+        repo: "Wallet",
+        sourceChainKey: "ethereum",
+        targetChainKey: "base",
+      }),
+    ).toBe("github:acme:wallet:ethereum:base");
   });
 });

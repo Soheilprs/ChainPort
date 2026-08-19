@@ -15,6 +15,7 @@ export { isJsonObject, type JsonObject, type JsonPrimitive, type JsonValue } fro
 export {
   CHAIN_FAMILIES,
   CHAIN_ROLES,
+  CLONE_STATUSES,
   DATABASE_PURPOSES,
   EVM_VERSIONS,
   FINDING_CATEGORIES,
@@ -27,9 +28,11 @@ export {
   NETWORK_KINDS,
   ORGANIZATION_KINDS,
   PROJECT_STATUSES,
+  REPOSITORY_PROVIDERS,
   TERMINAL_JOB_STATUSES,
   isChainFamily,
   isChainRole,
+  isCloneStatus,
   isDatabasePurpose,
   isEvmVersion,
   isFindingCategory,
@@ -40,6 +43,7 @@ export {
   isNetworkKind,
   isOrganizationKind,
   isProjectStatus,
+  isRepositoryProvider,
   isTerminalJobStatus,
   parseChainFamily,
   parseChainRole,
@@ -54,6 +58,7 @@ export {
   parseProjectStatus,
   type ChainFamily,
   type ChainRole,
+  type CloneStatus,
   type DatabasePurpose,
   type EvmVersion,
   type FindingCategory,
@@ -65,12 +70,14 @@ export {
   type NetworkKind,
   type OrganizationKind,
   type ProjectStatus,
+  type RepositoryProvider,
   type TerminalJobStatus,
 } from "./enums.js";
 export {
   ALLOWED_JOB_TRANSITIONS,
   InvalidJobTransitionError,
   assertJobTransition,
+  buildIngestIdempotencyKey,
   buildJobIdempotencyKey,
   canRetryJob,
   executableStageIndex,
@@ -78,13 +85,24 @@ export {
   nextJobStage,
 } from "./job-transitions.js";
 export {
+  githubApiRepositoryUrl,
+  githubHttpsCloneUrl,
   githubRepositoryName,
   parseGitHubRepositoryUrl,
   type GitHubRepositoryRef,
 } from "./github.js";
 export {
+  INGEST_ERROR_CODES,
+  INGEST_ERROR_MESSAGES,
+  isDeterministicIngestError,
+  isIngestErrorCode,
+  isRetryableIngestError,
+  type IngestErrorCode,
+} from "./ingest-errors.js";
+export {
   JOB_NAMES,
   QUEUE_NAMES,
+  type IngestJobPayload,
   type JobName,
   type MigrationJobPayload,
   type QueueName,
@@ -102,6 +120,7 @@ export {
   type MigrationPlanStep,
   type Organization,
   type Project,
+  type Repository,
   type SandboxRun,
   type User,
 } from "./models.js";

@@ -2,15 +2,20 @@
 
 Work proceeds one phase at a time. A phase must not implement later product capabilities.
 
-## Phase 1 — Foundation (current)
+## Phase 1 — Foundation
 
 Monorepo, domain model, chain catalog, database schema, API/worker/web shells, and UI empty
 states. Real chain catalog. No repository analysis.
 
+## Phase 2 — Repository ingest (current)
+
+Public GitHub URL → Project + Repository + MigrationJob → worker clones into an isolated workspace
+→ exact commit SHA persisted → workspace removed → job `COMPLETED`.
+
+No scanning, dependency detection, compatibility, findings, or repository execution.
+
 ## Recommended next phases
 
-2. **Repository ingest** — accept a GitHub URL, persist a project, clone into an isolated workspace
-   without executing it.
 3. **Deterministic scanner** — detect frameworks, Solidity files, dependencies, hardcoded chain IDs
    and addresses, RPC and frontend config.
 4. **Compatibility engine** — compare scanned requirements with `@chainport/chain-registry`

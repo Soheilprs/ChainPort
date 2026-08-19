@@ -31,7 +31,10 @@ export async function checkDatabase(client: PrismaClient = getDatabaseClient()):
 export function rethrowPersistenceError(error: unknown): never {
   if (error instanceof Prisma.PrismaClientKnownRequestError) {
     if (error.code === "P2002") {
-      throw new UniqueConstraintError();
+      const target = Array.isArray(error.meta?.target)
+        ? error.meta.target.filter((value): value is string => typeof value === "string")
+        : [];
+      throw new UniqueConstraintError("a unique constraint was violated", target);
     }
     if (error.code === "P2003") {
       throw new ForeignKeyError();

@@ -64,6 +64,21 @@ const serviceEnvironmentSchema = z.object({
     .refine(isHttpUrl, "WEB_ORIGIN must be an HTTP(S) URL"),
   LOG_LEVEL: logLevelSchema.default("info"),
   WORKER_ID: optionalNonEmptyString,
+  WORKSPACE_ROOT: optionalNonEmptyString,
+  CLONE_TIMEOUT_MS: z.coerce.number().int().min(1_000).max(600_000).default(60_000),
+  CLONE_MAX_BYTES: z.coerce.number().int().min(1_024).max(5_368_709_120).default(104_857_600),
+  GITHUB_API_BASE_URL: z
+    .string()
+    .trim()
+    .default("https://api.github.com")
+    .refine((value) => {
+      try {
+        const url = new URL(value);
+        return url.protocol === "https:" && url.hostname === "api.github.com";
+      } catch {
+        return false;
+      }
+    }, "GITHUB_API_BASE_URL must be https://api.github.com"),
 });
 
 const webEnvironmentSchema = z.object({

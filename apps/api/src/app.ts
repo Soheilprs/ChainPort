@@ -11,6 +11,9 @@ import type { Logger } from "pino";
 
 import { ApiRequestError } from "./errors.js";
 import { registerChainRoutes } from "./routes/chains.js";
+import { registerJobRoutes } from "./routes/jobs.js";
+import { registerProjectRoutes } from "./routes/projects.js";
+import type { ProjectsService } from "./projects-service.js";
 
 export type ReadinessProbe = () => Promise<void>;
 
@@ -18,6 +21,7 @@ export interface ApiApplicationOptions {
   logger: Logger;
   readinessProbe: ReadinessProbe;
   webOrigin: string;
+  projectsService?: ProjectsService;
 }
 
 export async function createApiApplication(options: ApiApplicationOptions) {
@@ -69,6 +73,10 @@ export async function createApiApplication(options: ApiApplicationOptions) {
   }));
 
   registerChainRoutes(app);
+  if (options.projectsService !== undefined) {
+    registerProjectRoutes(app, options.projectsService);
+    registerJobRoutes(app, options.projectsService);
+  }
 
   app.setNotFoundHandler(async (_request, reply) => {
     await reply.status(404).send({

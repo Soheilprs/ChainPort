@@ -1,16 +1,7 @@
 import { getChainByKey, listChainSummaries, toChainSummary } from "@chainport/chain-registry";
-import type { IncomingMessage, Server, ServerResponse } from "node:http";
-import type { FastifyInstance } from "fastify";
-import type { Logger } from "pino";
 
 import { ApiRequestError } from "../errors.js";
-
-type ApiInstance = FastifyInstance<
-  Server<typeof IncomingMessage, typeof ServerResponse>,
-  IncomingMessage,
-  ServerResponse<IncomingMessage>,
-  Logger
->;
+import type { ApiInstance } from "../types.js";
 
 export function registerChainRoutes(app: ApiInstance): void {
   app.get("/v1/chains", () => ({

@@ -1,0 +1,48 @@
+import { INTEGRATION_TEST_DATABASE_PURPOSE } from "@chainport/shared";
+
+import type { DatabaseClient } from "./client.js";
+
+export class DestructiveCleanupRefusedError extends Error {
+  public constructor(message: string) {
+    super(message);
+    this.name = "DestructiveCleanupRefusedError";
+  }
+}
+
+export function databaseNameFromUrl(databaseUrl: string): string {
+  return new URL(databaseUrl).pathname.replace(/^\//, "");
+}
+
+export function assertIntegrationCleanupAllowed(
+  purpose: string | undefined,
+  databaseUrl: string,
+): void {
+  if (purpose !== INTEGRATION_TEST_DATABASE_PURPOSE) {
+    throw new DestructiveCleanupRefusedError(
+      "destructive cleanup is only allowed for the integration-test catalog",
+    );
+  }
+  if (databaseNameFromUrl(databaseUrl) !== "chainport_integration") {
+    throw new DestructiveCleanupRefusedError(
+      "destructive cleanup must target chainport_integration",
+    );
+  }
+}
+
+export async function resetIntegrationDatabase(client: DatabaseClient): Promise<void> {
+  assertIntegrationCleanupAllowed(process.env.CHAINPORT_DB_PURPOSE, process.env.DATABASE_URL ?? "");
+  await client.$executeRawUnsafe(`
+    TRUNCATE TABLE
+      deployments,
+      sandbox_runs,
+      migration_plans,
+      findings,
+      job_status_events,
+      migration_jobs,
+      projects,
+      repositories,
+      users,
+      organizations
+    RESTART IDENTITY CASCADE
+  `);
+}

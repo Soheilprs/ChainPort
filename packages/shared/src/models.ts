@@ -1,9 +1,11 @@
 import type {
+  CloneStatus,
   FindingCategory,
   FindingSeverity,
   JobStatus,
   OrganizationKind,
   ProjectStatus,
+  RepositoryProvider,
 } from "./enums.js";
 import type { JsonObject } from "./json.js";
 
@@ -25,9 +27,27 @@ export interface User {
   updatedAt: Date;
 }
 
+export interface Repository {
+  id: string;
+  provider: RepositoryProvider;
+  owner: string;
+  name: string;
+  normalizedUrl: string;
+  defaultBranch: string | null;
+  resolvedCommitSha: string | null;
+  cloneStatus: CloneStatus;
+  clonedAt: Date | null;
+  sizeBytes: number | null;
+  ingestErrorCode: string | null;
+  ingestErrorMessage: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export interface Project {
   id: string;
   organizationId: string | null;
+  repositoryId: string;
   name: string;
   githubUrl: string;
   githubOwner: string;
@@ -41,6 +61,7 @@ export interface Project {
 export interface MigrationJob {
   id: string;
   projectId: string;
+  repositoryId: string;
   sourceChainKey: string;
   targetChainKey: string;
   repoSha: string | null;

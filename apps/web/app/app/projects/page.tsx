@@ -1,31 +1,80 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 
 import { AppNav } from "@/components/app-nav";
 import { EmptyState } from "@/components/empty-state";
 import { PhaseBanner } from "@/components/phase-banner";
 import { SiteHeader } from "@/components/site-header";
+import { fetchProjects } from "@/lib/api";
 
 export const metadata: Metadata = {
   title: "Projects",
 };
 
-export default function ProjectsPage() {
+export default async function ProjectsPage() {
+  let projects: Awaited<ReturnType<typeof fetchProjects>> = [];
+  let loadError: string | null = null;
+  try {
+    projects = await fetchProjects();
+  } catch {
+    loadError = "API unavailable";
+  }
+
   return (
     <div>
       <SiteHeader current="/app/projects" />
       <main className="mx-auto max-w-6xl px-5 py-10">
         <PhaseBanner />
-        <h1 className="mt-3 text-2xl font-medium tracking-tight">Developer workspace</h1>
-        <p className="mt-2 max-w-2xl text-sm leading-6 text-muted">
-          Connect a repository, choose source and target chains, then inspect compatibility. Project
-          ingest is not implemented yet.
-        </p>
+        <div className="mt-3 flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-medium tracking-tight">Developer workspace</h1>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-muted">
+              Connect a public GitHub repository. ChainPort will clone it safely and record the
+              exact commit SHA. Scanning is not part of this phase.
+            </p>
+          </div>
+          <Link
+            href="/app/projects/new"
+            className="inline-flex h-9 items-center rounded-md bg-foreground px-3.5 text-sm font-medium text-background"
+          >
+            New migration
+          </Link>
+        </div>
         <div className="mt-8">
           <AppNav current="/app/projects" />
-          <EmptyState title="No projects">
-            Repository connection, analysis jobs, and migration plans are reserved for later phases.
-            The workspace is wired, but it will not invent applications or findings.
-          </EmptyState>
+          {loadError !== null ? (
+            <EmptyState title="API unavailable">
+              The project list could not be loaded. Start the API and refresh.
+            </EmptyState>
+          ) : projects.length === 0 ? (
+            <EmptyState title="No projects">
+              Start a migration to ingest a public GitHub repository. Findings and compatibility
+              results are not generated yet.
+            </EmptyState>
+          ) : (
+            <div className="overflow-x-auto rounded-xl border border-line">
+              <table className="w-full min-w-[640px] text-left text-sm">
+                <thead className="border-b border-line text-xs uppercase tracking-wide text-muted">
+                  <tr>
+                    <th className="px-4 py-3 font-medium">Repository</th>
+                    <th className="px-4 py-3 font-medium">Created</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {projects.map((project) => (
+                    <tr key={project.id} className="border-b border-line last:border-0">
+                      <td className="px-4 py-3">
+                        <Link href={`/app/projects/${project.id}`} className="hover:text-accent">
+                          {project.name}
+                        </Link>
+                      </td>
+                      <td className="px-4 py-3 text-muted">{project.createdAt.slice(0, 10)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       </main>
     </div>

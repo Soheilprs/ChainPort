@@ -9,7 +9,7 @@ import {
 
 export const ALLOWED_JOB_TRANSITIONS: Readonly<Record<JobStatus, readonly JobStatus[]>> = {
   QUEUED: ["INGESTING", "FAILED", "CANCELLED"],
-  INGESTING: ["ANALYZING", "FAILED", "CANCELLED"],
+  INGESTING: ["COMPLETED", "ANALYZING", "FAILED", "CANCELLED"],
   ANALYZING: ["COMPARING", "FAILED", "CANCELLED"],
   COMPARING: ["PLANNING", "FAILED", "CANCELLED"],
   PLANNING: ["PATCHING", "COMPLETED", "FAILED", "CANCELLED"],
@@ -74,4 +74,13 @@ export function buildJobIdempotencyKey(input: {
   repoSha: string;
 }): string {
   return `${input.projectId}:${input.sourceChainKey}:${input.targetChainKey}:${input.repoSha}`;
+}
+
+export function buildIngestIdempotencyKey(input: {
+  owner: string;
+  repo: string;
+  sourceChainKey: string;
+  targetChainKey: string;
+}): string {
+  return `github:${input.owner.toLowerCase()}:${input.repo.toLowerCase()}:${input.sourceChainKey}:${input.targetChainKey}`;
 }

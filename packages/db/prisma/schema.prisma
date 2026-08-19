@@ -20,6 +20,17 @@ enum ProjectStatus {
   ARCHIVED
 }
 
+enum RepositoryProvider {
+  GITHUB
+}
+
+enum CloneStatus {
+  PENDING
+  CLONING
+  READY
+  FAILED
+}
+
 enum JobStatus {
   QUEUED
   INGESTING
@@ -87,10 +98,34 @@ model User {
   @@map("users")
 }
 
+model Repository {
+  id                 String             @id @db.Uuid
+  provider           RepositoryProvider @default(GITHUB)
+  owner              String
+  name               String
+  normalizedUrl      String             @map("normalized_url")
+  defaultBranch      String?            @map("default_branch")
+  resolvedCommitSha  String?            @map("resolved_commit_sha")
+  cloneStatus        CloneStatus        @default(PENDING) @map("clone_status")
+  clonedAt           DateTime?          @map("cloned_at") @db.Timestamptz(3)
+  sizeBytes          BigInt?            @map("size_bytes")
+  ingestErrorCode    String?            @map("ingest_error_code")
+  ingestErrorMessage String?            @map("ingest_error_message")
+  createdAt          DateTime           @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt          DateTime           @updatedAt @map("updated_at") @db.Timestamptz(3)
+  projects           Project[]
+  jobs               MigrationJob[]
+
+  @@unique([provider, owner, name])
+  @@map("repositories")
+}
+
 model Project {
   id             String        @id @db.Uuid
   organizationId String?       @map("organization_id") @db.Uuid
   organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  repositoryId   String        @map("repository_id") @db.Uuid
+  repository     Repository    @relation(fields: [repositoryId], references: [id], onDelete: Restrict)
   name           String
   githubUrl      String        @map("github_url")
   githubOwner    String        @map("github_owner")
@@ -102,6 +137,7 @@ model Project {
   jobs           MigrationJob[]
 
   @@unique([githubOwner, githubRepo])
+  @@unique([repositoryId])
   @@index([organizationId])
   @@map("projects")
 }
@@ -110,6 +146,8 @@ model MigrationJob {
   id             String           @id @db.Uuid
   projectId      String           @map("project_id") @db.Uuid
   project        Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  repositoryId   String           @map("repository_id") @db.Uuid
+  repository     Repository       @relation(fields: [repositoryId], references: [id], onDelete: Restrict)
   sourceChainKey String           @map("source_chain_key")
   targetChainKey String           @map("target_chain_key")
   repoSha        String?          @map("repo_sha")
@@ -133,6 +171,7 @@ model MigrationJob {
 
   @@index([status, createdAt])
   @@index([projectId])
+  @@index([repositoryId])
   @@map("migration_jobs")
 }
 

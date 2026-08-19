@@ -8,10 +8,11 @@ a target chain, and how to migrate it safely.
 It is not an RPC provider, explorer, indexer, generic AI coding assistant, generic GitHub scanner,
 or generic CI/CD tool.
 
-> **CURRENT STATUS: PHASE 1 — FOUNDATION**
+> **CURRENT STATUS: PHASE 2 — REPOSITORY INGEST**
 >
-> The monorepo, domain model, chain catalog, database schema, and service shells exist. Repository
-> analysis, migration, sandbox execution, and deployments are not implemented.
+> Public GitHub repositories can be validated, persisted, queued, cloned into an isolated
+> workspace, and recorded by immutable commit SHA. Analysis, migration, sandbox execution, and
+> deployments are not implemented.
 
 ## Prerequisites
 
@@ -45,6 +46,10 @@ secret values have application defaults.
 | API readiness    | <http://localhost:3001/ready>     |
 | Product metadata | <http://localhost:3001/v1/meta>   |
 | Chain catalog    | <http://localhost:3001/v1/chains> |
+| Create project   | `POST /v1/projects`               |
+| Get project      | `GET /v1/projects/:id`            |
+| Project jobs     | `GET /v1/projects/:id/jobs`       |
+| Get job          | `GET /v1/jobs/:id`                |
 
 `/health` does not touch PostgreSQL or Redis. `/ready` returns HTTP 503 when either is unavailable.
 
@@ -71,3 +76,4 @@ pnpm db:studio
 - [Architecture](docs/ARCHITECTURE.md)
 - [Database](docs/DATABASE.md)
 - [Phases](docs/PHASES.md)
+- [Repository ingest](docs/INGEST.md)

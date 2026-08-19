@@ -22,16 +22,17 @@ local catalogs that already use 5432.
   `chainport_integration`.
 - Sample credentials are for local Compose only.
 
-## Schema (phase 1)
+## Schema
 
-Core product tables are created in the initial migration:
+Phase 1 created core product tables. Phase 2 adds repositories and links jobs to them:
 
 - `organizations`, `users`, `projects`
-- `migration_jobs` with lease, attempt, and idempotency fields
+- `repositories` (GitHub identity, clone status, resolved SHA, size)
+- `migration_jobs` with lease, attempt, idempotency, and `repository_id`
 - `job_status_events`
 - `findings`
 - `migration_plans`
 - `sandbox_runs`
 - `deployments`
 
-No seed data is inserted. Fake projects and findings are not created.
+Temporary clone paths are never stored. Fake projects and findings are not seeded.

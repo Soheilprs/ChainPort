@@ -1,21 +1,32 @@
-import { checkDatabase, disconnectDatabase, getDatabaseClient } from "@chainport/db";
+import {
+  checkDatabase,
+  disconnectDatabase,
+  getDatabaseClient,
+  IngestRepository,
+} from "@chainport/db";
 import { loadServiceConfig } from "@chainport/shared";
 import { Redis } from "ioredis";
 
 import { createApiApplication } from "./app.js";
 import { createLogger } from "./logger.js";
+import { ProjectsService } from "./projects-service.js";
+import { createIngestJobQueue } from "./queue.js";
 import { checkRedis } from "./redis.js";
 
 async function main(): Promise<void> {
   const config = loadServiceConfig();
   const logger = createLogger({ service: "api", level: config.LOG_LEVEL });
   const database = getDatabaseClient();
-  const redis = new Redis(config.REDIS_URL, { maxRetriesPerRequest: 2, lazyConnect: true });
+  const redis = new Redis(config.REDIS_URL, { maxRetriesPerRequest: null, lazyConnect: true });
   await redis.connect();
+
+  const queue = createIngestJobQueue(redis);
+  const projectsService = new ProjectsService(new IngestRepository(database), queue);
 
   const app = await createApiApplication({
     logger,
     webOrigin: config.WEB_ORIGIN,
+    projectsService,
     readinessProbe: async () => {
       await checkDatabase(database);
       await checkRedis(redis);
@@ -30,6 +41,7 @@ async function main(): Promise<void> {
     shuttingDown = true;
     logger.info({ signal }, "API shutdown started");
     await app.close();
+    await queue.close();
     await redis.quit();
     await disconnectDatabase(database);
     logger.info("API shutdown complete");

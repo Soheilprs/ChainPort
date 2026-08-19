@@ -6,7 +6,10 @@ export class PersistenceError extends Error {
 }
 
 export class UniqueConstraintError extends PersistenceError {
-  public constructor(message = "a unique constraint was violated") {
+  public constructor(
+    message = "a unique constraint was violated",
+    public readonly target: readonly string[] = [],
+  ) {
     super(message);
     this.name = "UniqueConstraintError";
   }

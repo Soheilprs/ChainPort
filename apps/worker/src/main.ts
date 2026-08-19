@@ -1,7 +1,14 @@
-import { checkDatabase, disconnectDatabase, getDatabaseClient } from "@chainport/db";
+import {
+  checkDatabase,
+  disconnectDatabase,
+  getDatabaseClient,
+  IngestRepository,
+} from "@chainport/db";
+import { WorkspaceManager } from "@chainport/ingest";
 import { createId, loadServiceConfig } from "@chainport/shared";
 import { Redis } from "ioredis";
 
+import { createGitHubMetadataClient } from "./ingest-processor.js";
 import { createLogger } from "./logger.js";
 import { startWorkerRuntime } from "./runtime.js";
 
@@ -12,13 +19,24 @@ export async function runWorker(): Promise<void> {
   const database = getDatabaseClient();
   await checkDatabase(database);
 
-  const redis = new Redis(config.REDIS_URL, { maxRetriesPerRequest: 2, lazyConnect: true });
+  const redis = new Redis(config.REDIS_URL, { maxRetriesPerRequest: null, lazyConnect: true });
   await redis.connect();
+
+  const workspaces = new WorkspaceManager(config.WORKSPACE_ROOT ?? WorkspaceManager.defaultRoot());
+  const ingest = new IngestRepository(database);
 
   const runtime = await startWorkerRuntime({
     workerId,
     redis,
     logger,
+    processor: {
+      ingest,
+      workspaces,
+      metadata: createGitHubMetadataClient(config),
+      config,
+      logger,
+      workerId,
+    },
   });
 
   await new Promise<void>((resolve) => {
