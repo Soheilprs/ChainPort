@@ -41,6 +41,9 @@ importers:
       '@chainport/chain-registry':
         specifier: workspace:*
         version: link:../../packages/chain-registry
+      '@chainport/compatibility':
+        specifier: workspace:*
+        version: link:../../packages/compatibility
       '@chainport/db':
         specifier: workspace:*
         version: link:../../packages/db
@@ -165,9 +168,16 @@ importers:
       '@chainport/chain-registry':
         specifier: workspace:*
         version: link:../chain-registry
+      '@chainport/evm':
+        specifier: workspace:*
+        version: link:../evm
       '@chainport/shared':
         specifier: workspace:*
         version: link:../shared
+    devDependencies:
+      '@types/node':
+        specifier: 24.10.1
+        version: 24.10.1
 
   packages/db:
     dependencies:

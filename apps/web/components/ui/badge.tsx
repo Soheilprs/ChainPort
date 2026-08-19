@@ -13,6 +13,7 @@ const badgeVariants = cva(
         pass: "border-pass/30 text-pass",
         warning: "border-warning/30 text-warning",
         blocker: "border-blocker/30 text-blocker",
+        unknown: "border-unknown/30 text-unknown",
       },
     },
     defaultVariants: {

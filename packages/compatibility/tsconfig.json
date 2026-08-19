@@ -9,5 +9,5 @@
     "sourceMap": true
   },
   "include": ["src/**/*.ts"],
-  "references": [{ "path": "../shared" }, { "path": "../chain-registry" }]
+  "references": [{ "path": "../shared" }, { "path": "../chain-registry" }, { "path": "../evm" }]
 }

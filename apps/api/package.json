@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@chainport/chain-registry": "workspace:*",
+    "@chainport/compatibility": "workspace:*",
     "@chainport/db": "workspace:*",
     "@chainport/scanner": "workspace:*",
     "@chainport/shared": "workspace:*",

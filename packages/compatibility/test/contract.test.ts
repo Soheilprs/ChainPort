@@ -1,10 +1,13 @@
 import { describe, expect, it } from "vitest";
 
-import { assertCompatibilityAvailable, COMPATIBILITY_IMPLEMENTATION_STATUS } from "../src/index.js";
+import {
+  COMPATIBILITY_IMPLEMENTATION_STATUS,
+  COMPATIBILITY_RULESET_VERSION,
+} from "../src/index.js";
 
 describe("compatibility contract", () => {
-  it("is explicitly unimplemented in phase 1", () => {
-    expect(COMPATIBILITY_IMPLEMENTATION_STATUS).toBe("not_implemented");
-    expect(() => assertCompatibilityAvailable()).toThrow(/not implemented in phase/);
+  it("is implemented for phase 4", () => {
+    expect(COMPATIBILITY_IMPLEMENTATION_STATUS).toBe("implemented");
+    expect(COMPATIBILITY_RULESET_VERSION).toBe("1");
   });
 });

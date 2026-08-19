@@ -55,6 +55,6 @@ Repository code must never execute on the host. Sandbox execution is isolated.
 
 ## Current phase
 
-Phase 3 inspects an ingested repository at its stored SHA and records deterministic requirements
-with evidence. Compatibility scoring, migration, sandbox execution, and deployments are not
-implemented.
+Phase 4 compares Phase 3 repository requirements with a versioned target-chain registry snapshot.
+It produces an evidence-backed PASS / WARNING / BLOCKER / UNKNOWN report, a transparent score,
+coverage, and readiness. It does not migrate, patch, compile, or execute repository code.

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { hasBlockers, summarizeFindings } from "../src/index.js";
+import { hasBlockers, summarizeCompatibilityFindings, summarizeFindings } from "../src/index.js";
 
 describe("finding summaries", () => {
   it("counts severities without inventing findings", () => {
@@ -18,5 +18,15 @@ describe("finding summaries", () => {
   it("treats only BLOCKER as blocking", () => {
     expect(hasBlockers([{ severity: "WARNING" }])).toBe(false);
     expect(hasBlockers([{ severity: "BLOCKER" }])).toBe(true);
+  });
+
+  it("counts UNKNOWN separately from blockers", () => {
+    expect(
+      summarizeCompatibilityFindings([
+        { status: "PASS" },
+        { status: "UNKNOWN" },
+        { status: "BLOCKER" },
+      ]),
+    ).toEqual({ pass: 1, warning: 0, blocker: 1, unknown: 1 });
   });
 });

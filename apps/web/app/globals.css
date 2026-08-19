@@ -15,6 +15,7 @@
   --pass: #4ade80;
   --warning: #fbbf24;
   --blocker: #f87171;
+  --unknown: #94a3b8;
 }
 
 @theme inline {
@@ -31,6 +32,7 @@
   --color-pass: var(--pass);
   --color-warning: var(--warning);
   --color-blocker: var(--blocker);
+  --color-unknown: var(--unknown);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }

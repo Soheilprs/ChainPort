@@ -109,6 +109,47 @@ enum DetectorRunStatus {
   FAILED
 }
 
+enum CompatibilityRunStatus {
+  QUEUED
+  EVALUATING
+  COMPLETED
+  FAILED
+}
+
+enum CompatibilityFindingStatus {
+  PASS
+  WARNING
+  BLOCKER
+  UNKNOWN
+}
+
+enum CompatibilityCategory {
+  CONTRACTS
+  RPC
+  TOKENS
+  ORACLES
+  PROTOCOLS
+  CROSS_CHAIN
+  FRONTEND
+  CONFIGURATION
+}
+
+enum CompatibilityReadiness {
+  READY
+  REVIEW_REQUIRED
+  BLOCKED
+  INSUFFICIENT_DATA
+}
+
+enum RemediationType {
+  NONE
+  CONFIG_CHANGE
+  ADDRESS_MAPPING
+  INFRASTRUCTURE_REQUIRED
+  MANUAL_REVIEW
+  UNKNOWN
+}
+
 enum FindingCategory {
   CHAIN_ID
   HARDCODED_ADDRESS
@@ -169,9 +210,10 @@ model Repository {
   ingestErrorMessage String?            @map("ingest_error_message")
   createdAt          DateTime           @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt          DateTime           @updatedAt @map("updated_at") @db.Timestamptz(3)
-  projects           Project[]
-  jobs               MigrationJob[]
-  analyses           RepositoryAnalysis[]
+  projects            Project[]
+  jobs                MigrationJob[]
+  analyses            RepositoryAnalysis[]
+  compatibilityRuns   CompatibilityRun[]
 
   @@unique([provider, owner, name])
   @@map("repositories")
@@ -191,8 +233,9 @@ model Project {
   status         ProjectStatus @default(ACTIVE)
   createdAt      DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt      DateTime      @updatedAt @map("updated_at") @db.Timestamptz(3)
-  jobs           MigrationJob[]
-  analyses       RepositoryAnalysis[]
+  jobs                MigrationJob[]
+  analyses            RepositoryAnalysis[]
+  compatibilityRuns   CompatibilityRun[]
 
   @@unique([githubOwner, githubRepo])
   @@unique([repositoryId])
@@ -328,8 +371,9 @@ model RepositoryAnalysis {
   detectorRuns       AnalysisDetectorRun[]
   files              RepositoryFile[]
   components         RepositoryComponent[]
-  requirements       ProjectRequirement[]
-  evidence           AnalysisEvidence[]
+  requirements        ProjectRequirement[]
+  evidence            AnalysisEvidence[]
+  compatibilityRuns   CompatibilityRun[]
 
   @@unique([repositoryId, commitSha, scannerVersion])
   @@index([projectId, createdAt])
@@ -405,7 +449,8 @@ model ProjectRequirement {
   confidence      DetectionConfidence
   detector        String
   detectorVersion String               @map("detector_version")
-  evidence        AnalysisEvidence[]
+  evidence                 AnalysisEvidence[]
+  compatibilityFindings    CompatibilityFinding[]
 
   @@index([analysisId, category])
   @@index([analysisId, key])
@@ -427,4 +472,115 @@ model AnalysisEvidence {
   @@index([analysisId])
   @@index([requirementId])
   @@map("analysis_evidence")
+}
+
+model CompatibilityRegistrySnapshot {
+  id              String   @id @db.Uuid
+  hash            String   @unique
+  registryVersion String   @map("registry_version")
+  targetChainKey  String   @map("target_chain_key")
+  canonicalJson   String   @map("canonical_json") @db.Text
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  runs            CompatibilityRun[]
+
+  @@map("compatibility_registry_snapshots")
+}
+
+model CompatibilityRun {
+  id                   String                    @id @db.Uuid
+  projectId            String                    @map("project_id") @db.Uuid
+  project              Project                   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  analysisId           String                    @map("analysis_id") @db.Uuid
+  analysis             RepositoryAnalysis        @relation(fields: [analysisId], references: [id], onDelete: Restrict)
+  repositoryId         String                    @map("repository_id") @db.Uuid
+  repository           Repository                @relation(fields: [repositoryId], references: [id], onDelete: Restrict)
+  commitSha            String                    @map("commit_sha")
+  sourceChainKey       String                    @map("source_chain_key")
+  targetChainKey       String                    @map("target_chain_key")
+  scannerVersion       String                    @map("scanner_version")
+  rulesetVersion       String                    @map("ruleset_version")
+  registryVersion      String                    @map("registry_version")
+  registrySnapshotHash String                    @map("registry_snapshot_hash")
+  registrySnapshot     CompatibilityRegistrySnapshot @relation(fields: [registrySnapshotHash], references: [hash], onDelete: Restrict)
+  score                Int
+  coverage             Int
+  coverageConfidence   String                    @map("coverage_confidence")
+  readiness            CompatibilityReadiness
+  status               CompatibilityRunStatus    @default(QUEUED)
+  passCount            Int                       @default(0) @map("pass_count")
+  warningCount         Int                       @default(0) @map("warning_count")
+  blockerCount         Int                       @default(0) @map("blocker_count")
+  unknownCount         Int                       @default(0) @map("unknown_count")
+  idempotencyKey       String                    @unique @map("idempotency_key")
+  errorCode            String?                   @map("error_code")
+  errorMessage         String?                   @map("error_message")
+  evaluatedAt          DateTime?                 @map("evaluated_at") @db.Timestamptz(3)
+  createdAt            DateTime                  @default(now()) @map("created_at") @db.Timestamptz(3)
+  completedAt          DateTime?                 @map("completed_at") @db.Timestamptz(3)
+  updatedAt            DateTime                  @updatedAt @map("updated_at") @db.Timestamptz(3)
+  findings             CompatibilityFinding[]
+  categories           CompatibilityCategoryResult[]
+  statusEvents         CompatibilityStatusEvent[]
+
+  @@unique([analysisId, targetChainKey, rulesetVersion, registrySnapshotHash])
+  @@index([projectId, createdAt])
+  @@index([analysisId, createdAt])
+  @@index([status, createdAt])
+  @@map("compatibility_runs")
+}
+
+model CompatibilityStatusEvent {
+  id                 String                 @id @db.Uuid
+  compatibilityRunId String                 @map("compatibility_run_id") @db.Uuid
+  run                CompatibilityRun       @relation(fields: [compatibilityRunId], references: [id], onDelete: Cascade)
+  fromStatus         CompatibilityRunStatus? @map("from_status")
+  toStatus           CompatibilityRunStatus @map("to_status")
+  reason             String?
+  createdAt          DateTime               @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  @@index([compatibilityRunId, createdAt])
+  @@map("compatibility_status_events")
+}
+
+model CompatibilityFinding {
+  id                 String                      @id @db.Uuid
+  compatibilityRunId String                      @map("compatibility_run_id") @db.Uuid
+  run                CompatibilityRun            @relation(fields: [compatibilityRunId], references: [id], onDelete: Cascade)
+  requirementId      String?                     @map("requirement_id") @db.Uuid
+  requirement        ProjectRequirement?         @relation(fields: [requirementId], references: [id], onDelete: SetNull)
+  ruleId             String                      @map("rule_id")
+  ruleVersion        String                      @map("rule_version")
+  category           CompatibilityCategory
+  status             CompatibilityFindingStatus
+  title              String
+  summary            String
+  technicalReason    String                      @map("technical_reason")
+  remediationType    RemediationType             @map("remediation_type")
+  sourceValue        String?                     @map("source_value")
+  targetValue        String?                     @map("target_value")
+  confidence         String
+  registryEvidence   Json                        @map("registry_evidence")
+  createdAt          DateTime                    @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  @@index([compatibilityRunId, status])
+  @@index([compatibilityRunId, category])
+  @@index([requirementId])
+  @@map("compatibility_findings")
+}
+
+model CompatibilityCategoryResult {
+  id                 String                 @id @db.Uuid
+  compatibilityRunId String                 @map("compatibility_run_id") @db.Uuid
+  run                CompatibilityRun       @relation(fields: [compatibilityRunId], references: [id], onDelete: Cascade)
+  category           CompatibilityCategory
+  applicable         Boolean
+  weight             Float
+  score              Float?
+  passCount          Int                    @map("pass_count")
+  warningCount       Int                    @map("warning_count")
+  blockerCount       Int                    @map("blocker_count")
+  unknownCount       Int                    @map("unknown_count")
+
+  @@unique([compatibilityRunId, category])
+  @@map("compatibility_category_results")
 }

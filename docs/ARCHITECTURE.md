@@ -14,7 +14,7 @@ packages/
   chain-registry/ Static catalog of source and target chains
   ingest/       Workspace manager and safe Git clone
   scanner/      Deterministic static analysis
-  compatibility/ Contract only
+  compatibility/ Deterministic target-chain comparison engine
   migration/    Contract only
   sandbox/      Security policy; runner not implemented
   db/           Prisma schema and client
@@ -54,6 +54,17 @@ and Redis and returns HTTP 503 on failure without leaking connection strings.
    `HEAD`, persists the SHA, and deletes the workspace.
 
 See [INGEST.md](INGEST.md).
+
+## Compatibility path
+
+1. API loads a completed analysis and the selected source/target chains.
+2. `@chainport/chain-registry` builds a canonical capability snapshot and SHA-256 hash.
+3. If a completed `CompatibilityRun` already exists for
+   `analysisId + targetChainKey + rulesetVersion + snapshotHash`, it is reused.
+4. `@chainport/compatibility` evaluates rules in-process (no worker, no network, no repository I/O).
+5. Findings, category scores, readiness, and the snapshot JSON are persisted.
+
+See [COMPATIBILITY_ENGINE.md](COMPATIBILITY_ENGINE.md).
 
 ## Data
 

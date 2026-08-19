@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 
+import { EvaluateCompatibilityButton } from "@/components/evaluate-compatibility";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { API_URL } from "@/lib/api";
@@ -9,6 +10,7 @@ import { API_URL } from "@/lib/api";
 interface AnalysisPayload {
   analysis: {
     id: string;
+    projectId: string;
     commitSha: string;
     scannerVersion: string;
     status: string;
@@ -109,9 +111,16 @@ export function AnalysisDetail({ initial }: { initial: AnalysisPayload }) {
         SHA {payload.analysis.commitSha} · scanner v{payload.analysis.scannerVersion}
       </p>
       <p className="text-sm text-muted">
-        Observations only. This is not a compatibility result and does not include PASS / WARNING /
-        BLOCKER findings.
+        Observations only. Compatibility scoring happens in a separate, versioned evaluation against
+        the selected target chain.
       </p>
+      {payload.analysis.status === "COMPLETED" ? (
+        <EvaluateCompatibilityButton
+          projectId={payload.analysis.projectId}
+          analysisId={payload.analysis.id}
+          analysisComplete
+        />
+      ) : null}
       {payload.analysis.status === "FAILED" ? (
         <Card className="border-blocker/30">
           <CardTitle>Analysis failed</CardTitle>

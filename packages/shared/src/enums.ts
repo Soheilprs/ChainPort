@@ -106,6 +106,51 @@ export type TerminalJobStatus = (typeof TERMINAL_JOB_STATUSES)[number];
 export const FINDING_SEVERITIES = ["PASS", "WARNING", "BLOCKER"] as const;
 export type FindingSeverity = (typeof FINDING_SEVERITIES)[number];
 
+export const COMPATIBILITY_STATUSES = ["PASS", "WARNING", "BLOCKER", "UNKNOWN"] as const;
+export type CompatibilityStatus = (typeof COMPATIBILITY_STATUSES)[number];
+
+export const COMPATIBILITY_CATEGORIES = [
+  "CONTRACTS",
+  "RPC",
+  "TOKENS",
+  "ORACLES",
+  "PROTOCOLS",
+  "CROSS_CHAIN",
+  "FRONTEND",
+  "CONFIGURATION",
+] as const;
+export type CompatibilityCategory = (typeof COMPATIBILITY_CATEGORIES)[number];
+
+export const COMPATIBILITY_RUN_STATUSES = ["QUEUED", "EVALUATING", "COMPLETED", "FAILED"] as const;
+export type CompatibilityRunStatus = (typeof COMPATIBILITY_RUN_STATUSES)[number];
+
+export const COMPATIBILITY_READINESSES = [
+  "READY",
+  "REVIEW_REQUIRED",
+  "BLOCKED",
+  "INSUFFICIENT_DATA",
+] as const;
+export type CompatibilityReadiness = (typeof COMPATIBILITY_READINESSES)[number];
+
+export const REMEDIATION_TYPES = [
+  "NONE",
+  "CONFIG_CHANGE",
+  "ADDRESS_MAPPING",
+  "INFRASTRUCTURE_REQUIRED",
+  "MANUAL_REVIEW",
+  "UNKNOWN",
+] as const;
+export type RemediationType = (typeof REMEDIATION_TYPES)[number];
+
+export const COVERAGE_CONFIDENCES = ["HIGH", "MEDIUM", "LOW"] as const;
+export type CoverageConfidence = (typeof COVERAGE_CONFIDENCES)[number];
+
+export const CAPABILITY_AVAILABILITIES = ["AVAILABLE", "UNAVAILABLE", "UNKNOWN"] as const;
+export type CapabilityAvailability = (typeof CAPABILITY_AVAILABILITIES)[number];
+
+export const CAPABILITY_PROVENANCES = ["VERIFIED", "DECLARED", "UNKNOWN"] as const;
+export type CapabilityProvenance = (typeof CAPABILITY_PROVENANCES)[number];
+
 export const FINDING_CATEGORIES = [
   "CHAIN_ID",
   "HARDCODED_ADDRESS",
@@ -214,6 +259,38 @@ export function isFindingSeverity(value: unknown): value is FindingSeverity {
   return isOneOf(value, FINDING_SEVERITIES);
 }
 
+export function isCompatibilityStatus(value: unknown): value is CompatibilityStatus {
+  return isOneOf(value, COMPATIBILITY_STATUSES);
+}
+
+export function isCompatibilityCategory(value: unknown): value is CompatibilityCategory {
+  return isOneOf(value, COMPATIBILITY_CATEGORIES);
+}
+
+export function isCompatibilityRunStatus(value: unknown): value is CompatibilityRunStatus {
+  return isOneOf(value, COMPATIBILITY_RUN_STATUSES);
+}
+
+export function isCompatibilityReadiness(value: unknown): value is CompatibilityReadiness {
+  return isOneOf(value, COMPATIBILITY_READINESSES);
+}
+
+export function isRemediationType(value: unknown): value is RemediationType {
+  return isOneOf(value, REMEDIATION_TYPES);
+}
+
+export function isCoverageConfidence(value: unknown): value is CoverageConfidence {
+  return isOneOf(value, COVERAGE_CONFIDENCES);
+}
+
+export function isCapabilityAvailability(value: unknown): value is CapabilityAvailability {
+  return isOneOf(value, CAPABILITY_AVAILABILITIES);
+}
+
+export function isCapabilityProvenance(value: unknown): value is CapabilityProvenance {
+  return isOneOf(value, CAPABILITY_PROVENANCES);
+}
+
 export function isFindingCategory(value: unknown): value is FindingCategory {
   return isOneOf(value, FINDING_CATEGORIES);
 }
@@ -263,6 +340,26 @@ export function parseJobStatus(value: unknown): JobStatus {
 
 export function parseFindingSeverity(value: unknown): FindingSeverity {
   return parseEnum(value, FINDING_SEVERITIES, "severity");
+}
+
+export function parseCompatibilityStatus(value: unknown): CompatibilityStatus {
+  return parseEnum(value, COMPATIBILITY_STATUSES, "status");
+}
+
+export function parseCompatibilityCategory(value: unknown): CompatibilityCategory {
+  return parseEnum(value, COMPATIBILITY_CATEGORIES, "category");
+}
+
+export function parseCompatibilityRunStatus(value: unknown): CompatibilityRunStatus {
+  return parseEnum(value, COMPATIBILITY_RUN_STATUSES, "status");
+}
+
+export function parseCompatibilityReadiness(value: unknown): CompatibilityReadiness {
+  return parseEnum(value, COMPATIBILITY_READINESSES, "readiness");
+}
+
+export function parseRemediationType(value: unknown): RemediationType {
+  return parseEnum(value, REMEDIATION_TYPES, "remediationType");
 }
 
 export function parseFindingCategory(value: unknown): FindingCategory {

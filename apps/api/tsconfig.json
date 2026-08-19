@@ -14,6 +14,7 @@
     { "path": "../../packages/shared" },
     { "path": "../../packages/chain-registry" },
     { "path": "../../packages/db" },
-    { "path": "../../packages/scanner" }
+    { "path": "../../packages/scanner" },
+    { "path": "../../packages/compatibility" }
   ]
 }

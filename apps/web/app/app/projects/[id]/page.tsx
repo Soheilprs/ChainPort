@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { AnalyzeButton } from "@/components/analysis-panel";
+import { EvaluateCompatibilityButton } from "@/components/evaluate-compatibility";
 import { PhaseBanner } from "@/components/phase-banner";
 import { SiteHeader } from "@/components/site-header";
 import { API_URL } from "@/lib/api";
@@ -39,10 +40,35 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
   const body = (await response.json()) as {
     data: {
       project: { id: string; name: string };
-      job: { id: string; status: string };
+      job: { id: string; status: string; sourceChainKey: string; targetChainKey: string };
       repository: { resolvedCommitSha: string | null };
     };
   };
+  const analysesResponse = await fetch(`${API_URL}/v1/projects/${id}/analyses`, {
+    cache: "no-store",
+  }).catch(() => null);
+  const analysesBody =
+    analysesResponse?.ok === true
+      ? ((await analysesResponse.json()) as {
+          data: Array<{ id: string; status: string; commitSha: string }>;
+        })
+      : { data: [] };
+  const latestAnalysis = analysesBody.data[0];
+  const runsResponse = await fetch(`${API_URL}/v1/projects/${id}/compatibility-runs`, {
+    cache: "no-store",
+  }).catch(() => null);
+  const runsBody =
+    runsResponse?.ok === true
+      ? ((await runsResponse.json()) as {
+          data: Array<{
+            id: string;
+            targetChainKey: string;
+            score: number;
+            readiness: string;
+            createdAt: string;
+          }>;
+        })
+      : { data: [] };
 
   return (
     <div>
@@ -65,6 +91,46 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
             projectId={body.data.project.id}
             ingestComplete={body.data.job.status === "COMPLETED"}
           />
+          {latestAnalysis ? (
+            <div className="rounded-xl border border-line bg-surface/80 p-5">
+              <p className="text-sm text-muted">
+                Latest analysis {latestAnalysis.status.toLowerCase()} at SHA{" "}
+                <Link href={`/app/analyses/${latestAnalysis.id}`} className="font-mono text-accent">
+                  {latestAnalysis.commitSha.slice(0, 12)}…
+                </Link>
+              </p>
+              <div className="mt-4">
+                <EvaluateCompatibilityButton
+                  projectId={body.data.project.id}
+                  analysisId={latestAnalysis.id}
+                  analysisComplete={latestAnalysis.status === "COMPLETED"}
+                />
+              </div>
+              <p className="mt-3 text-xs text-muted">
+                Target {body.data.job.targetChainKey} from source {body.data.job.sourceChainKey}.
+              </p>
+            </div>
+          ) : null}
+          {runsBody.data.length > 0 ? (
+            <div className="space-y-2">
+              <h2 className="text-sm font-medium">Compatibility reports</h2>
+              <ul className="space-y-2">
+                {runsBody.data.map((run) => (
+                  <li key={run.id}>
+                    <Link
+                      href={`/app/compatibility/${run.id}`}
+                      className="flex items-center justify-between rounded-xl border border-line bg-surface/80 px-4 py-3 text-sm hover:bg-surface-hover"
+                    >
+                      <span>
+                        {run.targetChainKey} · {run.readiness.toLowerCase().replaceAll("_", " ")}
+                      </span>
+                      <span className="font-mono text-muted">{run.score}/100</span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
         </div>
       </main>
     </div>

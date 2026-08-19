@@ -17,6 +17,10 @@
   },
   "dependencies": {
     "@chainport/chain-registry": "workspace:*",
+    "@chainport/evm": "workspace:*",
     "@chainport/shared": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "24.10.1"
   }
 }

@@ -1,7 +1,12 @@
 import type {
   AnalysisStatus,
   CloneStatus,
+  CompatibilityCategory,
+  CompatibilityReadiness,
+  CompatibilityRunStatus,
+  CompatibilityStatus,
   ComponentKind,
+  CoverageConfidence,
   DetectionConfidence,
   FileCategory,
   FindingCategory,
@@ -9,6 +14,7 @@ import type {
   JobStatus,
   OrganizationKind,
   ProjectStatus,
+  RemediationType,
   RepositoryProvider,
   RequirementCategory,
 } from "./enums.js";
@@ -221,10 +227,79 @@ export interface AnalysisEvidenceRecord {
   excerpt: string;
 }
 
+export interface CompatibilityRun {
+  id: string;
+  projectId: string;
+  analysisId: string;
+  repositoryId: string;
+  commitSha: string;
+  sourceChainKey: string;
+  targetChainKey: string;
+  scannerVersion: string;
+  rulesetVersion: string;
+  registryVersion: string;
+  registrySnapshotHash: string;
+  score: number;
+  coverage: number;
+  coverageConfidence: CoverageConfidence;
+  readiness: CompatibilityReadiness;
+  status: CompatibilityRunStatus;
+  passCount: number;
+  warningCount: number;
+  blockerCount: number;
+  unknownCount: number;
+  idempotencyKey: string;
+  errorCode: string | null;
+  errorMessage: string | null;
+  evaluatedAt: Date | null;
+  createdAt: Date;
+  completedAt: Date | null;
+  updatedAt: Date;
+}
+
+export interface CompatibilityFindingRecord {
+  id: string;
+  compatibilityRunId: string;
+  requirementId: string | null;
+  ruleId: string;
+  ruleVersion: string;
+  category: CompatibilityCategory;
+  status: CompatibilityStatus;
+  title: string;
+  summary: string;
+  technicalReason: string;
+  remediationType: RemediationType;
+  sourceValue: string | null;
+  targetValue: string | null;
+  confidence: CoverageConfidence;
+  registryEvidence: JsonObject;
+  createdAt: Date;
+}
+
+export interface CompatibilityCategoryResultRecord {
+  id: string;
+  compatibilityRunId: string;
+  category: CompatibilityCategory;
+  applicable: boolean;
+  weight: number;
+  score: number | null;
+  passCount: number;
+  warningCount: number;
+  blockerCount: number;
+  unknownCount: number;
+}
+
 export interface FindingSummary {
   pass: number;
   warning: number;
   blocker: number;
+}
+
+export interface CompatibilityFindingSummary {
+  pass: number;
+  warning: number;
+  blocker: number;
+  unknown: number;
 }
 
 export function summarizeFindings(findings: readonly Pick<Finding, "severity">[]): FindingSummary {
@@ -243,4 +318,22 @@ export function summarizeFindings(findings: readonly Pick<Finding, "severity">[]
 
 export function hasBlockers(findings: readonly Pick<Finding, "severity">[]): boolean {
   return findings.some((finding) => finding.severity === "BLOCKER");
+}
+
+export function summarizeCompatibilityFindings(
+  findings: readonly Pick<CompatibilityFindingRecord, "status">[],
+): CompatibilityFindingSummary {
+  const summary: CompatibilityFindingSummary = { pass: 0, warning: 0, blocker: 0, unknown: 0 };
+  for (const finding of findings) {
+    if (finding.status === "PASS") {
+      summary.pass += 1;
+    } else if (finding.status === "WARNING") {
+      summary.warning += 1;
+    } else if (finding.status === "BLOCKER") {
+      summary.blocker += 1;
+    } else {
+      summary.unknown += 1;
+    }
+  }
+  return summary;
 }

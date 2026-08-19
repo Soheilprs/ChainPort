@@ -43,3 +43,11 @@ Phase 3 adds analysis tables:
 - `project_requirements`, `analysis_evidence`
 
 Temporary clone paths and file contents are never stored. Evidence excerpts are bounded.
+
+Phase 4 adds compatibility tables:
+
+- `compatibility_registry_snapshots` unique on capability `hash`
+- `compatibility_runs` unique on `(analysis_id, target_chain_key, ruleset_version, registry_snapshot_hash)`
+- `compatibility_status_events`
+- `compatibility_findings` (link to `project_requirements`, do not copy full evidence)
+- `compatibility_category_results`
