@@ -1,0 +1,28 @@
+{
+  "name": "@chainport/deployment",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "typecheck": "tsc -b --pretty false"
+  },
+  "dependencies": {
+    "@chainport/chain-registry": "workspace:*",
+    "@chainport/changeset": "workspace:*",
+    "@chainport/sandbox": "workspace:*",
+    "@chainport/shared": "workspace:*",
+    "viem": "2.37.9"
+  },
+  "devDependencies": {
+    "@types/node": "24.10.1"
+  }
+}

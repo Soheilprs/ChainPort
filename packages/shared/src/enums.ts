@@ -277,6 +277,67 @@ export const REGRESSION_STATUSES = [
 ] as const;
 export type RegressionStatus = (typeof REGRESSION_STATUSES)[number];
 
+export const DEPLOYMENT_ENGINE_VERSION = "1";
+export const DEPLOYMENT_PROFILE_ID = "TESTNET_DEPLOY";
+export const DEPLOYMENT_PROFILE_VERSION = "1";
+
+export const DEPLOYMENT_RUN_STATUSES = [
+  "QUEUED",
+  "CHECKING_ELIGIBILITY",
+  "PREPARING",
+  "FUNDING",
+  "SIMULATING",
+  "PREPARED",
+  "BROADCASTING",
+  "CONFIRMING",
+  "VERIFYING",
+  "COMPLETED",
+  "FAILED",
+  "RECONCILIATION_REQUIRED",
+  "CANCELLED",
+] as const;
+export type DeploymentRunStatus = (typeof DEPLOYMENT_RUN_STATUSES)[number];
+
+export const DEPLOYMENT_PROFILES = ["TESTNET_DEPLOY"] as const;
+export type DeploymentProfile = (typeof DEPLOYMENT_PROFILES)[number];
+
+export const DEPLOYMENT_FRAMEWORKS = ["FOUNDRY", "HARDHAT"] as const;
+export type DeploymentFramework = (typeof DEPLOYMENT_FRAMEWORKS)[number];
+
+export const DEPLOYMENT_PREFLIGHT_STATUSES = ["PENDING", "PASSED", "FAILED", "SKIPPED"] as const;
+export type DeploymentPreflightStatus = (typeof DEPLOYMENT_PREFLIGHT_STATUSES)[number];
+
+export const DEPLOYMENT_TRANSACTION_STATUSES = [
+  "SUBMITTED",
+  "PENDING",
+  "CONFIRMED",
+  "REVERTED",
+  "UNKNOWN",
+] as const;
+export type DeploymentTransactionStatus = (typeof DEPLOYMENT_TRANSACTION_STATUSES)[number];
+
+export const DEPLOYMENT_SOURCE_VERIFICATION_STATUSES = [
+  "VERIFIED",
+  "FAILED",
+  "NOT_SUPPORTED",
+  "NOT_CONFIGURED",
+  "SKIPPED",
+] as const;
+export type DeploymentSourceVerificationStatus =
+  (typeof DEPLOYMENT_SOURCE_VERIFICATION_STATUSES)[number];
+
+export const DEPLOYMENT_CHECK_STATUSES = ["PASSED", "FAILED", "SKIPPED"] as const;
+export type DeploymentCheckStatus = (typeof DEPLOYMENT_CHECK_STATUSES)[number];
+
+export const DEPLOYMENT_CANDIDATE_CONFIDENCES = ["DETECTED", "LIKELY", "UNKNOWN"] as const;
+export type DeploymentCandidateConfidence = (typeof DEPLOYMENT_CANDIDATE_CONFIDENCES)[number];
+
+export const DEPLOYMENT_ENVIRONMENTS = ["TESTNET", "DEVNET", "MAINNET"] as const;
+export type DeploymentEnvironment = (typeof DEPLOYMENT_ENVIRONMENTS)[number];
+
+export const DEPLOYMENT_VERIFICATION_PROVIDERS = ["etherscan-v2", "blockscout", "none"] as const;
+export type DeploymentVerificationProvider = (typeof DEPLOYMENT_VERIFICATION_PROVIDERS)[number];
+
 export const MIGRATION_ACTION_CATEGORIES = [
   "CHAIN_ID",
   "RPC_URL",
@@ -487,6 +548,18 @@ export function isValidationFramework(value: unknown): value is ValidationFramew
 
 export function isRegressionStatus(value: unknown): value is RegressionStatus {
   return isOneOf(value, REGRESSION_STATUSES);
+}
+
+export function isDeploymentRunStatus(value: unknown): value is DeploymentRunStatus {
+  return isOneOf(value, DEPLOYMENT_RUN_STATUSES);
+}
+
+export function isDeploymentFramework(value: unknown): value is DeploymentFramework {
+  return isOneOf(value, DEPLOYMENT_FRAMEWORKS);
+}
+
+export function isDeploymentEnvironment(value: unknown): value is DeploymentEnvironment {
+  return isOneOf(value, DEPLOYMENT_ENVIRONMENTS);
 }
 
 export function isFindingCategory(value: unknown): value is FindingCategory {

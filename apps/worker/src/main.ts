@@ -8,6 +8,7 @@ import {
   IngestRepository,
   PlanRepository,
   ValidationRepository,
+  DeploymentRepository,
 } from "@chainport/db";
 import { WorkspaceManager } from "@chainport/ingest";
 import { DockerSandboxRunner } from "@chainport/sandbox";
@@ -37,6 +38,7 @@ export async function runWorker(): Promise<void> {
   const plans = new PlanRepository(database);
   const changeSets = new ChangeSetRepository(database);
   const validations = new ValidationRepository(database);
+  const deployments = new DeploymentRepository(database);
   const sandbox = new DockerSandboxRunner();
 
   const runtime = await startWorkerRuntime({
@@ -71,6 +73,18 @@ export async function runWorker(): Promise<void> {
       ingest,
       revisions: changeSets,
       validations,
+      workspaces,
+      artifacts,
+      sandbox,
+      config,
+      logger,
+    },
+    deploymentProcessor: {
+      ingest,
+      revisions: changeSets,
+      plans,
+      validations,
+      deployments,
       workspaces,
       artifacts,
       sandbox,

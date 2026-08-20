@@ -17,6 +17,7 @@
     "@chainport/migration": "workspace:*",
     "@chainport/sandbox": "workspace:*",
     "@chainport/validation": "workspace:*",
+    "@chainport/deployment": "workspace:*",
     "@chainport/scanner": "workspace:*",
     "@chainport/shared": "workspace:*",
     "@fastify/cors": "11.1.0",

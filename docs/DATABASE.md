@@ -52,6 +52,18 @@ Phase 7 adds validation tables:
 - `validation_steps` (bounded logs)
 - `validation_test_results`
 
+Phase 8 adds deployment tables. Private keys are never stored:
+
+- `deployment_candidates`
+- `deployment_runs`
+- `deployment_status_events`
+- `deployment_preflights`
+- `deployment_transactions`
+- `deployment_contracts`
+- `deployment_checks`
+
+The Phase 1 `deployments` stub is unused.
+
 Phase 3 adds analysis tables:
 
 - `repository_analyses` unique on `(repository_id, commit_sha, scanner_version)`

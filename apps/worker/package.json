@@ -17,6 +17,8 @@
     "@chainport/sandbox": "workspace:*",
     "@chainport/scanner": "workspace:*",
     "@chainport/validation": "workspace:*",
+    "@chainport/deployment": "workspace:*",
+    "@chainport/chain-registry": "workspace:*",
     "@chainport/shared": "workspace:*",
     "bullmq": "5.61.0",
     "ioredis": "5.8.2",

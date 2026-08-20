@@ -66,6 +66,19 @@ export {
   VALIDATION_RUN_STATUSES,
   VALIDATION_STEP_NAMES,
   VALIDATION_STEP_STATUSES,
+  DEPLOYMENT_ENGINE_VERSION,
+  DEPLOYMENT_PROFILE_ID,
+  DEPLOYMENT_PROFILE_VERSION,
+  DEPLOYMENT_RUN_STATUSES,
+  DEPLOYMENT_PROFILES,
+  DEPLOYMENT_FRAMEWORKS,
+  DEPLOYMENT_PREFLIGHT_STATUSES,
+  DEPLOYMENT_TRANSACTION_STATUSES,
+  DEPLOYMENT_SOURCE_VERIFICATION_STATUSES,
+  DEPLOYMENT_CHECK_STATUSES,
+  DEPLOYMENT_CANDIDATE_CONFIDENCES,
+  DEPLOYMENT_ENVIRONMENTS,
+  DEPLOYMENT_VERIFICATION_PROVIDERS,
   isAnalysisStatus,
   isChangeSetStatus,
   isChangeStatus,
@@ -106,6 +119,9 @@ export {
   isValidationFramework,
   isValidationOutcome,
   isValidationRunStatus,
+  isDeploymentRunStatus,
+  isDeploymentFramework,
+  isDeploymentEnvironment,
   type RegressionStatus,
   type ValidationFramework,
   type ValidationOutcome,
@@ -175,6 +191,16 @@ export {
   type RevisionCompleteness,
   type RevisionType,
   type TerminalJobStatus,
+  type DeploymentRunStatus,
+  type DeploymentProfile,
+  type DeploymentFramework,
+  type DeploymentPreflightStatus,
+  type DeploymentTransactionStatus,
+  type DeploymentSourceVerificationStatus,
+  type DeploymentCheckStatus,
+  type DeploymentCandidateConfidence,
+  type DeploymentEnvironment,
+  type DeploymentVerificationProvider,
 } from "./enums.js";
 export {
   ALLOWED_JOB_TRANSITIONS,
@@ -212,6 +238,7 @@ export {
   type MigrationJobPayload,
   type QueueName,
   type ValidationJobPayload,
+  type DeploymentJobPayload,
 } from "./queues.js";
 export {
   ALLOWED_ANALYSIS_TRANSITIONS,
@@ -271,6 +298,21 @@ export {
   isValidationTransitionAllowed,
 } from "./validation-transitions.js";
 export {
+  DEPLOYMENT_ERROR_CODES,
+  DEPLOYMENT_ERROR_MESSAGES,
+  isDeploymentErrorCode,
+  type DeploymentErrorCode,
+} from "./deployment-errors.js";
+export {
+  ALLOWED_DEPLOYMENT_TRANSITIONS,
+  BROADCAST_BOUNDARY_STATUSES,
+  InvalidDeploymentTransitionError,
+  assertDeploymentTransition,
+  buildDeploymentPrepareKey,
+  hasBroadcastSideEffect,
+  isDeploymentTransitionAllowed,
+} from "./deployment-transitions.js";
+export {
   ANALYSIS_ERROR_CODES,
   ANALYSIS_ERROR_MESSAGES,
   isRetryableAnalysisError,
@@ -312,6 +354,12 @@ export {
   type ValidationRunRecord,
   type ValidationStepRecord,
   type ValidationTestResultRecord,
+  type DeploymentRunRecord,
+  type DeploymentCandidateRecord,
+  type DeploymentPreflightRecord,
+  type DeploymentTransactionRecord,
+  type DeploymentContractRecord,
+  type DeploymentCheckRecord,
 } from "./models.js";
 export {
   loadServiceConfig,

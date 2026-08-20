@@ -6,7 +6,7 @@ TypeScript monorepo. Domain logic lives in packages. Apps are thin adapters.
 apps/
   web/          Next.js UI
   api/          Fastify HTTP API
-  worker/       BullMQ ingest + analysis + changeset + validation processors
+  worker/       BullMQ ingest + analysis + changeset + validation + deployment processors
 
 packages/
   shared/       Product constants, enums, job state machine, config, GitHub URL parsing
@@ -19,6 +19,7 @@ packages/
   changeset/    Safe patchers, diffs, content hash, artifact store
   sandbox/      Hardened Docker runner and policy
   validation/   Profiles, parsers, log redaction, regression comparison
+  deployment/   Eligibility, candidates, RPC proxy, disposable credentials, preflight
   db/           Prisma schema and client
 ```
 

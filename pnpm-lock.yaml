@@ -47,6 +47,9 @@ importers:
       '@chainport/db':
         specifier: workspace:*
         version: link:../../packages/db
+      '@chainport/deployment':
+        specifier: workspace:*
+        version: link:../../packages/deployment
       '@chainport/migration':
         specifier: workspace:*
         version: link:../../packages/migration
@@ -133,12 +136,18 @@ importers:
 
   apps/worker:
     dependencies:
+      '@chainport/chain-registry':
+        specifier: workspace:*
+        version: link:../../packages/chain-registry
       '@chainport/changeset':
         specifier: workspace:*
         version: link:../../packages/changeset
       '@chainport/db':
         specifier: workspace:*
         version: link:../../packages/db
+      '@chainport/deployment':
+        specifier: workspace:*
+        version: link:../../packages/deployment
       '@chainport/ingest':
         specifier: workspace:*
         version: link:../../packages/ingest
@@ -228,6 +237,28 @@ importers:
       prisma:
         specifier: 6.19.1
         version: 6.19.1(typescript@5.9.3)
+
+  packages/deployment:
+    dependencies:
+      '@chainport/chain-registry':
+        specifier: workspace:*
+        version: link:../chain-registry
+      '@chainport/changeset':
+        specifier: workspace:*
+        version: link:../changeset
+      '@chainport/sandbox':
+        specifier: workspace:*
+        version: link:../sandbox
+      '@chainport/shared':
+        specifier: workspace:*
+        version: link:../shared
+      viem:
+        specifier: 2.37.9
+        version: 2.37.9(typescript@5.9.3)(zod@3.25.76)
+    devDependencies:
+      '@types/node':
+        specifier: 24.10.1
+        version: 24.10.1
 
   packages/evm:
     dependencies:

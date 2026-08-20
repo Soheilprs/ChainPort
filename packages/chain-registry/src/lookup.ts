@@ -39,3 +39,15 @@ export function listTargetChains(): readonly ChainDefinition[] {
 export function listTestnetsFor(mainnetKey: string): readonly ChainDefinition[] {
   return CHAINS.filter((chain) => chain.testnetOf === mainnetKey);
 }
+
+export function listDeploymentTargets(): readonly ChainDefinition[] {
+  return CHAINS.filter((chain) => chain.deployment?.enabled === true);
+}
+
+export function getOfficialDeploymentTestnet(mainnetKey: string): ChainDefinition | undefined {
+  const mainnet = getChainByKey(mainnetKey);
+  if (mainnet?.deploymentTestnetKey === undefined) {
+    return undefined;
+  }
+  return getChainByKey(mainnet.deploymentTestnetKey);
+}

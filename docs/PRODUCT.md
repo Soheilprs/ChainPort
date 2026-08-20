@@ -55,6 +55,6 @@ Repository code must never execute on the host. Sandbox execution is isolated.
 
 ## Current phase
 
-Phase 7 executes a generated (or original) repository revision inside a hardened ephemeral sandbox
-and reports whether it compiles and whether its existing local tests pass. It does not deploy,
-open pull requests, or repair failing tests.
+Phase 8 deploys an eligible, validated revision to a declared testnet after explicit confirmation.
+Mainnet is refused. Disposable deployers, an RPC proxy, and a transaction journal are required. It
+does not write back to GitHub.

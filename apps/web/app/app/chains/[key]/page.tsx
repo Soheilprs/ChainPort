@@ -64,6 +64,10 @@ export default async function ChainDetailPage({ params }: ChainPageProps) {
         </div>
         <p className="mt-2 font-mono text-sm text-muted">
           {chain.key} · chain id {chain.chainId} · {chain.family} · {chain.networkKind}
+          {chain.deploymentTestnetKey !== undefined
+            ? ` · official testnet ${chain.deploymentTestnetKey}`
+            : ""}
+          {chain.deployment?.enabled === true ? " · testnet deployment enabled" : ""}
         </p>
 
         <section className="mt-8 grid gap-4 md:grid-cols-2">

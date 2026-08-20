@@ -14,6 +14,8 @@ export default tseslint.config(
       "packages/validation/test/fixtures/**",
       "packages/validation/test/fixtures/**/out/**",
       "packages/validation/test/fixtures/**/cache/**",
+      "packages/deployment/test/fixtures/**",
+      "packages/deployment/scripts/**",
       "packages/changeset/test/fixtures/**",
       "scripts/**",
     ],

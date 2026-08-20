@@ -22,6 +22,8 @@ Trust boundary: repository code becomes executable **only** inside a hardened ep
 - environment allowlist only (`CI`, `HOME=/tmp/home`, `PATH`, `SVM_HOME`, …)
 - no inherited `process.env`
 - `host.docker.internal` and metadata hosts mapped to `127.0.0.1`
+- deployment runs attach only to an isolated proxy network; they do not receive general internet
+- `PRIVATE_KEY` is allowlisted only for the deployment sandbox (disposable testnet EOA, never the funder)
 
 ## Network limitation
 

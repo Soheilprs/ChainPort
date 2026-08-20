@@ -1,4 +1,12 @@
 export { CHAINS } from "./catalog.js";
+export {
+  ETHERSCAN_V2_API_URL,
+  SUPERCHAIN_FAUCET_URL,
+  anvilDeployment,
+  arbitrumSepoliaDeployment,
+  opStackTestnetDeployment,
+  sepoliaDeployment,
+} from "./deployment-presets.js";
 export { canonicalizeJson, sha256Hex } from "./canonicalize.js";
 export { CANONICAL_PERMIT2_ADDRESS, STANDARD_JSON_RPC_METHODS } from "./compatibility-catalog.js";
 export {
@@ -19,6 +27,8 @@ export {
   listSourceChains,
   listTargetChains,
   listTestnetsFor,
+  listDeploymentTargets,
+  getOfficialDeploymentTestnet,
   requireChainByKey,
 } from "./lookup.js";
 export {
@@ -45,6 +55,7 @@ export {
   type ChainExplorer,
   type ChainInfrastructure,
   type ChainSummary,
+  type ChainDeploymentMetadata,
   type InfrastructureEntry,
   type NativeCurrency,
   type PrecompileId,

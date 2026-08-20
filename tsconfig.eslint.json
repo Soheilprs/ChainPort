@@ -13,6 +13,7 @@
       "@chainport/migration": ["packages/migration/src/index.ts"],
       "@chainport/changeset": ["packages/changeset/src/index.ts"],
       "@chainport/validation": ["packages/validation/src/index.ts"],
+      "@chainport/deployment": ["packages/deployment/src/index.ts"],
       "@chainport/sandbox": ["packages/sandbox/src/index.ts"],
       "@chainport/ingest": ["packages/ingest/src/index.ts"],
       "@chainport/db": ["packages/db/src/index.ts"]

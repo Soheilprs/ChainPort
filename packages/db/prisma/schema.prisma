@@ -268,6 +268,66 @@ enum ValidationProfile {
   STANDARD_LOCAL
 }
 
+enum DeploymentRunStatus {
+  QUEUED
+  CHECKING_ELIGIBILITY
+  PREPARING
+  FUNDING
+  SIMULATING
+  PREPARED
+  BROADCASTING
+  CONFIRMING
+  VERIFYING
+  COMPLETED
+  FAILED
+  RECONCILIATION_REQUIRED
+  CANCELLED
+}
+
+enum DeploymentProfile {
+  TESTNET_DEPLOY
+}
+
+enum DeploymentFramework {
+  FOUNDRY
+  HARDHAT
+}
+
+enum DeploymentPreflightStatus {
+  PENDING
+  PASSED
+  FAILED
+  SKIPPED
+}
+
+enum DeploymentTransactionStatus {
+  SUBMITTED
+  PENDING
+  CONFIRMED
+  REVERTED
+  UNKNOWN
+}
+
+enum DeploymentSourceVerificationStatus {
+  VERIFIED
+  FAILED
+  NOT_SUPPORTED
+  NOT_CONFIGURED
+  SKIPPED
+}
+
+enum DeploymentCheckStatus {
+  PASSED
+  FAILED
+  SKIPPED
+}
+
+enum DeploymentCandidateConfidence {
+  DETECTED
+  LIKELY
+  UNKNOWN
+}
+
 enum MigrationActionCategory {
   CHAIN_ID
   RPC_URL
@@ -387,6 +447,7 @@ model Project {
   revisions           RepositoryRevision[] @relation("ProjectRevisions")
   changeSets          ChangeSet[]
   validationRuns      ValidationRun[]
+  deploymentRuns      DeploymentRun[]
 
   @@unique([githubOwner, githubRepo])
   @@unique([repositoryId])
@@ -772,6 +833,7 @@ model PlannedMigration {
   actions                  PlannedMigrationAction[]
   statusEvents             PlannedMigrationStatusEvent[]
   changeSets               ChangeSet[]
+  deploymentRuns           DeploymentRun[]
 
   @@unique([compatibilityRunId, migrationRulesetVersion])
   @@index([projectId, createdAt])
@@ -871,6 +933,8 @@ model RepositoryRevision {
   activeFor       Project[]              @relation("ActiveRevision")
   originalOf      ChangeSet[]            @relation("OriginalRevision")
   validationRuns  ValidationRun[]
+  deploymentRuns  DeploymentRun[]
+  deploymentCandidates DeploymentCandidate[]
 
   @@index([repositoryId, baseCommitSha])
   @@index([projectId, createdAt])
@@ -907,6 +971,7 @@ model ChangeSet {
   changes              ChangeSetChange[]
   statusEvents         ChangeSetStatusEvent[]
   generatedRevision    RepositoryRevision? @relation("GeneratedRevision")
+  deploymentRuns       DeploymentRun[]
 
   @@index([migrationPlanId, createdAt])
   @@index([repositoryId, status])
@@ -994,6 +1059,7 @@ model ValidationRun {
   steps                ValidationStep[]
   tests                ValidationTestResult[]
   events               ValidationStatusEvent[]
+  deploymentRuns       DeploymentRun[]
 
   @@index([repositoryRevisionId, createdAt])
   @@index([projectId, createdAt])
@@ -1045,4 +1111,156 @@ model ValidationTestResult {
 
   @@index([validationRunId])
   @@map("validation_test_results")
+}
+
+model DeploymentCandidate {
+  id         String                         @id @db.Uuid
+  revisionId String                         @map("revision_id") @db.Uuid
+  revision   RepositoryRevision             @relation(fields: [revisionId], references: [id], onDelete: Cascade)
+  framework  DeploymentFramework
+  filePath   String                         @map("file_path")
+  entrypoint String
+  confidence DeploymentCandidateConfidence
+  evidence   Json
+  createdAt  DateTime                       @default(now()) @map("created_at") @db.Timestamptz(3)
+  runs       DeploymentRun[]
+
+  @@unique([revisionId, framework, filePath, entrypoint])
+  @@index([revisionId])
+  @@map("deployment_candidates")
+}
+
+model DeploymentRun {
+  id                    String                 @id @db.Uuid
+  projectId             String                 @map("project_id") @db.Uuid
+  project               Project                @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  repositoryRevisionId  String                 @map("repository_revision_id") @db.Uuid
+  repositoryRevision    RepositoryRevision     @relation(fields: [repositoryRevisionId], references: [id], onDelete: Restrict)
+  plannedMigrationId    String?                @map("planned_migration_id") @db.Uuid
+  plannedMigration      PlannedMigration?      @relation(fields: [plannedMigrationId], references: [id], onDelete: SetNull)
+  changeSetId           String?                @map("change_set_id") @db.Uuid
+  changeSet             ChangeSet?             @relation(fields: [changeSetId], references: [id], onDelete: SetNull)
+  validationRunId       String                 @map("validation_run_id") @db.Uuid
+  validationRun         ValidationRun          @relation(fields: [validationRunId], references: [id], onDelete: Restrict)
+  deploymentCandidateId String?                @map("deployment_candidate_id") @db.Uuid
+  deploymentCandidate   DeploymentCandidate?   @relation(fields: [deploymentCandidateId], references: [id], onDelete: SetNull)
+  targetTestnetKey      String                 @map("target_testnet_key")
+  targetChainId         Int                    @map("target_chain_id")
+  targetName            String                 @map("target_name")
+  revisionContentHash   String                 @map("revision_content_hash")
+  engineVersion         String                 @map("engine_version")
+  profile               DeploymentProfile
+  framework             DeploymentFramework?
+  status                DeploymentRunStatus    @default(QUEUED)
+  deployerAddress       String?                @map("deployer_address")
+  sandboxImage          String?                @map("sandbox_image")
+  sandboxImageDigest    String?                @map("sandbox_image_digest")
+  transactionCount      Int?                   @map("transaction_count")
+  estimatedGas          String?                @map("estimated_gas")
+  estimatedCost         String?                @map("estimated_cost")
+  errorCode             String?                @map("error_code")
+  errorMessage          String?                @map("error_message")
+  idempotencyKey        String                 @unique @map("idempotency_key")
+  limitsJson            Json                   @map("limits_json")
+  networkPolicy         String                 @map("network_policy")
+  rpcAuditJson          Json                   @default("{}") @map("rpc_audit_json")
+  broadcastStartedAt    DateTime?              @map("broadcast_started_at") @db.Timestamptz(3)
+  startedAt             DateTime?              @map("started_at") @db.Timestamptz(3)
+  completedAt           DateTime?              @map("completed_at") @db.Timestamptz(3)
+  createdAt             DateTime               @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt             DateTime               @updatedAt @map("updated_at") @db.Timestamptz(3)
+  events                DeploymentStatusEvent[]
+  preflight             DeploymentPreflight?
+  transactions          DeploymentTransaction[]
+  contracts             DeploymentContract[]
+  checks                DeploymentCheck[]
+
+  @@index([projectId, createdAt])
+  @@index([repositoryRevisionId, createdAt])
+  @@index([status, createdAt])
+  @@index([targetTestnetKey])
+  @@map("deployment_runs")
+}
+
+model DeploymentStatusEvent {
+  id              String               @id @db.Uuid
+  deploymentRunId String               @map("deployment_run_id") @db.Uuid
+  deploymentRun   DeploymentRun        @relation(fields: [deploymentRunId], references: [id], onDelete: Cascade)
+  fromStatus      DeploymentRunStatus? @map("from_status")
+  toStatus        DeploymentRunStatus  @map("to_status")
+  reason          String?
+  createdAt       DateTime             @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  @@index([deploymentRunId, createdAt])
+  @@map("deployment_status_events")
+}
+
+model DeploymentPreflight {
+  id               String                    @id @db.Uuid
+  deploymentRunId  String                    @unique @map("deployment_run_id") @db.Uuid
+  deploymentRun    DeploymentRun             @relation(fields: [deploymentRunId], references: [id], onDelete: Cascade)
+  transactionCount Int?                      @map("transaction_count")
+  estimatedGas     String?                   @map("estimated_gas")
+  estimatedCost    String?                   @map("estimated_cost")
+  status           DeploymentPreflightStatus
+  warnings         Json
+  createdAt        DateTime                  @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  @@map("deployment_preflights")
+}
+
+model DeploymentTransaction {
+  id              String                       @id @db.Uuid
+  deploymentRunId String                       @map("deployment_run_id") @db.Uuid
+  deploymentRun   DeploymentRun                @relation(fields: [deploymentRunId], references: [id], onDelete: Cascade)
+  sequence        Int
+  hash            String
+  nonce           Int?
+  fromAddress     String?                      @map("from_address")
+  toAddress       String?                      @map("to_address")
+  value           String                       @default("0")
+  gasLimit        String?                      @map("gas_limit")
+  status          DeploymentTransactionStatus
+  blockNumber     Int?                         @map("block_number")
+  contractAddress String?                      @map("contract_address")
+  createdAt       DateTime                     @default(now()) @map("created_at") @db.Timestamptz(3)
+  confirmedAt     DateTime?                    @map("confirmed_at") @db.Timestamptz(3)
+
+  @@unique([deploymentRunId, hash])
+  @@index([deploymentRunId, sequence])
+  @@map("deployment_transactions")
+}
+
+model DeploymentContract {
+  id                   String                               @id @db.Uuid
+  deploymentRunId      String                               @map("deployment_run_id") @db.Uuid
+  deploymentRun        DeploymentRun                        @relation(fields: [deploymentRunId], references: [id], onDelete: Cascade)
+  address              String
+  transactionHash      String                               @map("transaction_hash")
+  blockNumber          Int?                                 @map("block_number")
+  deployer             String?
+  contractName         String?                              @map("contract_name")
+  sourcePath           String?                              @map("source_path")
+  bytecodePresent      Boolean                              @default(false) @map("bytecode_present")
+  receiptStatus        String?                              @map("receipt_status")
+  verificationStatus   DeploymentSourceVerificationStatus   @map("verification_status")
+  verificationMessage  String?                              @map("verification_message")
+  createdAt            DateTime                             @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  @@unique([deploymentRunId, address])
+  @@index([deploymentRunId])
+  @@map("deployment_contracts")
+}
+
+model DeploymentCheck {
+  id              String                @id @db.Uuid
+  deploymentRunId String                @map("deployment_run_id") @db.Uuid
+  deploymentRun   DeploymentRun         @relation(fields: [deploymentRunId], references: [id], onDelete: Cascade)
+  name            String
+  status          DeploymentCheckStatus
+  detail          String
+  createdAt       DateTime              @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  @@index([deploymentRunId])
+  @@map("deployment_checks")
 }

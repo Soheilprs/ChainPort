@@ -17,6 +17,8 @@
     { "path": "../../packages/ingest" },
     { "path": "../../packages/sandbox" },
     { "path": "../../packages/validation" },
+    { "path": "../../packages/deployment" },
+    { "path": "../../packages/chain-registry" },
     { "path": "../../packages/scanner" }
   ]
 }

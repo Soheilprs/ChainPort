@@ -282,12 +282,12 @@ export async function processValidationJob(
             cases: parsed.cases,
           });
         }
-        const remaining: Array<"INSTALL" | "BUILD" | "TEST"> = ["INSTALL", "BUILD", "TEST"].filter(
+        const stepNames = ["INSTALL", "BUILD", "TEST"] as const;
+        const remaining = stepNames.filter(
           (name) =>
             selected.commands.some((item) => item.step === name) &&
             name !== command.step &&
-            ["INSTALL", "BUILD", "TEST"].indexOf(name) >
-              ["INSTALL", "BUILD", "TEST"].indexOf(command.step),
+            stepNames.indexOf(name) > stepNames.indexOf(command.step),
         );
         await skipRemaining(deps, validationId, remaining);
         await finish(

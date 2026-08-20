@@ -1,6 +1,8 @@
 import type {
   ChainFamily,
   ChainRole,
+  DeploymentEnvironment,
+  DeploymentVerificationProvider,
   EvmVersion,
   InfrastructureStatus,
   NetworkKind,
@@ -56,6 +58,19 @@ export interface ChainInfrastructure {
   verifiers: readonly InfrastructureEntry[];
 }
 
+export interface ChainDeploymentMetadata {
+  enabled: boolean;
+  environment: DeploymentEnvironment;
+  confirmationCount: number;
+  verificationProvider: DeploymentVerificationProvider;
+  verificationApiUrl?: string;
+  faucetUrl?: string;
+  maxFundingWei: string;
+  maxGasBudget: number;
+  maxTransactionCount: number;
+  maxTransactionValueWei: string;
+}
+
 export interface ChainDefinition {
   key: string;
   name: string;
@@ -69,6 +84,8 @@ export interface ChainDefinition {
   explorers: readonly ChainExplorer[];
   parentChainKey?: string;
   testnetOf?: string;
+  deploymentTestnetKey?: string;
+  deployment?: ChainDeploymentMetadata;
   capabilities: ChainCapabilities;
   infrastructure: ChainInfrastructure;
 }

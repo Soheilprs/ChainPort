@@ -87,6 +87,30 @@ const serviceEnvironmentSchema = z.object({
   VALIDATION_PIDS: z.coerce.number().int().min(16).max(10_000).default(256),
   VALIDATION_LOG_STEP_BYTES: z.coerce.number().int().min(1_024).max(10_485_760).default(262_144),
   VALIDATION_LOG_TOTAL_BYTES: z.coerce.number().int().min(1_024).max(20_971_520).default(1_048_576),
+  DEPLOYMENT_TIMEOUT_MS: z.coerce.number().int().min(1_000).max(1_800_000).default(300_000),
+  DEPLOYMENT_MEMORY_BYTES: z.coerce
+    .number()
+    .int()
+    .min(64 * 1024 * 1024)
+    .max(16 * 1024 * 1024 * 1024)
+    .default(2 * 1024 * 1024 * 1024),
+  DEPLOYMENT_CPUS: z.coerce.number().min(0.1).max(16).default(2),
+  DEPLOYMENT_PIDS: z.coerce.number().int().min(16).max(10_000).default(256),
+  MAX_DEPLOYMENT_TX_COUNT: z.coerce.number().int().min(1).max(100).default(12),
+  MAX_DEPLOYMENT_GAS: z.coerce.number().int().min(21_000).max(500_000_000).default(15_000_000),
+  MAX_TESTNET_FUNDING_WEI: z.preprocess(
+    (value) => (value === undefined || value === "" ? "50000000000000000" : value),
+    z.coerce.bigint().min(0n).max(10_000_000_000_000_000_000n),
+  ),
+  MAX_TRANSACTION_VALUE_WEI: z.preprocess(
+    (value) => (value === undefined || value === "" ? "0" : value),
+    z.coerce.bigint().min(0n).max(10_000_000_000_000_000_000n),
+  ),
+  RPC_PROXY_MAX_BODY_BYTES: z.coerce.number().int().min(1_024).max(10_485_760).default(1_048_576),
+  RPC_PROXY_RATE_LIMIT: z.coerce.number().int().min(1).max(10_000).default(120),
+  RPC_PROXY_TIMEOUT_MS: z.coerce.number().int().min(1_000).max(120_000).default(30_000),
+  ETHERSCAN_API_KEY: optionalNonEmptyString,
+  CHAINPORT_TESTNET_FUNDER_PRIVATE_KEY: optionalNonEmptyString,
   SANDBOX_IMAGE_FOUNDRY: optionalNonEmptyString,
   SANDBOX_IMAGE_NODE20: optionalNonEmptyString,
   SANDBOX_IMAGE_NODE22: optionalNonEmptyString,

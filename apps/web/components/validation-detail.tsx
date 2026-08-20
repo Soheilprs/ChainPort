@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
+import { PrepareDeploymentButton } from "@/components/prepare-deployment";
 import { API_URL } from "@/lib/api";
 
 export interface ValidationPayload {
@@ -167,6 +168,19 @@ export function ValidationDetail({ initial }: { initial: ValidationPayload }) {
         <Card className="border-blocker/30">
           <CardTitle>{payload.run.errorCode}</CardTitle>
           <CardDescription>{payload.run.errorMessage}</CardDescription>
+        </Card>
+      ) : null}
+
+      {payload.run.outcome === "PASSED" ? (
+        <Card>
+          <CardTitle>Target testnet deployment</CardTitle>
+          <CardDescription>
+            This revision passed isolated validation. Prepare a two-stage deployment: simulate
+            first, then explicitly confirm broadcast to a testnet. Mainnet is refused.
+          </CardDescription>
+          <div className="mt-4">
+            <PrepareDeploymentButton revisionId={payload.run.repositoryRevisionId} />
+          </div>
         </Card>
       ) : null}
 

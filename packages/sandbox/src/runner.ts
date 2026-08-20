@@ -3,7 +3,7 @@ import { chmod } from "node:fs/promises";
 import { createId } from "@chainport/shared";
 
 import { dockerEnvFlags, runDocker } from "./docker.js";
-import { sandboxEnvironment } from "./env.js";
+import { deploymentSandboxEnvironment, sandboxEnvironment } from "./env.js";
 import { SANDBOX_POLICY, SandboxPolicyError, assertSandboxPolicy } from "./policy.js";
 
 export interface SandboxLimits {
@@ -17,6 +17,8 @@ export interface PrepareSandboxInput {
   workspaceHost: string;
   limits: SandboxLimits;
   env?: Readonly<Record<string, string>>;
+  networkName?: string;
+  deployment?: boolean;
 }
 
 export interface SandboxHandle {
@@ -30,7 +32,7 @@ export interface SandboxHandle {
 export interface ExecOptions {
   argv: readonly string[];
   timeoutMs: number;
-  network: "none" | "install";
+  network: "none" | "install" | "proxy";
 }
 
 export interface ExecResult {
@@ -50,7 +52,10 @@ export interface SandboxRunner {
 }
 
 const LABEL = "chainport.validation";
+const DEPLOY_LABEL = "chainport.deployment";
 const INSTALL_NETWORK = "chainport-sandbox-install";
+export const DEPLOY_ISO_NETWORK_PREFIX = "chainport-deploy-iso";
+export const DEPLOY_EGRESS_NETWORK_PREFIX = "chainport-deploy-egress";
 
 export class DockerSandboxRunner implements SandboxRunner {
   public async inspectDigest(image: string): Promise<string> {
@@ -80,19 +85,32 @@ export class DockerSandboxRunner implements SandboxRunner {
       throw new SandboxPolicyError("host execution is forbidden");
     }
     await chmod(input.workspaceHost, 0o777).catch(() => undefined);
-    await ensureInstallNetwork();
+    if (input.deployment !== true) {
+      await ensureInstallNetwork();
+    }
     const id = createId();
-    const containerName = `chainport-val-${id}`;
-    const env = sandboxEnvironment(input.env ?? {});
+    const label = input.deployment === true ? DEPLOY_LABEL : LABEL;
+    const containerName = input.deployment === true ? `chainport-dep-${id}` : `chainport-val-${id}`;
+    const env =
+      input.deployment === true
+        ? deploymentSandboxEnvironment(input.env ?? {})
+        : sandboxEnvironment(input.env ?? {});
+    const network = input.networkName ?? "none";
+    if (
+      input.deployment === true &&
+      (input.networkName === undefined || input.networkName === "none")
+    ) {
+      throw new SandboxPolicyError("deployment sandbox requires an isolated proxy network");
+    }
     const created = await runDocker(
       [
         "create",
         "--name",
         containerName,
         "--label",
-        `${LABEL}=1`,
+        `${label}=1`,
         "--label",
-        `${LABEL}.id=${id}`,
+        `${label}.id=${id}`,
         "--user",
         "10001:10001",
         "--read-only",
@@ -101,7 +119,7 @@ export class DockerSandboxRunner implements SandboxRunner {
         "--security-opt",
         "no-new-privileges",
         "--network",
-        "none",
+        network,
         "--memory",
         String(input.limits.memoryBytes),
         "--cpus",
@@ -180,6 +198,9 @@ export class DockerSandboxRunner implements SandboxRunner {
         timeoutMs: 15_000,
       });
     }
+    if (options.network === "proxy") {
+      // Already attached at create time. Do not add install/egress networks.
+    }
     const started = Date.now();
     try {
       const result = await runDocker(
@@ -227,15 +248,17 @@ export class DockerSandboxRunner implements SandboxRunner {
   }
 
   public async reapOrphans(): Promise<void> {
-    const listed = await runDocker(["ps", "-aq", "--filter", `label=${LABEL}=1`], {
-      timeoutMs: 15_000,
-    });
-    const ids = listed.stdout
-      .split("\n")
-      .map((line) => line.trim())
-      .filter((line) => line.length > 0);
-    for (const id of ids) {
-      await runDocker(["rm", "-f", id], { timeoutMs: 20_000 });
+    for (const label of [`${LABEL}=1`, `${DEPLOY_LABEL}=1`, "chainport.rpc-proxy=1"]) {
+      const listed = await runDocker(["ps", "-aq", "--filter", `label=${label}`], {
+        timeoutMs: 15_000,
+      });
+      const ids = listed.stdout
+        .split("\n")
+        .map((line) => line.trim())
+        .filter((line) => line.length > 0);
+      for (const id of ids) {
+        await runDocker(["rm", "-f", id], { timeoutMs: 20_000 });
+      }
     }
   }
 }

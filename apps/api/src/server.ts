@@ -8,6 +8,7 @@ import {
   ChangeSetRepository,
   PlanRepository,
   ValidationRepository,
+  DeploymentRepository,
 } from "@chainport/db";
 import { DockerSandboxRunner } from "@chainport/sandbox";
 import { loadServiceConfig } from "@chainport/shared";
@@ -17,6 +18,7 @@ import { AnalysisService } from "./analysis-service.js";
 import { CompatibilityService } from "./compatibility-service.js";
 import { ChangeSetService } from "./changeset-service.js";
 import { ValidationService } from "./validation-service.js";
+import { DeploymentService } from "./deployment-service.js";
 import { PlanService } from "./plan-service.js";
 import { createApiApplication } from "./app.js";
 import { createLogger } from "./logger.js";
@@ -60,6 +62,21 @@ async function main(): Promise<void> {
       pids: config.VALIDATION_PIDS,
     },
   );
+  const deploymentService = new DeploymentService(
+    changeSetRepository,
+    planRepository,
+    new ValidationRepository(database),
+    new DeploymentRepository(database),
+    queue,
+    new DockerSandboxRunner(),
+    {
+      memoryBytes: config.DEPLOYMENT_MEMORY_BYTES,
+      cpus: config.DEPLOYMENT_CPUS,
+      pids: config.DEPLOYMENT_PIDS,
+      maxTxCount: config.MAX_DEPLOYMENT_TX_COUNT,
+      maxGas: config.MAX_DEPLOYMENT_GAS,
+    },
+  );
 
   const app = await createApiApplication({
     logger,
@@ -70,6 +87,7 @@ async function main(): Promise<void> {
     planService,
     changeSetService,
     validationService,
+    deploymentService,
     readinessProbe: async () => {
       await checkDatabase(database);
       await checkRedis(redis);

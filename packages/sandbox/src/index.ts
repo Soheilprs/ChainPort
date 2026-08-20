@@ -10,11 +10,13 @@ export {
   type ExecutionLocation,
   type SandboxExecutionRequest,
 } from "./policy.js";
-export { sandboxEnvironment, assertNoHostSecrets } from "./env.js";
+export { sandboxEnvironment, deploymentSandboxEnvironment, assertNoHostSecrets } from "./env.js";
 export { SANDBOX_IMAGE_TAGS, resolveImageTag, type SandboxImageKind } from "./images.js";
 export { runDocker } from "./docker.js";
 export {
   DockerSandboxRunner,
+  DEPLOY_ISO_NETWORK_PREFIX,
+  DEPLOY_EGRESS_NETWORK_PREFIX,
   type ExecOptions,
   type ExecResult,
   type PrepareSandboxInput,

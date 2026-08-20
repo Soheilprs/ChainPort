@@ -19,6 +19,14 @@ import type {
   ValidationRunStatus,
   ValidationStepName,
   ValidationStepStatus,
+  DeploymentRunStatus,
+  DeploymentProfile,
+  DeploymentFramework,
+  DeploymentPreflightStatus,
+  DeploymentTransactionStatus,
+  DeploymentSourceVerificationStatus,
+  DeploymentCheckStatus,
+  DeploymentCandidateConfidence,
   FindingCategory,
   FindingSeverity,
   JobStatus,
@@ -493,6 +501,105 @@ export interface ValidationComparison {
   generated: ValidationRunRecord | null;
   regressionStatus: RegressionStatus;
   summary: string;
+}
+
+export interface DeploymentRunRecord {
+  id: string;
+  projectId: string;
+  repositoryRevisionId: string;
+  plannedMigrationId: string | null;
+  changeSetId: string | null;
+  validationRunId: string;
+  deploymentCandidateId: string | null;
+  targetTestnetKey: string;
+  targetChainId: number;
+  targetName: string;
+  revisionContentHash: string;
+  engineVersion: string;
+  profile: DeploymentProfile;
+  framework: DeploymentFramework | null;
+  status: DeploymentRunStatus;
+  deployerAddress: string | null;
+  sandboxImage: string | null;
+  sandboxImageDigest: string | null;
+  transactionCount: number | null;
+  estimatedGas: string | null;
+  estimatedCost: string | null;
+  errorCode: string | null;
+  errorMessage: string | null;
+  idempotencyKey: string;
+  limitsJson: JsonObject;
+  networkPolicy: string;
+  rpcAuditJson: JsonObject;
+  broadcastStartedAt: Date | null;
+  startedAt: Date | null;
+  completedAt: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface DeploymentCandidateRecord {
+  id: string;
+  revisionId: string;
+  framework: DeploymentFramework;
+  filePath: string;
+  entrypoint: string;
+  confidence: DeploymentCandidateConfidence;
+  evidence: JsonObject;
+  createdAt: Date;
+}
+
+export interface DeploymentPreflightRecord {
+  id: string;
+  deploymentRunId: string;
+  transactionCount: number | null;
+  estimatedGas: string | null;
+  estimatedCost: string | null;
+  status: DeploymentPreflightStatus;
+  warnings: JsonObject;
+  createdAt: Date;
+}
+
+export interface DeploymentTransactionRecord {
+  id: string;
+  deploymentRunId: string;
+  sequence: number;
+  hash: string;
+  nonce: number | null;
+  from: string | null;
+  to: string | null;
+  value: string;
+  gasLimit: string | null;
+  status: DeploymentTransactionStatus;
+  blockNumber: number | null;
+  contractAddress: string | null;
+  createdAt: Date;
+  confirmedAt: Date | null;
+}
+
+export interface DeploymentContractRecord {
+  id: string;
+  deploymentRunId: string;
+  address: string;
+  transactionHash: string;
+  blockNumber: number | null;
+  deployer: string | null;
+  contractName: string | null;
+  sourcePath: string | null;
+  bytecodePresent: boolean;
+  receiptStatus: string | null;
+  verificationStatus: DeploymentSourceVerificationStatus;
+  verificationMessage: string | null;
+  createdAt: Date;
+}
+
+export interface DeploymentCheckRecord {
+  id: string;
+  deploymentRunId: string;
+  name: string;
+  status: DeploymentCheckStatus;
+  detail: string;
+  createdAt: Date;
 }
 
 export interface ChangeSetChangeRecord {

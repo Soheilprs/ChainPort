@@ -18,6 +18,7 @@
     { "path": "../../packages/compatibility" },
     { "path": "../../packages/migration" },
     { "path": "../../packages/sandbox" },
-    { "path": "../../packages/validation" }
+    { "path": "../../packages/validation" },
+    { "path": "../../packages/deployment" }
   ]
 }

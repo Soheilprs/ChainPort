@@ -8,10 +8,11 @@ a target chain, and how to migrate it safely.
 It is not an RPC provider, explorer, indexer, generic AI coding assistant, generic GitHub scanner,
 or generic CI/CD tool.
 
-> **CURRENT STATUS: PHASE 7 — ISOLATED BUILD & TEST VALIDATION**
+> **CURRENT STATUS: PHASE 8 — TARGET TESTNET DEPLOYMENT**
 >
-> Generated revisions can be executed in a hardened ephemeral sandbox: install under policy, build,
-> and run existing local tests. ChainPort still does not deploy or write back to GitHub.
+> Eligible validated revisions can be prepared, simulated, and broadcast to a declared testnet
+> through a disposable deployer and RPC proxy. Mainnet deployment is refused. ChainPort still does
+> not write back to GitHub.
 
 ## Prerequisites
 
@@ -61,6 +62,9 @@ secret values have application defaults.
 | Finalize / rollback   | `POST /v1/change-sets/:id/finalize`                 |
 | Validate revision     | `POST /v1/revisions/:id/validations`                |
 | Get validation        | `GET /v1/validations/:id`                           |
+| Prepare deployment    | `POST /v1/revisions/:id/deployments`                |
+| Confirm broadcast     | `POST /v1/deployments/:id/confirm`                  |
+| Get deployment        | `GET /v1/deployments/:id`                           |
 
 `/health` does not touch PostgreSQL or Redis. `/ready` returns HTTP 503 when either is unavailable.
 
