@@ -83,6 +83,7 @@ export async function createApiApplication(options: ApiApplicationOptions) {
     bodyLimit: 262_144,
     maxParamLength: 200,
     genReqId: () => randomUUID(),
+    trustProxy: options.config?.NODE_ENV === "production",
   });
 
   await app.register(cookie);
@@ -146,6 +147,9 @@ export async function createApiApplication(options: ApiApplicationOptions) {
     product: PRODUCT_NAME,
     phase: CURRENT_PHASE,
     timestamp: new Date().toISOString(),
+    ...(typeof process.env.CHAINPORT_GIT_SHA === "string" && process.env.CHAINPORT_GIT_SHA !== ""
+      ? { revision: process.env.CHAINPORT_GIT_SHA }
+      : {}),
   }));
 
   app.get("/ready", async (_request, reply) => {

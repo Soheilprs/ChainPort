@@ -6,11 +6,14 @@ local catalogs that already use 5432.
 
 ## Catalogs
 
-| Purpose          | Database                | Use                          |
-| ---------------- | ----------------------- | ---------------------------- |
-| development      | `chainport`             | local API and worker         |
-| integration-test | `chainport_integration` | `pnpm test:integration` only |
-| validation       | `chainport_validation`  | reserved                     |
+| Purpose          | Database                     | Use                          |
+| ---------------- | ---------------------------- | ---------------------------- |
+| development      | `chainport`                  | local API and worker         |
+| integration-test | `chainport_integration`      | `pnpm test:integration` only |
+| validation       | `chainport_validation`       | reserved                     |
+| staging          | dedicated staging catalog    | `NODE_ENV=production`        |
+| production       | dedicated production catalog | never share with staging     |
+| customer         | reserved                     | reserved                     |
 
 `CHAINPORT_DB_PURPOSE` must match the catalog. Integration tests refuse any other database name.
 
@@ -21,6 +24,9 @@ local catalogs that already use 5432.
 - `pnpm test:integration` loads `.env.integration` and aborts unless the URL targets
   `chainport_integration`.
 - Sample credentials are for local Compose only.
+- Staging/production: `pnpm db:deploy` only. Never `prisma migrate reset` or `db push`.
+- Backup the catalog before every deploy. Restore/PITR follows [BACKUP_RESTORE.md](BACKUP_RESTORE.md).
+- Rotate database credentials in the secret manager and bounce API/worker; do not embed passwords in images.
 
 ## Schema
 

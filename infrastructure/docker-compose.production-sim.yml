@@ -1,0 +1,93 @@
+# LOCAL_PRODUCTION_SIMULATION — not a real staging environment.
+# Production-mode API/worker will fail closed unless a complete staging secret set is injected.
+# Do not use source bind mounts. Do not publish Postgres or Redis.
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: chainport_staging
+      POSTGRES_USER: chainport_staging
+      POSTGRES_PASSWORD: ${STAGING_SIM_DB_PASSWORD:-replace-me-not-for-staging}
+    volumes:
+      - chainport-sim-postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U chainport_staging -d chainport_staging"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks:
+      - chainport-sim-private
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command:
+      ["redis-server", "--requirepass", "${STAGING_SIM_REDIS_PASSWORD:-replace-me-not-for-staging}"]
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "redis-cli",
+          "-a",
+          "${STAGING_SIM_REDIS_PASSWORD:-replace-me-not-for-staging}",
+          "ping",
+        ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks:
+      - chainport-sim-private
+
+  api:
+    image: ${CHAINPORT_API_IMAGE:-chainport-api:local}
+    restart: "no"
+    env_file:
+      - ../.env.staging.example
+    environment:
+      DATABASE_URL: postgresql://chainport_staging:${STAGING_SIM_DB_PASSWORD:-replace-me-not-for-staging}@postgres:5432/chainport_staging
+      REDIS_URL: redis://:${STAGING_SIM_REDIS_PASSWORD:-replace-me-not-for-staging}@redis:6379
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - chainport-sim-private
+      - chainport-sim-edge
+
+  worker:
+    image: ${CHAINPORT_WORKER_IMAGE:-chainport-worker:local}
+    restart: "no"
+    env_file:
+      - ../.env.staging.example
+    environment:
+      DATABASE_URL: postgresql://chainport_staging:${STAGING_SIM_DB_PASSWORD:-replace-me-not-for-staging}@postgres:5432/chainport_staging
+      REDIS_URL: redis://:${STAGING_SIM_REDIS_PASSWORD:-replace-me-not-for-staging}@redis:6379
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - chainport-sim-private
+
+  web:
+    image: ${CHAINPORT_WEB_IMAGE:-chainport-web:local}
+    restart: "no"
+    environment:
+      NODE_ENV: production
+      API_INTERNAL_URL: http://api:3001
+    ports:
+      - "3000:3000"
+    networks:
+      - chainport-sim-edge
+
+networks:
+  chainport-sim-private:
+    internal: true
+  chainport-sim-edge: {}
+
+volumes:
+  chainport-sim-postgres:

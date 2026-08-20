@@ -10,7 +10,9 @@ export function middleware(request: NextRequest) {
   response.headers.set("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
   response.headers.set(
     "Content-Security-Policy",
-    "default-src 'self'; img-src 'self' https: data:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self' http://localhost:3001 https:; frame-ancestors 'none'",
+    isHttps
+      ? "default-src 'self'; img-src 'self' https: data:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self' https:; frame-ancestors 'none'"
+      : "default-src 'self'; img-src 'self' https: data:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self' http://localhost:3001 https:; frame-ancestors 'none'",
   );
   if (isHttps) {
     response.headers.set("Strict-Transport-Security", "max-age=63072000; includeSubDomains");

@@ -50,6 +50,9 @@ workspace isolation so API/UI cannot reach the filesystem.
 `GET /health` is process liveness and does not touch dependencies. `GET /ready` checks PostgreSQL
 and Redis and returns HTTP 503 on failure without leaking connection strings.
 
+Staging topology, kill switches, and the worker/sandbox Docker trust boundary are in
+[STAGING.md](STAGING.md).
+
 ## Ingest path
 
 1. API parses and canonicalizes a public GitHub URL.

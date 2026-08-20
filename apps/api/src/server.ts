@@ -122,11 +122,17 @@ async function main(): Promise<void> {
     }
     shuttingDown = true;
     logger.info({ signal }, "API shutdown started");
-    await app.close();
-    await queue.close();
-    await redis.quit();
-    await disconnectDatabase(database);
-    logger.info("API shutdown complete");
+    try {
+      await app.close();
+      await queue.close();
+      await redis.quit();
+      await disconnectDatabase(database);
+      logger.info("API shutdown complete");
+      process.exit(0);
+    } catch (error) {
+      logger.error({ err: error }, "API shutdown failed");
+      process.exit(1);
+    }
   };
 
   process.on("SIGINT", () => {

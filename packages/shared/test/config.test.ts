@@ -36,4 +36,14 @@ describe("loadWebConfig", () => {
   it("defaults the public API URL", () => {
     expect(loadWebConfig({}).NEXT_PUBLIC_API_URL).toBe("http://localhost:3001");
   });
+
+  it("allows same-origin /backend routing in production and rejects localhost HTTP", () => {
+    expect(
+      loadWebConfig({ NODE_ENV: "production", NEXT_PUBLIC_API_URL: "/backend" })
+        .NEXT_PUBLIC_API_URL,
+    ).toBe("/backend");
+    expect(() =>
+      loadWebConfig({ NODE_ENV: "production", NEXT_PUBLIC_API_URL: "http://localhost:3001" }),
+    ).toThrow(/HTTPS/);
+  });
 });

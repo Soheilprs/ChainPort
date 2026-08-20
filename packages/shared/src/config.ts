@@ -196,7 +196,10 @@ const webEnvironmentSchema = z.object({
     .string()
     .trim()
     .default("http://localhost:3001")
-    .refine(isHttpUrl, "NEXT_PUBLIC_API_URL must be an HTTP(S) URL"),
+    .refine(
+      (value) => (value.startsWith("/") && !value.startsWith("//")) || isHttpUrl(value),
+      "NEXT_PUBLIC_API_URL must be an HTTP(S) URL or a same-origin path",
+    ),
 });
 
 export type ServiceConfig = z.infer<typeof serviceEnvironmentSchema>;
@@ -253,6 +256,15 @@ const DEFAULT_CREDENTIAL_MARKERS = [
   "postgres:postgres",
 ];
 
+function isLoopbackHost(value: string): boolean {
+  return (
+    value.includes("localhost") ||
+    value.includes("127.0.0.1") ||
+    value.includes("[::1]") ||
+    value.includes("host.docker.internal")
+  );
+}
+
 export function assertProductionSafety(config: ServiceConfig): void {
   const problems: string[] = [];
   if (config.AUTH_PROVIDER === "test") {
@@ -303,8 +315,11 @@ export function assertProductionSafety(config: ServiceConfig): void {
   if (DEFAULT_CREDENTIAL_MARKERS.some((marker) => database.includes(marker))) {
     problems.push("DATABASE_URL uses default sample credentials");
   }
-  if (database.includes("localhost") || database.includes("127.0.0.1")) {
+  if (isLoopbackHost(database)) {
     problems.push("DATABASE_URL must not target localhost in production");
+  }
+  if (isLoopbackHost(config.REDIS_URL.toLowerCase())) {
+    problems.push("REDIS_URL must not target localhost in production");
   }
   if (config.ENABLE_PRIVATE_REPOS === true) {
     if (config.GITHUB_APP_ID === undefined || config.GITHUB_APP_PRIVATE_KEY === undefined) {

@@ -66,4 +66,11 @@ durable artifact-store abstraction, and pilot runbooks. Feature development stop
 
 ## Recommended next step
 
-**PILOT 1 — Controlled network pilot.** Do not start another feature phase.
+Do not start another feature phase. Remaining **external** pilot gates, in order:
+
+1. Staging environment provisioning (see [STAGING.md](STAGING.md))
+2. Real OIDC
+3. GitHub App + one private repository
+4. Durable S3/R2 artifact storage
+
+Public testnet deployment is **VERIFIED**.

@@ -28,6 +28,12 @@ describe("production configuration", () => {
     expect(() => assertProductionSafety(config)).not.toThrow();
   });
 
+  it("accepts CHAINPORT_DB_PURPOSE=staging under production safety", () => {
+    const config = loadServiceConfig({ ...base, CHAINPORT_DB_PURPOSE: "staging" });
+    expect(config.CHAINPORT_DB_PURPOSE).toBe("staging");
+    expect(() => assertProductionSafety(config)).not.toThrow();
+  });
+
   it("rejects test identity, localhost, default credentials, and filesystem artifacts", () => {
     expect(() =>
       loadServiceConfig({
@@ -60,5 +66,17 @@ describe("production configuration", () => {
         SESSION_SECRET: "short",
       }),
     ).toThrow(/SESSION_SECRET/);
+    expect(() =>
+      loadServiceConfig({
+        ...base,
+        REDIS_URL: "redis://localhost:6379",
+      }),
+    ).toThrow(/REDIS_URL/);
+    expect(() =>
+      loadServiceConfig({
+        ...base,
+        DATABASE_URL: "postgresql://pilot:s3cret-long@host.docker.internal/chainport",
+      }),
+    ).toThrow(/DATABASE_URL/);
   });
 });

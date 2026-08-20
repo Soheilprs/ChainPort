@@ -1,3 +1,4 @@
+import { ApiRequestError } from "../errors.js";
 import type { AuthService } from "../auth-service.js";
 import type { ApiInstance } from "../types.js";
 
@@ -35,6 +36,45 @@ export function registerAuthRoutes(app: ApiInstance, auth: AuthService): void {
       maxAge: 600,
     });
     return reply.redirect(started.url);
+  });
+
+  app.get("/v1/auth/oidc/callback", async (request, reply) => {
+    const query = request.query as { code?: string; state?: string; error?: string };
+    if (typeof query.error === "string" && query.error !== "") {
+      throw new ApiRequestError(401, "OIDC_REJECTED", "Identity provider rejected the request");
+    }
+    const code = query.code;
+    const state = query.state;
+    const cookieState = request.cookies.chainport_oidc_state;
+    const nonce = request.cookies.chainport_oidc_nonce;
+    if (
+      typeof code !== "string" ||
+      code === "" ||
+      typeof state !== "string" ||
+      state === "" ||
+      typeof cookieState !== "string" ||
+      typeof nonce !== "string" ||
+      cookieState !== state
+    ) {
+      throw new ApiRequestError(401, "OIDC_REJECTED", "OIDC state is invalid");
+    }
+    const parsed = auth.parseOidcState(state);
+    const result = await auth.completeOidc({
+      code,
+      nonce,
+      redirectUri: auth.oidcRedirectUri(),
+      request: {
+        ip: request.ip,
+        ...(typeof request.headers["user-agent"] === "string"
+          ? { userAgent: request.headers["user-agent"] }
+          : {}),
+      },
+    });
+    reply.clearCookie("chainport_oidc_nonce", { path: "/" });
+    reply.clearCookie("chainport_oidc_state", { path: "/" });
+    reply.setCookie(names.session, result.sessionToken, auth.cookieOptions());
+    reply.setCookie(names.csrf, result.csrfToken, auth.csrfCookieOptions());
+    return reply.redirect(auth.postLoginRedirect(parsed.returnTo));
   });
 
   app.get("/v1/auth/me", (request) => {

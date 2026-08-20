@@ -4,9 +4,10 @@ Use the database provider's automated backups and PITR. Do not build a custom du
 
 ## PostgreSQL
 
-1. Snapshot/backup the production catalog before every `pnpm db:deploy`.
+1. Snapshot/backup the staging and production catalogs before every `pnpm db:deploy`.
 2. Restore the snapshot to a throwaway instance and run migrations there first.
 3. Point-in-time recovery: follow the provider runbook (WAL / PITR window).
+4. Staging should use the provider’s automatic daily backups even before the first restore drill.
 
 ## Object storage
 

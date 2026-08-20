@@ -4,6 +4,16 @@ Threat: a malicious public GitHub repository attempting to compromise the ChainP
 
 Trust boundary: repository code becomes executable **only** inside a hardened ephemeral container. Phases 3–6 remain non-executing parsers.
 
+Staging host:
+
+```
+Trusted worker  →  Docker daemon  →  Untrusted sandbox
+```
+
+The worker may use the host Docker API (socket or `DOCKER_HOST`) to create sandboxes. That is **not**
+the same as giving repository workloads a Docker socket. Sandboxes are created without the socket;
+inspect fails closed if `docker.sock` appears in mounts or the container is privileged.
+
 ## Container controls
 
 - non-root `10001:10001`

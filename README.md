@@ -11,8 +11,8 @@ or generic CI/CD tool.
 > **CURRENT STATUS: PHASE 11 — PILOT HARDENING**
 >
 > Authentication, authorization, rate limits, audit, and production fail-closed configuration are
-> in place so a controlled network pilot can start. External gates (real OIDC, GitHub App, object
-> storage, public testnet funder) may still be unconfigured.
+> in place. Public OP Sepolia deployment is verified. Staging configuration is documented in
+> `docs/STAGING.md`. Remaining external gates: provision staging, real OIDC, GitHub App, S3/R2.
 
 ## Prerequisites
 

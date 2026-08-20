@@ -17,6 +17,17 @@
 3. Connect a public GitHub repo (or GitHub App for private)
 4. Ingest → analyze → compatibility → plan → ChangeSet → validate → prepare testnet if eligible
 
+## Staging bring-up
+
+See [STAGING.md](STAGING.md). First process boot uses `NODE_ENV=production` and
+`CHAINPORT_DB_PURPOSE=staging`. Do not use `development` purpose or `AUTH_PROVIDER=test`.
+
+Designate a **staging-only** OP Sepolia funder. Do not reuse that wallet as a future production
+funder. Mainnet wallets remain forbidden. Public testnet proof:
+
+`PUBLIC_TESTNET_GATE_VERIFIED` (Counter on OP Sepolia, chain 11155420). Keep
+`ENABLE_TESTNET_DEPLOYMENT=false` until OIDC smoke passes.
+
 ## Stuck states
 
 | Symptom                        | Action                                     |

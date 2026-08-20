@@ -24,6 +24,10 @@ creates a commit.
 - `.git` is not copied into generated snapshots
 - Object storage can replace the filesystem later without changing ChangeSet logic
 
+`ARTIFACT_STORE=s3` is required to boot `NODE_ENV=production`. The HTTP S3/R2 transport is not
+wired yet (`S3CompatibleArtifactStore` still needs a real `ObjectStoreTransport`). Status:
+**OBJECT_STORAGE_GATE_PENDING**. Do not fake durable storage.
+
 `materialize(revisionId)` returns the contained directory if it exists. Phase 7 should consume
 this generated snapshot, not the original GitHub repository.
 

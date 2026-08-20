@@ -95,15 +95,45 @@ export class AuthService {
     return this.issueSession(latest.id, request);
   }
 
+  public oidcRedirectUri(): string {
+    return this.config.OIDC_REDIRECT_URI ?? `${this.config.WEB_ORIGIN}/auth/callback`;
+  }
+
   public startOidc(returnTo: string): { url: string; state: string; nonce: string } {
-    const state = randomToken(16);
     const nonce = randomToken(16);
-    const redirectUri = this.config.OIDC_REDIRECT_URI ?? `${this.config.WEB_ORIGIN}/auth/callback`;
+    const redirectUri = this.oidcRedirectUri();
+    const state = `${randomToken(16)}.${Buffer.from(safeReturnTo(returnTo)).toString("base64url")}`;
     return {
       url: this.provider.authorizationUrl({ state, nonce, redirectUri }),
-      state: `${state}.${Buffer.from(returnTo).toString("base64url")}`,
+      state,
       nonce,
     };
+  }
+
+  public parseOidcState(state: string): { token: string; returnTo: string } {
+    const separator = state.indexOf(".");
+    if (separator === -1) {
+      return { token: state, returnTo: "/app/projects" };
+    }
+    const token = state.slice(0, separator);
+    const encoded = state.slice(separator + 1);
+    try {
+      return {
+        token,
+        returnTo: safeReturnTo(Buffer.from(encoded, "base64url").toString("utf8")),
+      };
+    } catch {
+      return { token, returnTo: "/app/projects" };
+    }
+  }
+
+  public postLoginRedirect(returnTo: string): string {
+    const origin = new URL(this.config.WEB_ORIGIN);
+    const candidate = new URL(safeReturnTo(returnTo), origin);
+    if (candidate.origin !== origin.origin) {
+      return new URL("/app/projects", origin).toString();
+    }
+    return candidate.toString();
   }
 
   public async completeOidc(input: {
@@ -229,6 +259,13 @@ function createProvider(config: ServiceConfig): IdentityProvider {
     });
   }
   return new TestIdentityProvider();
+}
+
+function safeReturnTo(value: string): string {
+  if (!value.startsWith("/") || value.startsWith("//") || value.includes("\\")) {
+    return "/app/projects";
+  }
+  return value;
 }
 
 function asRecord(body: unknown): Record<string, unknown> {

@@ -19,11 +19,21 @@ ChainPort uses **server-side sessions**, not custom password hashing.
 
 ## Endpoints
 
-| Method | Path                  | Auth               |
-| ------ | --------------------- | ------------------ |
-| POST   | `/v1/auth/test/login` | test provider only |
-| GET    | `/v1/auth/oidc/start` | public             |
-| GET    | `/v1/auth/me`         | optional           |
-| POST   | `/v1/auth/logout`     | session            |
+| Method | Path                     | Auth                         |
+| ------ | ------------------------ | ---------------------------- |
+| POST   | `/v1/auth/test/login`    | test provider only           |
+| GET    | `/v1/auth/oidc/start`    | public                       |
+| GET    | `/v1/auth/oidc/callback` | public (state+nonce cookies) |
+| GET    | `/v1/auth/me`            | optional                     |
+| POST   | `/v1/auth/logout`        | session                      |
+
+`OIDC_REDIRECT_URI` should be the public HTTPS callback. Same-origin staging:
+
+`https://<web-origin>/backend/v1/auth/oidc/callback`
+
+The web route `/auth/callback` forwards the query string to the API callback so the default
+`WEB_ORIGIN/auth/callback` still works. Return URLs are restricted to same-origin relative paths.
+The real identity provider is configured in the OIDC gate; `AUTH_PROVIDER=test` cannot start when
+`NODE_ENV=production`.
 
 Production fails closed if OIDC or `SESSION_SECRET` (≥32 chars) is missing.

@@ -229,4 +229,59 @@ describe("pilot security", () => {
     });
     expect(optimismId).toBeTruthy();
   });
+
+  it("completes the OIDC callback and issues a session without an open redirect", async () => {
+    const app = await makeApp();
+    const started = await app.inject({
+      method: "GET",
+      url: "/v1/auth/oidc/start?returnTo=/app/projects",
+    });
+    expect(started.statusCode).toBe(302);
+    const location = started.headers.location;
+    expect(typeof location).toBe("string");
+    const redirected = new URL(String(location));
+    const cookies = Object.fromEntries(
+      started.cookies.map((cookie) => [cookie.name, cookie.value]),
+    );
+    expect(cookies.chainport_oidc_state).toBeDefined();
+    expect(cookies.chainport_oidc_nonce).toBeDefined();
+
+    const rejected = await app.inject({
+      method: "GET",
+      url: `/v1/auth/oidc/callback?${redirected.searchParams.toString()}`,
+    });
+    expect(rejected.statusCode).toBe(401);
+
+    const completed = await app.inject({
+      method: "GET",
+      url: `/v1/auth/oidc/callback?${redirected.searchParams.toString()}`,
+      cookies: {
+        chainport_oidc_state: cookies.chainport_oidc_state ?? "",
+        chainport_oidc_nonce: cookies.chainport_oidc_nonce ?? "",
+      },
+    });
+    expect(completed.statusCode).toBe(302);
+    expect(String(completed.headers.location)).toBe("http://localhost:3000/app/projects");
+    const session = completed.cookies.find((cookie) => cookie.name === "chainport_session");
+    expect(session?.value).toMatch(/^[A-Za-z0-9_-]+$/);
+
+    const forged = await app.inject({
+      method: "GET",
+      url: "/v1/auth/oidc/start?returnTo=https://evil.example/phish",
+    });
+    const forgedLocation = new URL(String(forged.headers.location));
+    const forgedCookies = Object.fromEntries(
+      forged.cookies.map((cookie) => [cookie.name, cookie.value]),
+    );
+    const forgedComplete = await app.inject({
+      method: "GET",
+      url: `/v1/auth/oidc/callback?${forgedLocation.searchParams.toString()}`,
+      cookies: {
+        chainport_oidc_state: forgedCookies.chainport_oidc_state ?? "",
+        chainport_oidc_nonce: forgedCookies.chainport_oidc_nonce ?? "",
+      },
+    });
+    expect(forgedComplete.statusCode).toBe(302);
+    expect(String(forgedComplete.headers.location)).toBe("http://localhost:3000/app/projects");
+  });
 });
