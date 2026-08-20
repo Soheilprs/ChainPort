@@ -12,6 +12,37 @@ export type OrganizationKind = (typeof ORGANIZATION_KINDS)[number];
 export const PROJECT_STATUSES = ["ACTIVE", "ARCHIVED"] as const;
 export type ProjectStatus = (typeof PROJECT_STATUSES)[number];
 
+export const DATA_CLASSIFICATIONS = ["PRODUCTION", "INTERNAL_TEST"] as const;
+export type DataClassification = (typeof DATA_CLASSIFICATIONS)[number];
+
+export const NETWORK_PARTNER_STATUSES = ["ACTIVE", "PAUSED", "PILOT", "DISABLED"] as const;
+export type NetworkPartnerStatus = (typeof NETWORK_PARTNER_STATUSES)[number];
+
+export const FUNNEL_STAGES = [
+  "PROJECT_STARTED",
+  "REPOSITORY_INGESTED",
+  "REPOSITORY_ANALYZED",
+  "COMPATIBILITY_EVALUATED",
+  "MIGRATION_PLAN_CREATED",
+  "SAFE_FIXES_GENERATED",
+  "REVISION_FINALIZED",
+  "VALIDATION_PASSED",
+  "TESTNET_DEPLOYMENT_PREPARED",
+  "TESTNET_DEPLOYED",
+] as const;
+export type FunnelStage = (typeof FUNNEL_STAGES)[number];
+
+export const INFRASTRUCTURE_GAP_KINDS = [
+  "NETWORK_GAP",
+  "PROJECT_CONFIG",
+  "UNKNOWN_NETWORK_DATA",
+  "MIGRATION_REVIEW",
+] as const;
+export type InfrastructureGapKind = (typeof INFRASTRUCTURE_GAP_KINDS)[number];
+
+export const ANALYTICS_RANGE_PRESETS = ["7d", "30d", "90d", "all"] as const;
+export type AnalyticsRangePreset = (typeof ANALYTICS_RANGE_PRESETS)[number];
+
 export const REPOSITORY_PROVIDERS = ["GITHUB"] as const;
 export type RepositoryProvider = (typeof REPOSITORY_PROVIDERS)[number];
 
@@ -420,6 +451,18 @@ export function isOrganizationKind(value: unknown): value is OrganizationKind {
 
 export function isProjectStatus(value: unknown): value is ProjectStatus {
   return isOneOf(value, PROJECT_STATUSES);
+}
+
+export function isDataClassification(value: unknown): value is DataClassification {
+  return isOneOf(value, DATA_CLASSIFICATIONS);
+}
+
+export function isNetworkPartnerStatus(value: unknown): value is NetworkPartnerStatus {
+  return isOneOf(value, NETWORK_PARTNER_STATUSES);
+}
+
+export function isFunnelStage(value: unknown): value is FunnelStage {
+  return isOneOf(value, FUNNEL_STAGES);
 }
 
 export function isRepositoryProvider(value: unknown): value is RepositoryProvider {

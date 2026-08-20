@@ -2,6 +2,7 @@ import {
   assertJobTransition,
   createId,
   type CloneStatus,
+  type DataClassification,
   type IngestErrorCode,
   type JobStatus,
   type MigrationJob,
@@ -26,6 +27,7 @@ export interface CreateProjectInput {
   githubOwner: string;
   githubRepo: string;
   defaultBranch: string;
+  dataClassification?: DataClassification;
 }
 
 export interface CreateJobInput {
@@ -94,6 +96,7 @@ export class IngestRepository {
           githubOwner: input.githubOwner,
           githubRepo: input.githubRepo,
           defaultBranch: input.defaultBranch,
+          dataClassification: input.dataClassification ?? "PRODUCTION",
         },
       });
       return mapProject(row);

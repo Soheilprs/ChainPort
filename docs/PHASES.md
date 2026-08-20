@@ -39,13 +39,19 @@ A `RepositoryRevision` is rematerialized, hash-verified, and executed inside an 
 container: install (policy) → build → test. Results are immutable ValidationRuns. Original vs
 generated comparison detects regressions without claiming causation when the baseline already failed.
 
-## Phase 8 — Target testnet deployment (current)
+## Phase 8 — Target testnet deployment
 
 An eligible, hash-verified, PASSED revision can be prepared for a registry testnet, simulated
 without side effects, then broadcast only after explicit confirmation. Disposable deployers, an RPC
 proxy allowlist, a transaction journal, receipt/`eth_getCode` verification, and crash reconciliation
 are required. Mainnet is refused with no override.
 
+## Phase 9 — Network / Foundation dashboard (current)
+
+Unique-project funnel, blocker aggregation, and infrastructure-gap classification over real
+persisted records, attributed by `targetChainKey`. Internal fixtures and Anvil DEVNET runs are
+excluded from partner metrics by default.
+
 ## Recommended next phases
 
-9. **Network / Foundation dashboard & ecosystem intelligence**.
+10. **Partner portal / white-label developer experience**.

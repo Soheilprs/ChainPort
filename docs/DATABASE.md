@@ -64,6 +64,12 @@ Phase 8 adds deployment tables. Private keys are never stored:
 
 The Phase 1 `deployments` stub is unused.
 
+Phase 9 adds partner analytics tables and classification:
+
+- `network_partners` (organization, network key, status, demo flag)
+- `projects.data_classification` (`PRODUCTION` or `INTERNAL_TEST`)
+- indexes on target chain, readiness, validation outcome, and deployment status
+
 Phase 3 adds analysis tables:
 
 - `repository_analyses` unique on `(repository_id, commit_sha, scanner_version)`

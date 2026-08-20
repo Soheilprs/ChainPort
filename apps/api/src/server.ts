@@ -9,7 +9,9 @@ import {
   PlanRepository,
   ValidationRepository,
   DeploymentRepository,
+  PartnerRepository,
 } from "@chainport/db";
+import { EcosystemAnalytics } from "@chainport/ecosystem";
 import { DockerSandboxRunner } from "@chainport/sandbox";
 import { loadServiceConfig } from "@chainport/shared";
 import { Redis } from "ioredis";
@@ -19,6 +21,7 @@ import { CompatibilityService } from "./compatibility-service.js";
 import { ChangeSetService } from "./changeset-service.js";
 import { ValidationService } from "./validation-service.js";
 import { DeploymentService } from "./deployment-service.js";
+import { NetworkService } from "./network-service.js";
 import { PlanService } from "./plan-service.js";
 import { createApiApplication } from "./app.js";
 import { createLogger } from "./logger.js";
@@ -77,6 +80,10 @@ async function main(): Promise<void> {
       maxGas: config.MAX_DEPLOYMENT_GAS,
     },
   );
+  const networkService = new NetworkService(
+    new PartnerRepository(database),
+    new EcosystemAnalytics(database),
+  );
 
   const app = await createApiApplication({
     logger,
@@ -88,6 +95,7 @@ async function main(): Promise<void> {
     changeSetService,
     validationService,
     deploymentService,
+    networkService,
     readinessProbe: async () => {
       await checkDatabase(database);
       await checkRedis(redis);

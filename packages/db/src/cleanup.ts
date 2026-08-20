@@ -33,6 +33,14 @@ export async function resetIntegrationDatabase(client: DatabaseClient): Promise<
   assertIntegrationCleanupAllowed(process.env.CHAINPORT_DB_PURPOSE, process.env.DATABASE_URL ?? "");
   await client.$executeRawUnsafe(`
     TRUNCATE TABLE
+      deployment_checks,
+      deployment_contracts,
+      deployment_transactions,
+      deployment_preflights,
+      deployment_status_events,
+      deployment_runs,
+      deployment_candidates,
+      network_partners,
       validation_test_results,
       validation_steps,
       validation_status_events,

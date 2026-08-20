@@ -34,7 +34,7 @@ describe("API foundation routes", () => {
       status: "ok",
       service: "api",
       product: "ChainPort",
-      phase: 8,
+      phase: 9,
     });
     expect(readinessProbe).not.toHaveBeenCalled();
   });
@@ -90,8 +90,8 @@ describe("API foundation routes", () => {
     expect(response.json()).toMatchObject({
       data: {
         name: "ChainPort",
-        phase: 8,
-        phaseName: "Target testnet deployment",
+        phase: 9,
+        phaseName: "Network dashboard",
       },
     });
   });

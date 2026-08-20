@@ -20,6 +20,7 @@ packages/
   sandbox/      Hardened Docker runner and policy
   validation/   Profiles, parsers, log redaction, regression comparison
   deployment/   Eligibility, candidates, RPC proxy, disposable credentials, preflight
+  ecosystem/    Partner funnel, blockers, infrastructure gaps, KPI aggregations
   db/           Prisma schema and client
 ```
 

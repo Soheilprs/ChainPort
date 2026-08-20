@@ -5,6 +5,7 @@ import type {
   MigrationJob,
   Project,
   ProjectStatus,
+  DataClassification,
   Repository,
   RepositoryProvider,
 } from "@chainport/shared";
@@ -53,6 +54,7 @@ export function mapProject(row: PrismaProject): Project {
     githubRepo: row.githubRepo,
     defaultBranch: row.defaultBranch,
     status: row.status as ProjectStatus,
+    dataClassification: row.dataClassification as DataClassification,
     activeRevisionId: row.activeRevisionId,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,

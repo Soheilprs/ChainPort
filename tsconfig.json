@@ -13,6 +13,7 @@
     { "path": "packages/deployment" },
     { "path": "packages/ingest" },
     { "path": "packages/db" },
+    { "path": "packages/ecosystem" },
     { "path": "apps/api" },
     { "path": "apps/worker" }
   ]

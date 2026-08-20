@@ -20,6 +20,18 @@ enum ProjectStatus {
   ARCHIVED
 }
 
+enum DataClassification {
+  PRODUCTION
+  INTERNAL_TEST
+}
+
+enum NetworkPartnerStatus {
+  ACTIVE
+  PAUSED
+  PILOT
+  DISABLED
+}
+
 enum RepositoryProvider {
   GITHUB
 }
@@ -378,10 +390,28 @@ model Organization {
   kind      OrganizationKind
   createdAt DateTime         @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt DateTime         @updatedAt @map("updated_at") @db.Timestamptz(3)
-  users     User[]
-  projects  Project[]
+  users           User[]
+  projects        Project[]
+  networkPartners NetworkPartner[]
 
   @@map("organizations")
+}
+
+model NetworkPartner {
+  id             String               @id @db.Uuid
+  organizationId String               @map("organization_id") @db.Uuid
+  organization   Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  networkKey     String               @map("network_key")
+  displayName    String               @map("display_name")
+  status         NetworkPartnerStatus @default(ACTIVE)
+  isDemo         Boolean              @default(false) @map("is_demo")
+  createdAt      DateTime             @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt      DateTime             @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@unique([organizationId, networkKey])
+  @@index([networkKey])
+  @@index([status])
+  @@map("network_partners")
 }
 
 model User {
@@ -436,6 +466,7 @@ model Project {
   githubRepo     String        @map("github_repo")
   defaultBranch      String        @default("main") @map("default_branch")
   status             ProjectStatus @default(ACTIVE)
+  dataClassification DataClassification @default(PRODUCTION) @map("data_classification")
   activeRevisionId   String?       @map("active_revision_id") @db.Uuid
   activeRevision     RepositoryRevision? @relation("ActiveRevision", fields: [activeRevisionId], references: [id], onDelete: SetNull)
   createdAt          DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
@@ -453,6 +484,7 @@ model Project {
   @@unique([repositoryId])
   @@index([organizationId])
   @@index([activeRevisionId])
+  @@index([dataClassification, createdAt])
   @@map("projects")
 }
 
@@ -486,6 +518,7 @@ model MigrationJob {
   @@index([status, createdAt])
   @@index([projectId])
   @@index([repositoryId])
+  @@index([targetChainKey, createdAt])
   @@map("migration_jobs")
 }
 
@@ -740,6 +773,8 @@ model CompatibilityRun {
   @@index([projectId, createdAt])
   @@index([analysisId, createdAt])
   @@index([status, createdAt])
+  @@index([targetChainKey, createdAt])
+  @@index([targetChainKey, readiness])
   @@map("compatibility_runs")
 }
 
@@ -780,6 +815,7 @@ model CompatibilityFinding {
   @@index([compatibilityRunId, status])
   @@index([compatibilityRunId, category])
   @@index([requirementId])
+  @@index([ruleId, status])
   @@map("compatibility_findings")
 }
 
@@ -838,6 +874,7 @@ model PlannedMigration {
   @@unique([compatibilityRunId, migrationRulesetVersion])
   @@index([projectId, createdAt])
   @@index([status, createdAt])
+  @@index([targetChainKey, createdAt])
   @@map("planned_migrations")
 }
 
@@ -1065,6 +1102,7 @@ model ValidationRun {
   @@index([projectId, createdAt])
   @@index([status, createdAt])
   @@index([revisionContentHash])
+  @@index([outcome, createdAt])
   @@map("validation_runs")
 }
 
@@ -1179,6 +1217,7 @@ model DeploymentRun {
   @@index([repositoryRevisionId, createdAt])
   @@index([status, createdAt])
   @@index([targetTestnetKey])
+  @@index([status, targetTestnetKey])
   @@map("deployment_runs")
 }
 

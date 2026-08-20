@@ -50,6 +50,9 @@ importers:
       '@chainport/deployment':
         specifier: workspace:*
         version: link:../../packages/deployment
+      '@chainport/ecosystem':
+        specifier: workspace:*
+        version: link:../../packages/ecosystem
       '@chainport/migration':
         specifier: workspace:*
         version: link:../../packages/migration
@@ -255,6 +258,25 @@ importers:
       viem:
         specifier: 2.37.9
         version: 2.37.9(typescript@5.9.3)(zod@3.25.76)
+    devDependencies:
+      '@types/node':
+        specifier: 24.10.1
+        version: 24.10.1
+
+  packages/ecosystem:
+    dependencies:
+      '@chainport/chain-registry':
+        specifier: workspace:*
+        version: link:../chain-registry
+      '@chainport/db':
+        specifier: workspace:*
+        version: link:../db
+      '@chainport/shared':
+        specifier: workspace:*
+        version: link:../shared
+      '@chainport/validation':
+        specifier: workspace:*
+        version: link:../validation
     devDependencies:
       '@types/node':
         specifier: 24.10.1

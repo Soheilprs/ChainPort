@@ -16,7 +16,8 @@
       "@chainport/deployment": ["packages/deployment/src/index.ts"],
       "@chainport/sandbox": ["packages/sandbox/src/index.ts"],
       "@chainport/ingest": ["packages/ingest/src/index.ts"],
-      "@chainport/db": ["packages/db/src/index.ts"]
+      "@chainport/db": ["packages/db/src/index.ts"],
+      "@chainport/ecosystem": ["packages/ecosystem/src/index.ts"]
     }
   },
   "include": [

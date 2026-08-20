@@ -55,6 +55,5 @@ Repository code must never execute on the host. Sandbox execution is isolated.
 
 ## Current phase
 
-Phase 8 deploys an eligible, validated revision to a declared testnet after explicit confirmation.
-Mainnet is refused. Disposable deployers, an RPC proxy, and a transaction journal are required. It
-does not write back to GitHub.
+Phase 9 gives network and foundation teams a dashboard over real unique-project funnels, blockers,
+and infrastructure gaps. Internal test data and Anvil DEVNET deployments are excluded by default.

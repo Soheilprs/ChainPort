@@ -8,11 +8,10 @@ a target chain, and how to migrate it safely.
 It is not an RPC provider, explorer, indexer, generic AI coding assistant, generic GitHub scanner,
 or generic CI/CD tool.
 
-> **CURRENT STATUS: PHASE 8 — TARGET TESTNET DEPLOYMENT**
+> **CURRENT STATUS: PHASE 9 — NETWORK / FOUNDATION DASHBOARD**
 >
-> Eligible validated revisions can be prepared, simulated, and broadcast to a declared testnet
-> through a disposable deployer and RPC proxy. Mainnet deployment is refused. ChainPort still does
-> not write back to GitHub.
+> Partner networks can inspect a unique-project migration funnel, blockers, and infrastructure
+> gaps from persisted ChainPort data. Internal fixtures and Anvil DEVNET runs are excluded.
 
 ## Prerequisites
 
@@ -65,6 +64,8 @@ secret values have application defaults.
 | Prepare deployment    | `POST /v1/revisions/:id/deployments`                |
 | Confirm broadcast     | `POST /v1/deployments/:id/confirm`                  |
 | Get deployment        | `GET /v1/deployments/:id`                           |
+| Network partners      | `GET /v1/network-partners`                          |
+| Partner overview      | `GET /v1/network-partners/:id/overview`             |
 
 `/health` does not touch PostgreSQL or Redis. `/ready` returns HTTP 503 when either is unavailable.
 

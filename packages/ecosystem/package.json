@@ -1,0 +1,27 @@
+{
+  "name": "@chainport/ecosystem",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "typecheck": "tsc -b --pretty false"
+  },
+  "dependencies": {
+    "@chainport/chain-registry": "workspace:*",
+    "@chainport/db": "workspace:*",
+    "@chainport/shared": "workspace:*",
+    "@chainport/validation": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "24.10.1"
+  }
+}

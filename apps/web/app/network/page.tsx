@@ -1,22 +1,26 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 
+import { CreatePartnerForm } from "@/components/create-partner-form";
 import { EmptyState } from "@/components/empty-state";
 import { PhaseBanner } from "@/components/phase-banner";
 import { SiteHeader } from "@/components/site-header";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
+import { API_URL } from "@/lib/api";
+import type { NetworkPartner } from "@/lib/network";
 
 export const metadata: Metadata = {
   title: "Network console",
 };
 
-const stats = [
-  { label: "Projects analyzed", value: "—" },
-  { label: "Compatibility rate", value: "—" },
-  { label: "Testnet deployments", value: "—" },
-  { label: "Open blockers", value: "—" },
-] as const;
+export default async function NetworkIndexPage() {
+  const response = await fetch(`${API_URL}/v1/network-partners`, { cache: "no-store" }).catch(
+    () => null,
+  );
+  const partners: NetworkPartner[] =
+    response?.ok === true ? ((await response.json()) as { data: NetworkPartner[] }).data : [];
 
-export default function NetworkPage() {
   return (
     <div>
       <SiteHeader current="/network" />
@@ -24,37 +28,37 @@ export default function NetworkPage() {
         <PhaseBanner />
         <h1 className="mt-3 text-2xl font-medium tracking-tight">Network console</h1>
         <p className="mt-2 max-w-2xl text-sm leading-6 text-muted">
-          For foundations, ecosystem teams, and RaaS providers. Metrics stay empty until real
-          analyses exist.
+          Foundation and ecosystem view. Metrics are unique projects attributed by target chain.
+          Internal test fixtures and Anvil DEVNET deployments are excluded.
         </p>
 
-        <section className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {stats.map((stat) => (
-            <Card key={stat.label} className="py-4">
-              <p className="text-xs uppercase tracking-wide text-muted">{stat.label}</p>
-              <p className="mt-2 text-2xl font-medium">{stat.value}</p>
-            </Card>
-          ))}
-        </section>
-
-        <section className="mt-6 grid gap-4 md:grid-cols-2">
-          <EmptyState title="Common developer blockers">
-            Blockers will aggregate from real findings once the scanner and compatibility engine
-            run. This surface will not show sample incompatibilities.
-          </EmptyState>
-          <EmptyState title="Missing infrastructure">
-            Missing oracles, bridges, indexers, and verifiers will be ranked by how many
-            applications they unblock. No ranking is available yet.
-          </EmptyState>
-        </section>
-
-        <Card className="mt-4">
-          <CardTitle>Who this is for</CardTitle>
-          <CardDescription>
-            The paying customer is the blockchain network, foundation, ecosystem team, or RaaS
-            provider. Developers use the migration tooling that partner networks expose.
-          </CardDescription>
-        </Card>
+        {partners.length === 0 ? (
+          <div className="mt-8 grid gap-4 md:grid-cols-2">
+            <EmptyState title="No network partners yet">
+              Developer migration activity will appear here once a partner is created from a
+              production chain in the registry. No sample values are shown.
+            </EmptyState>
+            <CreatePartnerForm />
+          </div>
+        ) : (
+          <section className="mt-8 grid gap-3 md:grid-cols-2">
+            {partners.map((partner) => (
+              <Link key={partner.id} href={`/network/${partner.id}`}>
+                <Card className="hover:border-line-strong">
+                  <div className="flex items-center justify-between gap-3">
+                    <CardTitle>{partner.displayName}</CardTitle>
+                    <Badge>{partner.status}</Badge>
+                  </div>
+                  <CardDescription>
+                    {partner.networkKey}
+                    {partner.isDemo ? " · DEMO" : ""}
+                  </CardDescription>
+                </Card>
+              </Link>
+            ))}
+            <CreatePartnerForm />
+          </section>
+        )}
       </main>
     </div>
   );

@@ -39,6 +39,8 @@ import type {
   MigrationStage,
   OrganizationKind,
   ProjectStatus,
+  DataClassification,
+  NetworkPartnerStatus,
   RevisionCompleteness,
   RevisionType,
   RemediationType,
@@ -92,7 +94,19 @@ export interface Project {
   githubRepo: string;
   defaultBranch: string;
   status: ProjectStatus;
+  dataClassification: DataClassification;
   activeRevisionId: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface NetworkPartner {
+  id: string;
+  organizationId: string;
+  networkKey: string;
+  displayName: string;
+  status: NetworkPartnerStatus;
+  isDemo: boolean;
   createdAt: Date;
   updatedAt: Date;
 }

@@ -16,6 +16,7 @@ import type { ChangeSetService } from "./changeset-service.js";
 import type { PlanService } from "./plan-service.js";
 import type { ValidationService } from "./validation-service.js";
 import type { DeploymentService } from "./deployment-service.js";
+import type { NetworkService } from "./network-service.js";
 import { registerAnalysisRoutes } from "./routes/analyses.js";
 import { registerChangeSetRoutes } from "./routes/change-sets.js";
 import { registerChainRoutes } from "./routes/chains.js";
@@ -24,6 +25,7 @@ import { registerJobRoutes } from "./routes/jobs.js";
 import { registerPlanRoutes } from "./routes/plans.js";
 import { registerValidationRoutes } from "./routes/validations.js";
 import { registerDeploymentRoutes } from "./routes/deployments.js";
+import { registerNetworkRoutes } from "./routes/network.js";
 import { registerProjectRoutes } from "./routes/projects.js";
 import type { ProjectsService } from "./projects-service.js";
 
@@ -40,6 +42,7 @@ export interface ApiApplicationOptions {
   changeSetService?: ChangeSetService;
   validationService?: ValidationService;
   deploymentService?: DeploymentService;
+  networkService?: NetworkService;
 }
 
 export async function createApiApplication(options: ApiApplicationOptions) {
@@ -112,6 +115,9 @@ export async function createApiApplication(options: ApiApplicationOptions) {
   }
   if (options.deploymentService !== undefined) {
     registerDeploymentRoutes(app, options.deploymentService);
+  }
+  if (options.networkService !== undefined) {
+    registerNetworkRoutes(app, options.networkService);
   }
 
   app.setNotFoundHandler(async (_request, reply) => {
