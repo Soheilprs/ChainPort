@@ -4,9 +4,21 @@ export interface NetworkPartner {
   id: string;
   organizationId: string;
   networkKey: string;
+  slug: string;
   displayName: string;
   status: string;
   isDemo: boolean;
+  logoUrl: string | null;
+  primaryAccent: string | null;
+  resolvedAccent: string;
+  shortDescription: string | null;
+  developerPortalEnabled: boolean;
+  docsUrl: string | null;
+  faucetUrl: string | null;
+  explorerUrl: string | null;
+  supportUrl: string | null;
+  discordUrl: string | null;
+  developerDocsUrl: string | null;
 }
 
 export async function fetchPartners(): Promise<NetworkPartner[]> {
@@ -22,11 +34,12 @@ export async function fetchPartnerJson<T>(
   id: string,
   path: string,
   range = "all",
+  acquisition = "all",
 ): Promise<T | null> {
-  const response = await fetch(
-    `${API_URL}/v1/network-partners/${id}${path}?range=${encodeURIComponent(range)}`,
-    { cache: "no-store" },
-  ).catch(() => null);
+  const query = new URLSearchParams({ range, acquisition });
+  const response = await fetch(`${API_URL}/v1/network-partners/${id}${path}?${query.toString()}`, {
+    cache: "no-store",
+  }).catch(() => null);
   if (response === null || response.status === 404) {
     return null;
   }

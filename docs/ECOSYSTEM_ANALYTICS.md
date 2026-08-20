@@ -7,6 +7,11 @@ Deterministic B2B aggregations over persisted ChainPort records. No LLM. No inve
 A project belongs to a `NetworkPartner` when it has a `MigrationJob` whose `targetChainKey`
 equals `partner.networkKey`. Source chain is never used for attribution.
 
+Phase 10 keeps that rule for “all projects targeting this network” and adds a second, stricter
+signal: partner-referred projects have `networkPartnerId` equal to the partner and
+`acquisitionSource = PARTNER_PORTAL`. Query `acquisition=partner` or `acquisition=generic` to
+filter the funnel. Headline Phase 9 KPIs are unchanged unless that filter is applied.
+
 ## Aggregation unit
 
 Headline funnel counts **unique Project** per partner. Repeated compatibility, validation, or

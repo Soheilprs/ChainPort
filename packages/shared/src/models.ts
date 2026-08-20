@@ -41,6 +41,7 @@ import type {
   ProjectStatus,
   DataClassification,
   NetworkPartnerStatus,
+  AcquisitionSource,
   RevisionCompleteness,
   RevisionType,
   RemediationType,
@@ -95,6 +96,10 @@ export interface Project {
   defaultBranch: string;
   status: ProjectStatus;
   dataClassification: DataClassification;
+  networkPartnerId: string | null;
+  acquisitionSource: AcquisitionSource;
+  referralCode: string | null;
+  campaign: string | null;
   activeRevisionId: string | null;
   createdAt: Date;
   updatedAt: Date;
@@ -104,9 +109,20 @@ export interface NetworkPartner {
   id: string;
   organizationId: string;
   networkKey: string;
+  slug: string;
   displayName: string;
   status: NetworkPartnerStatus;
   isDemo: boolean;
+  logoUrl: string | null;
+  primaryAccent: string | null;
+  shortDescription: string | null;
+  developerPortalEnabled: boolean;
+  docsUrl: string | null;
+  faucetUrl: string | null;
+  explorerUrl: string | null;
+  supportUrl: string | null;
+  discordUrl: string | null;
+  developerDocsUrl: string | null;
   createdAt: Date;
   updatedAt: Date;
 }

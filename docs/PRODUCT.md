@@ -55,5 +55,7 @@ Repository code must never execute on the host. Sandbox execution is isolated.
 
 ## Current phase
 
-Phase 9 gives network and foundation teams a dashboard over real unique-project funnels, blockers,
+Phase 10 gives a Foundation a branded developer portal (`/partners/:slug`) with the target chain
+locked, while Phase 9 continues to give network teams a dashboard over real unique-project funnels,
+blockers,
 and infrastructure gaps. Internal test data and Anvil DEVNET deployments are excluded by default.

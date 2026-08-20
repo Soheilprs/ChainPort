@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 
 import { AnalyzeButton } from "@/components/analysis-panel";
 import { jobStatusLabel, jobStatusTone } from "@/components/job-status";
+import { PartnerContextBanner } from "@/components/partner-context-banner";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { fetchJob, type JobSummary, type ProjectSummary, type RepositorySummary } from "@/lib/api";
@@ -43,6 +44,7 @@ export function JobDetail({
         <h1 className="truncate text-2xl font-medium tracking-tight">{initialProject.name}</h1>
         <Badge tone={jobStatusTone(job.status)}>{jobStatusLabel(job.status)}</Badge>
       </div>
+      <PartnerContextBanner partner={initialProject.partner} targetChainKey={job.targetChainKey} />
       <p className="text-sm text-muted">
         Ingest stores an immutable SHA. Analysis inspects that SHA as data only — it does not
         execute the repository or score target-chain compatibility.

@@ -6,12 +6,16 @@ import type {
   Project,
   ProjectStatus,
   DataClassification,
+  AcquisitionSource,
+  NetworkPartner,
+  NetworkPartnerStatus,
   Repository,
   RepositoryProvider,
 } from "@chainport/shared";
 import type {
   JobStatusEvent as PrismaJobStatusEvent,
   MigrationJob as PrismaMigrationJob,
+  NetworkPartner as PrismaNetworkPartner,
   Project as PrismaProject,
   Repository as PrismaRepository,
 } from "@prisma/client";
@@ -55,7 +59,35 @@ export function mapProject(row: PrismaProject): Project {
     defaultBranch: row.defaultBranch,
     status: row.status as ProjectStatus,
     dataClassification: row.dataClassification as DataClassification,
+    networkPartnerId: row.networkPartnerId,
+    acquisitionSource: row.acquisitionSource as AcquisitionSource,
+    referralCode: row.referralCode,
+    campaign: row.campaign,
     activeRevisionId: row.activeRevisionId,
+    createdAt: row.createdAt,
+    updatedAt: row.updatedAt,
+  };
+}
+
+export function mapPartner(row: PrismaNetworkPartner): NetworkPartner {
+  return {
+    id: row.id,
+    organizationId: row.organizationId,
+    networkKey: row.networkKey,
+    slug: row.slug,
+    displayName: row.displayName,
+    status: row.status as NetworkPartnerStatus,
+    isDemo: row.isDemo,
+    logoUrl: row.logoUrl,
+    primaryAccent: row.primaryAccent,
+    shortDescription: row.shortDescription,
+    developerPortalEnabled: row.developerPortalEnabled,
+    docsUrl: row.docsUrl,
+    faucetUrl: row.faucetUrl,
+    explorerUrl: row.explorerUrl,
+    supportUrl: row.supportUrl,
+    discordUrl: row.discordUrl,
+    developerDocsUrl: row.developerDocsUrl,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
   };

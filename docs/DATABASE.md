@@ -70,6 +70,12 @@ Phase 9 adds partner analytics tables and classification:
 - `projects.data_classification` (`PRODUCTION` or `INTERNAL_TEST`)
 - indexes on target chain, readiness, validation outcome, and deployment status
 
+Phase 10 extends partners and projects for the public portal:
+
+- `network_partners.slug` (unique, URL-safe) plus structured branding and link columns
+- `projects.network_partner_id` (nullable, `ON DELETE SET NULL`)
+- `projects.acquisition_source` (`GENERIC_PORTAL`, `PARTNER_PORTAL`, `INTERNAL`, `API`)
+
 Phase 3 adds analysis tables:
 
 - `repository_analyses` unique on `(repository_id, commit_sha, scanner_version)`

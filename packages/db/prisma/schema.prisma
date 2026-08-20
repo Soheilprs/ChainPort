@@ -32,6 +32,13 @@ enum NetworkPartnerStatus {
   DISABLED
 }
 
+enum AcquisitionSource {
+  GENERIC_PORTAL
+  PARTNER_PORTAL
+  INTERNAL
+  API
+}
+
 enum RepositoryProvider {
   GITHUB
 }
@@ -398,15 +405,27 @@ model Organization {
 }
 
 model NetworkPartner {
-  id             String               @id @db.Uuid
-  organizationId String               @map("organization_id") @db.Uuid
-  organization   Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  networkKey     String               @map("network_key")
-  displayName    String               @map("display_name")
-  status         NetworkPartnerStatus @default(ACTIVE)
-  isDemo         Boolean              @default(false) @map("is_demo")
-  createdAt      DateTime             @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt      DateTime             @updatedAt @map("updated_at") @db.Timestamptz(3)
+  id                     String               @id @db.Uuid
+  organizationId         String               @map("organization_id") @db.Uuid
+  organization           Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  networkKey             String               @map("network_key")
+  slug                   String               @unique
+  displayName            String               @map("display_name")
+  status                 NetworkPartnerStatus @default(ACTIVE)
+  isDemo                 Boolean              @default(false) @map("is_demo")
+  logoUrl                String?              @map("logo_url")
+  primaryAccent          String?              @map("primary_accent")
+  shortDescription       String?              @map("short_description")
+  developerPortalEnabled Boolean              @default(true) @map("developer_portal_enabled")
+  docsUrl                String?              @map("docs_url")
+  faucetUrl              String?              @map("faucet_url")
+  explorerUrl            String?              @map("explorer_url")
+  supportUrl             String?              @map("support_url")
+  discordUrl             String?              @map("discord_url")
+  developerDocsUrl       String?              @map("developer_docs_url")
+  createdAt              DateTime             @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt              DateTime             @updatedAt @map("updated_at") @db.Timestamptz(3)
+  projects               Project[]
 
   @@unique([organizationId, networkKey])
   @@index([networkKey])
@@ -455,36 +474,43 @@ model Repository {
 }
 
 model Project {
-  id             String        @id @db.Uuid
-  organizationId String?       @map("organization_id") @db.Uuid
-  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
-  repositoryId   String        @map("repository_id") @db.Uuid
-  repository     Repository    @relation(fields: [repositoryId], references: [id], onDelete: Restrict)
-  name           String
-  githubUrl      String        @map("github_url")
-  githubOwner    String        @map("github_owner")
-  githubRepo     String        @map("github_repo")
-  defaultBranch      String        @default("main") @map("default_branch")
-  status             ProjectStatus @default(ACTIVE)
-  dataClassification DataClassification @default(PRODUCTION) @map("data_classification")
-  activeRevisionId   String?       @map("active_revision_id") @db.Uuid
+  id                 String              @id @db.Uuid
+  organizationId     String?             @map("organization_id") @db.Uuid
+  organization       Organization?       @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  repositoryId       String              @map("repository_id") @db.Uuid
+  repository         Repository          @relation(fields: [repositoryId], references: [id], onDelete: Restrict)
+  name               String
+  githubUrl          String              @map("github_url")
+  githubOwner        String              @map("github_owner")
+  githubRepo         String              @map("github_repo")
+  defaultBranch      String              @default("main") @map("default_branch")
+  status             ProjectStatus       @default(ACTIVE)
+  dataClassification DataClassification  @default(PRODUCTION) @map("data_classification")
+  networkPartnerId   String?             @map("network_partner_id") @db.Uuid
+  networkPartner     NetworkPartner?     @relation(fields: [networkPartnerId], references: [id], onDelete: SetNull)
+  acquisitionSource  AcquisitionSource   @default(GENERIC_PORTAL) @map("acquisition_source")
+  referralCode       String?             @map("referral_code")
+  campaign           String?
+  activeRevisionId   String?             @map("active_revision_id") @db.Uuid
   activeRevision     RepositoryRevision? @relation("ActiveRevision", fields: [activeRevisionId], references: [id], onDelete: SetNull)
-  createdAt          DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt          DateTime      @updatedAt @map("updated_at") @db.Timestamptz(3)
-  jobs                MigrationJob[]
-  analyses            RepositoryAnalysis[]
-  compatibilityRuns   CompatibilityRun[]
-  plannedMigrations   PlannedMigration[]
-  revisions           RepositoryRevision[] @relation("ProjectRevisions")
-  changeSets          ChangeSet[]
-  validationRuns      ValidationRun[]
-  deploymentRuns      DeploymentRun[]
+  createdAt          DateTime            @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt          DateTime            @updatedAt @map("updated_at") @db.Timestamptz(3)
+  jobs               MigrationJob[]
+  analyses           RepositoryAnalysis[]
+  compatibilityRuns  CompatibilityRun[]
+  plannedMigrations  PlannedMigration[]
+  revisions          RepositoryRevision[] @relation("ProjectRevisions")
+  changeSets         ChangeSet[]
+  validationRuns     ValidationRun[]
+  deploymentRuns     DeploymentRun[]
 
   @@unique([githubOwner, githubRepo])
   @@unique([repositoryId])
   @@index([organizationId])
   @@index([activeRevisionId])
   @@index([dataClassification, createdAt])
+  @@index([networkPartnerId])
+  @@index([acquisitionSource])
   @@map("projects")
 }
 

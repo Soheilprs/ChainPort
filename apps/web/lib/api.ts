@@ -11,6 +11,12 @@ export interface ApiError {
   message: string;
 }
 
+export interface PartnerSummary {
+  slug: string;
+  displayName: string;
+  networkKey: string;
+}
+
 export interface ProjectSummary {
   id: string;
   name: string;
@@ -20,6 +26,9 @@ export interface ProjectSummary {
   githubUrl: string;
   status: string;
   createdAt: string;
+  networkPartnerId?: string | null;
+  acquisitionSource?: string;
+  partner?: PartnerSummary | null;
 }
 
 export interface RepositorySummary {
@@ -112,6 +121,35 @@ export async function createProject(input: {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(input),
+  });
+  const body = await readJson(response);
+  if (!response.ok) {
+    const error = body as ApiError;
+    return {
+      ok: false,
+      error: {
+        status: "error",
+        code: typeof error.code === "string" ? error.code : "INTERNAL_ERROR",
+        message: typeof error.message === "string" ? error.message : "Request failed",
+      },
+    };
+  }
+  const payload = body as { data: { project: ProjectSummary; job: JobSummary } };
+  return { ok: true, project: payload.data.project, job: payload.data.job };
+}
+
+export async function createPartnerProject(input: {
+  slug: string;
+  repositoryUrl: string;
+  sourceChainKey: string;
+}): Promise<CreateProjectResult> {
+  const response = await fetch(`${API_URL}/v1/public/partners/${input.slug}/projects`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      repositoryUrl: input.repositoryUrl,
+      sourceChainKey: input.sourceChainKey,
+    }),
   });
   const body = await readJson(response);
   if (!response.ok) {

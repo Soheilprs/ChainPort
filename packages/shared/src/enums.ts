@@ -18,6 +18,12 @@ export type DataClassification = (typeof DATA_CLASSIFICATIONS)[number];
 export const NETWORK_PARTNER_STATUSES = ["ACTIVE", "PAUSED", "PILOT", "DISABLED"] as const;
 export type NetworkPartnerStatus = (typeof NETWORK_PARTNER_STATUSES)[number];
 
+export const ACQUISITION_SOURCES = ["GENERIC_PORTAL", "PARTNER_PORTAL", "INTERNAL", "API"] as const;
+export type AcquisitionSource = (typeof ACQUISITION_SOURCES)[number];
+
+export const ANALYTICS_ACQUISITION_FILTERS = ["all", "partner", "generic"] as const;
+export type AnalyticsAcquisitionFilter = (typeof ANALYTICS_ACQUISITION_FILTERS)[number];
+
 export const FUNNEL_STAGES = [
   "PROJECT_STARTED",
   "REPOSITORY_INGESTED",
@@ -459,6 +465,14 @@ export function isDataClassification(value: unknown): value is DataClassificatio
 
 export function isNetworkPartnerStatus(value: unknown): value is NetworkPartnerStatus {
   return isOneOf(value, NETWORK_PARTNER_STATUSES);
+}
+
+export function isAcquisitionSource(value: unknown): value is AcquisitionSource {
+  return isOneOf(value, ACQUISITION_SOURCES);
+}
+
+export function isAnalyticsAcquisitionFilter(value: unknown): value is AnalyticsAcquisitionFilter {
+  return isOneOf(value, ANALYTICS_ACQUISITION_FILTERS);
 }
 
 export function isFunnelStage(value: unknown): value is FunnelStage {

@@ -6,6 +6,7 @@ import {
 import type { DatabaseClient } from "@chainport/db";
 import {
   FUNNEL_STAGES,
+  type AnalyticsAcquisitionFilter,
   type CompatibilityReadiness,
   type InfrastructureGapKind,
   type NetworkPartner,
@@ -28,6 +29,7 @@ export interface AnalyticsQuery {
   includeInternal?: boolean;
   includeDemo?: boolean;
   includeDevnet?: boolean;
+  acquisition?: AnalyticsAcquisitionFilter;
 }
 
 const PREPARED_OR_LATER: readonly string[] = [
@@ -52,6 +54,7 @@ export class EcosystemAnalytics {
     const deployments = await this.deployments(partner, query);
     const insights = await this.insights(partner, query);
     const started = funnel.counts.PROJECT_STARTED;
+    const attribution = await this.attribution(partner, query);
     return {
       partner,
       kpis: {
@@ -62,6 +65,7 @@ export class EcosystemAnalytics {
         testnetDeployed: funnel.counts.TESTNET_DEPLOYED,
         overallConversion: conversionRate(funnel.counts.TESTNET_DEPLOYED, started),
       },
+      attribution,
       funnel,
       compatibility,
       topBlockers: blockers.slice(0, 8),
@@ -84,6 +88,7 @@ export class EcosystemAnalytics {
     const started = counts.PROJECT_STARTED;
     return {
       unit: "unique Project",
+      acquisition: query.acquisition ?? "all",
       stages: FUNNEL_STAGES.map((stage) => ({
         stage,
         count: counts[stage],
@@ -144,8 +149,36 @@ export class EcosystemAnalytics {
         deploymentStatus: latestDeployment.get(project.id) ?? null,
         lastActivityAt: project.lastActivityAt.toISOString(),
         createdAt: project.createdAt.toISOString(),
+        acquisitionSource: project.acquisitionSource,
+        partnerReferred: project.partnerReferred,
       };
     });
+  }
+
+  public async attribution(partner: NetworkPartner, query: AnalyticsQuery) {
+    const allQuery = { ...query, acquisition: "all" as const };
+    const [all, referred] = await Promise.all([
+      this.attributedProjects(partner, allQuery),
+      this.attributedProjects(partner, { ...query, acquisition: "partner" }),
+    ]);
+    const partnerReferred = referred.length;
+    const allTargetingNetwork = all.length;
+    const genericTargetingNetwork = allTargetingNetwork - partnerReferred;
+    return {
+      version: "phase-10",
+      definitions: {
+        allTargetingNetwork:
+          "Unique projects with a job whose targetChainKey equals the partner network",
+        partnerReferred:
+          "Unique projects created through this partner portal (networkPartnerId + PARTNER_PORTAL)",
+        genericTargetingNetwork:
+          "Unique projects targeting the network that did not arrive through this partner portal",
+      },
+      allTargetingNetwork,
+      partnerReferred,
+      genericTargetingNetwork,
+      referralShare: conversionRate(partnerReferred, allTargetingNetwork),
+    };
   }
 
   public async projectDetail(partner: NetworkPartner, projectId: string, query: AnalyticsQuery) {
@@ -716,11 +749,17 @@ export class EcosystemAnalytics {
 
   private async attributedProjects(partner: NetworkPartner, query: AnalyticsQuery) {
     const createdAt = projectCreatedAtFilter(query.range);
+    const referred = {
+      networkPartnerId: partner.id,
+      acquisitionSource: "PARTNER_PORTAL" as const,
+    };
     const rows = await this.client.project.findMany({
       where: {
         ...(query.includeInternal === true ? {} : { dataClassification: "PRODUCTION" }),
         ...(createdAt === undefined ? {} : { createdAt }),
         jobs: { some: { targetChainKey: partner.networkKey } },
+        ...(query.acquisition === "partner" ? referred : {}),
+        ...(query.acquisition === "generic" ? { NOT: referred } : {}),
       },
       include: {
         jobs: {
@@ -741,6 +780,9 @@ export class EcosystemAnalytics {
       lastActivityAt: row.updatedAt,
       sourceChainKey: row.jobs[0]?.sourceChainKey ?? "",
       cloneStatus: row.repository.cloneStatus,
+      acquisitionSource: row.acquisitionSource,
+      partnerReferred:
+        row.networkPartnerId === partner.id && row.acquisitionSource === "PARTNER_PORTAL",
     }));
   }
 

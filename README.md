@@ -8,10 +8,11 @@ a target chain, and how to migrate it safely.
 It is not an RPC provider, explorer, indexer, generic AI coding assistant, generic GitHub scanner,
 or generic CI/CD tool.
 
-> **CURRENT STATUS: PHASE 9 — NETWORK / FOUNDATION DASHBOARD**
+> **CURRENT STATUS: PHASE 10 — PARTNER PORTAL**
 >
-> Partner networks can inspect a unique-project migration funnel, blockers, and infrastructure
-> gaps from persisted ChainPort data. Internal fixtures and Anvil DEVNET runs are excluded.
+> Networks can send developers a branded ChainPort URL (`/partners/:slug`) with the target chain
+> locked. The Foundation console remains at `/network/:id` and can separate partner-referred
+> traffic from generic targeting.
 
 ## Prerequisites
 
@@ -38,34 +39,36 @@ secret values have application defaults.
 
 ## Service URLs
 
-| Service               | URL                                                 |
-| --------------------- | --------------------------------------------------- |
-| Web                   | <http://localhost:3000>                             |
-| API health            | <http://localhost:3001/health>                      |
-| API readiness         | <http://localhost:3001/ready>                       |
-| Product metadata      | <http://localhost:3001/v1/meta>                     |
-| Chain catalog         | <http://localhost:3001/v1/chains>                   |
-| Create project        | `POST /v1/projects`                                 |
-| Get project           | `GET /v1/projects/:id`                              |
-| Project jobs          | `GET /v1/projects/:id/jobs`                         |
-| Get job               | `GET /v1/jobs/:id`                                  |
-| Create analysis       | `POST /v1/projects/:id/analyses`                    |
-| Get analysis          | `GET /v1/analyses/:id`                              |
-| Create compatibility  | `POST /v1/projects/:id/compatibility-runs`          |
-| Get compatibility     | `GET /v1/compatibility-runs/:id`                    |
-| Create migration plan | `POST /v1/compatibility-runs/:id/migration-plans`   |
-| Get migration plan    | `GET /v1/migration-plans/:id`                       |
-| Create ChangeSet      | `POST /v1/migration-plans/:id/change-sets`          |
-| Get ChangeSet         | `GET /v1/change-sets/:id`                           |
-| Accept / reject       | `POST /v1/change-sets/:id/changes/:changeId/accept` |
-| Finalize / rollback   | `POST /v1/change-sets/:id/finalize`                 |
-| Validate revision     | `POST /v1/revisions/:id/validations`                |
-| Get validation        | `GET /v1/validations/:id`                           |
-| Prepare deployment    | `POST /v1/revisions/:id/deployments`                |
-| Confirm broadcast     | `POST /v1/deployments/:id/confirm`                  |
-| Get deployment        | `GET /v1/deployments/:id`                           |
-| Network partners      | `GET /v1/network-partners`                          |
-| Partner overview      | `GET /v1/network-partners/:id/overview`             |
+| Service                | URL                                                 |
+| ---------------------- | --------------------------------------------------- |
+| Web                    | <http://localhost:3000>                             |
+| API health             | <http://localhost:3001/health>                      |
+| API readiness          | <http://localhost:3001/ready>                       |
+| Product metadata       | <http://localhost:3001/v1/meta>                     |
+| Chain catalog          | <http://localhost:3001/v1/chains>                   |
+| Create project         | `POST /v1/projects`                                 |
+| Get project            | `GET /v1/projects/:id`                              |
+| Project jobs           | `GET /v1/projects/:id/jobs`                         |
+| Get job                | `GET /v1/jobs/:id`                                  |
+| Create analysis        | `POST /v1/projects/:id/analyses`                    |
+| Get analysis           | `GET /v1/analyses/:id`                              |
+| Create compatibility   | `POST /v1/projects/:id/compatibility-runs`          |
+| Get compatibility      | `GET /v1/compatibility-runs/:id`                    |
+| Create migration plan  | `POST /v1/compatibility-runs/:id/migration-plans`   |
+| Get migration plan     | `GET /v1/migration-plans/:id`                       |
+| Create ChangeSet       | `POST /v1/migration-plans/:id/change-sets`          |
+| Get ChangeSet          | `GET /v1/change-sets/:id`                           |
+| Accept / reject        | `POST /v1/change-sets/:id/changes/:changeId/accept` |
+| Finalize / rollback    | `POST /v1/change-sets/:id/finalize`                 |
+| Validate revision      | `POST /v1/revisions/:id/validations`                |
+| Get validation         | `GET /v1/validations/:id`                           |
+| Prepare deployment     | `POST /v1/revisions/:id/deployments`                |
+| Confirm broadcast      | `POST /v1/deployments/:id/confirm`                  |
+| Get deployment         | `GET /v1/deployments/:id`                           |
+| Network partners       | `GET /v1/network-partners`                          |
+| Partner overview       | `GET /v1/network-partners/:id/overview`             |
+| Public partner config  | `GET /v1/public/partners/:slug`                     |
+| Partner project create | `POST /v1/public/partners/:slug/projects`           |
 
 `/health` does not touch PostgreSQL or Redis. `/ready` returns HTTP 503 when either is unavailable.
 

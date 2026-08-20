@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 
+import { AcquisitionSelect } from "@/components/acquisition-select";
 import { MetricBar } from "@/components/metric-bar";
 import { RangeSelect } from "@/components/range-select";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
@@ -10,6 +11,7 @@ export const metadata: Metadata = { title: "Funnel" };
 
 interface FunnelPayload {
   unit: string;
+  acquisition: string;
   stages: Array<{ stage: string; count: number }>;
   conversions: Record<string, number | null>;
 }
@@ -19,17 +21,20 @@ export default async function FunnelPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ range?: string }>;
+  searchParams: Promise<{ range?: string; acquisition?: string }>;
 }) {
   const { id } = await params;
-  const { range = "all" } = await searchParams;
-  const data = await fetchPartnerJson<FunnelPayload>(id, "/funnel", range);
+  const { range = "all", acquisition = "all" } = await searchParams;
+  const data = await fetchPartnerJson<FunnelPayload>(id, "/funnel", range, acquisition);
   if (data === null) return null;
   const max = Math.max(...data.stages.map((item) => item.count), 1);
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-end">
+      <div className="flex flex-wrap justify-end gap-2">
+        <Suspense>
+          <AcquisitionSelect current={acquisition} />
+        </Suspense>
         <Suspense>
           <RangeSelect current={range} />
         </Suspense>
@@ -39,6 +44,11 @@ export default async function FunnelPage({
         <CardDescription>
           Aggregation unit: {data.unit}. Repeated runs do not double-count a project. Conversion
           denominators are the previous stage; zero denominators display N/A.
+          {data.acquisition === "partner"
+            ? " Filter: partner-portal referred projects only."
+            : data.acquisition === "generic"
+              ? " Filter: generic ChainPort traffic targeting this network."
+              : " Filter: all projects targeting this network."}
         </CardDescription>
         <ul className="mt-5 space-y-3">
           {data.stages.map((stage) => (

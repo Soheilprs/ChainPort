@@ -55,7 +55,10 @@ export default async function NetworkPartnerLayout({
           <Badge>{partner.status}</Badge>
           {partner.isDemo ? <Badge tone="warning">DEMO</Badge> : null}
         </div>
-        <p className="mt-2 font-mono text-sm text-muted">{partner.networkKey}</p>
+        <p className="mt-2 font-mono text-sm text-muted">
+          {partner.networkKey}
+          {partner.slug ? ` · /partners/${partner.slug}` : ""}
+        </p>
         <div className="mt-6">
           <NetworkNav partnerId={id} />
         </div>

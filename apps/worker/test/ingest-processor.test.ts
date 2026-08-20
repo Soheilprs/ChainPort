@@ -39,6 +39,12 @@ function makeEntities() {
     githubRepo: "wallet",
     defaultBranch: "main",
     status: "ACTIVE",
+    dataClassification: "PRODUCTION",
+    networkPartnerId: null,
+    acquisitionSource: "GENERIC_PORTAL",
+    referralCode: null,
+    campaign: null,
+    activeRevisionId: null,
     createdAt: now,
     updatedAt: now,
   };

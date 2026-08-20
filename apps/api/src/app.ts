@@ -26,7 +26,9 @@ import { registerPlanRoutes } from "./routes/plans.js";
 import { registerValidationRoutes } from "./routes/validations.js";
 import { registerDeploymentRoutes } from "./routes/deployments.js";
 import { registerNetworkRoutes } from "./routes/network.js";
+import { registerPublicPartnerRoutes } from "./routes/public-partners.js";
 import { registerProjectRoutes } from "./routes/projects.js";
+import type { PublicPartnerService } from "./public-partners-service.js";
 import type { ProjectsService } from "./projects-service.js";
 
 export type ReadinessProbe = () => Promise<void>;
@@ -43,6 +45,7 @@ export interface ApiApplicationOptions {
   validationService?: ValidationService;
   deploymentService?: DeploymentService;
   networkService?: NetworkService;
+  publicPartnerService?: PublicPartnerService;
 }
 
 export async function createApiApplication(options: ApiApplicationOptions) {
@@ -118,6 +121,9 @@ export async function createApiApplication(options: ApiApplicationOptions) {
   }
   if (options.networkService !== undefined) {
     registerNetworkRoutes(app, options.networkService);
+  }
+  if (options.publicPartnerService !== undefined && options.projectsService !== undefined) {
+    registerPublicPartnerRoutes(app, options.publicPartnerService, options.projectsService);
   }
 
   app.setNotFoundHandler(async (_request, reply) => {

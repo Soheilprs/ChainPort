@@ -1,16 +1,23 @@
+import { presentNetworkPartner } from "../presenters.js";
 import type { NetworkService } from "../network-service.js";
 import type { ApiInstance } from "../types.js";
 
 export function registerNetworkRoutes(app: ApiInstance, service: NetworkService): void {
-  app.get("/v1/network-partners", async () => ({ data: await service.list() }));
+  app.get("/v1/network-partners", async () => ({
+    data: (await service.list()).map(presentNetworkPartner),
+  }));
 
   app.post("/v1/network-partners", async (request, reply) => {
     const partner = await service.create(request.body);
-    return reply.status(201).send({ data: partner });
+    return reply.status(201).send({ data: presentNetworkPartner(partner) });
   });
 
   app.get<{ Params: { id: string } }>("/v1/network-partners/:id", async (request) => ({
-    data: await service.get(request.params.id),
+    data: presentNetworkPartner(await service.get(request.params.id)),
+  }));
+
+  app.patch<{ Params: { id: string } }>("/v1/network-partners/:id", async (request) => ({
+    data: presentNetworkPartner(await service.update(request.params.id, request.body)),
   }));
 
   app.get<{ Params: { id: string }; Querystring: Record<string, unknown> }>(

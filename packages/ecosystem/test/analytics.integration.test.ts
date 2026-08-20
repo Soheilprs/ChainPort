@@ -208,6 +208,31 @@ describe("ecosystem analytics", () => {
     expect(shown.counts.PROJECT_STARTED).toBe(2);
   });
 
+  it("separates partner-referred projects from generic targeting traffic", async () => {
+    const partner = await partners.create({
+      networkKey: "optimism",
+      displayName: "Optimism",
+      slug: "optimism",
+    });
+    await seedJourney("generic", {});
+    await seedJourney("referred", {
+      partnerId: partner.id,
+      acquisition: "PARTNER_PORTAL",
+    });
+    const attribution = await analytics.attribution(partner, {
+      range: parseAnalyticsRange({ range: "all" }),
+    });
+    expect(attribution.allTargetingNetwork).toBe(2);
+    expect(attribution.partnerReferred).toBe(1);
+    expect(attribution.genericTargetingNetwork).toBe(1);
+    const referred = await analytics.funnel(partner, {
+      range: parseAnalyticsRange({ range: "all" }),
+      acquisition: "partner",
+    });
+    expect(referred.counts.PROJECT_STARTED).toBe(1);
+    expect(referred.acquisition).toBe("partner");
+  });
+
   it("returns empty funnel metrics without inventing values", async () => {
     const partner = await partners.create({ networkKey: "optimism", displayName: "Optimism" });
     const funnel = await analytics.funnel(partner, {
@@ -230,6 +255,8 @@ async function seedJourney(
     errorCode?: string;
     deployment?: "PREPARED" | "COMPLETED" | "FAILED" | "RECONCILIATION_REQUIRED";
     targetTestnetKey?: string;
+    partnerId?: string;
+    acquisition?: "GENERIC_PORTAL" | "PARTNER_PORTAL" | "INTERNAL" | "API";
   },
 ): Promise<string> {
   const repository = await database.repository.create({
@@ -253,6 +280,8 @@ async function seedJourney(
       githubRepo: `proj-${name}`,
       defaultBranch: "main",
       dataClassification: opts.classification ?? "PRODUCTION",
+      ...(opts.partnerId === undefined ? {} : { networkPartnerId: opts.partnerId }),
+      ...(opts.acquisition === undefined ? {} : { acquisitionSource: opts.acquisition }),
     },
   });
   await database.migrationJob.create({

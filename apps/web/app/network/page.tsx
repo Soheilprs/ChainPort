@@ -28,7 +28,8 @@ export default async function NetworkIndexPage() {
         <PhaseBanner />
         <h1 className="mt-3 text-2xl font-medium tracking-tight">Network console</h1>
         <p className="mt-2 max-w-2xl text-sm leading-6 text-muted">
-          Foundation and ecosystem view. Metrics are unique projects attributed by target chain.
+          Foundation console. Distinct from the public developer portal at /partners/:slug. Metrics
+          are unique projects attributed by target chain, with an optional partner-referred filter.
           Internal test fixtures and Anvil DEVNET deployments are excluded.
         </p>
 
@@ -51,6 +52,7 @@ export default async function NetworkIndexPage() {
                   </div>
                   <CardDescription>
                     {partner.networkKey}
+                    {partner.slug ? ` · /partners/${partner.slug}` : ""}
                     {partner.isDemo ? " · DEMO" : ""}
                   </CardDescription>
                 </Card>

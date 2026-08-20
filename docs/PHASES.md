@@ -46,12 +46,18 @@ without side effects, then broadcast only after explicit confirmation. Disposabl
 proxy allowlist, a transaction journal, receipt/`eth_getCode` verification, and crash reconciliation
 are required. Mainnet is refused with no override.
 
-## Phase 9 — Network / Foundation dashboard (current)
+## Phase 9 — Network / Foundation dashboard
 
 Unique-project funnel, blocker aggregation, and infrastructure-gap classification over real
 persisted records, attributed by `targetChainKey`. Internal fixtures and Anvil DEVNET runs are
 excluded from partner metrics by default.
 
+## Phase 10 — Partner portal / white-label developer experience (current)
+
+A Foundation receives a branded public URL (`/partners/:slug`) that locks the target network,
+reuses `POST /v1/projects` ingest, and records `networkPartnerId` + `PARTNER_PORTAL` separately
+from Phase 9 target-chain attribution. The Foundation console stays at `/network/:id`.
+
 ## Recommended next phases
 
-10. **Partner portal / white-label developer experience**.
+11. **Production hardening, authentication & pilot readiness**.

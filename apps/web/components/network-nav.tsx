@@ -15,6 +15,7 @@ const items = [
   { href: "/validations", label: "Validation" },
   { href: "/deployments", label: "Deployments" },
   { href: "/registry", label: "Registry" },
+  { href: "/settings", label: "Settings" },
 ] as const;
 
 export function NetworkNav({ partnerId }: { partnerId: string }) {

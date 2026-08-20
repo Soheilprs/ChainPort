@@ -1,5 +1,9 @@
 import { getChainByKey } from "@chainport/chain-registry";
-import { UniqueConstraintError, type IngestRepository } from "@chainport/db";
+import {
+  UniqueConstraintError,
+  type IngestRepository,
+  type PartnerRepository,
+} from "@chainport/db";
 import {
   buildIngestIdempotencyKey,
   canRetryJob,
@@ -7,8 +11,10 @@ import {
   INGEST_ERROR_MESSAGES,
   isRetryableIngestError,
   parseGitHubRepositoryUrl,
+  type AcquisitionSource,
   type JobStatus,
   type MigrationJob,
+  type NetworkPartner,
   type Project,
   type Repository,
 } from "@chainport/shared";
@@ -21,6 +27,11 @@ const createProjectBodySchema = z.object({
   repositoryUrl: z.string().trim().min(1),
   sourceChainKey: z.string().trim().min(1),
   targetChainKey: z.string().trim().min(1),
+});
+
+const partnerProjectBodySchema = z.object({
+  repositoryUrl: z.string().trim().min(1),
+  sourceChainKey: z.string().trim().min(1),
 });
 
 export interface CreateProjectRequest {
@@ -39,6 +50,7 @@ export class ProjectsService {
   public constructor(
     private readonly ingest: IngestRepository,
     private readonly queue: IngestJobQueue,
+    private readonly partners?: PartnerRepository,
   ) {}
 
   public parseCreateRequest(body: unknown): CreateProjectRequest {
@@ -51,6 +63,56 @@ export class ProjectsService {
 
   public async create(body: unknown): Promise<{ data: ProjectResponse; created: boolean }> {
     const request = this.parseCreateRequest(body);
+    return this.ingestAndEnqueue({
+      ...request,
+      acquisitionSource: "GENERIC_PORTAL",
+      networkPartnerId: null,
+    });
+  }
+
+  public async createFromPartner(
+    partner: NetworkPartner,
+    body: unknown,
+  ): Promise<{ data: ProjectResponse; created: boolean }> {
+    const record = asRecord(body);
+    if (
+      typeof record.targetChainKey === "string" &&
+      record.targetChainKey.trim() !== "" &&
+      record.targetChainKey.trim() !== partner.networkKey
+    ) {
+      throw new ApiRequestError(
+        400,
+        "PARTNER_TARGET_MISMATCH",
+        "Partner portal target network cannot be changed",
+      );
+    }
+    const parsed = partnerProjectBodySchema.safeParse(body);
+    if (!parsed.success) {
+      throw new ApiRequestError(400, "INVALID_REQUEST", INGEST_ERROR_MESSAGES.INVALID_REQUEST);
+    }
+    return this.ingestAndEnqueue({
+      repositoryUrl: parsed.data.repositoryUrl,
+      sourceChainKey: parsed.data.sourceChainKey,
+      targetChainKey: partner.networkKey,
+      acquisitionSource: "PARTNER_PORTAL",
+      networkPartnerId: partner.id,
+    });
+  }
+
+  public async resolvePartner(project: Project): Promise<NetworkPartner | null> {
+    if (project.networkPartnerId === null || this.partners === undefined) {
+      return null;
+    }
+    return (await this.partners.getById(project.networkPartnerId)) ?? null;
+  }
+
+  private async ingestAndEnqueue(request: {
+    repositoryUrl: string;
+    sourceChainKey: string;
+    targetChainKey: string;
+    acquisitionSource: AcquisitionSource;
+    networkPartnerId: string | null;
+  }): Promise<{ data: ProjectResponse; created: boolean }> {
     let ref;
     try {
       ref = parseGitHubRepositoryUrl(request.repositoryUrl);
@@ -76,6 +138,8 @@ export class ProjectsService {
       githubOwner: ref.owner,
       githubRepo: ref.repo,
       defaultBranch: "main",
+      networkPartnerId: request.networkPartnerId,
+      acquisitionSource: request.acquisitionSource,
     });
 
     const idempotencyKey = buildIngestIdempotencyKey({
@@ -194,4 +258,14 @@ export class ProjectsService {
       await this.queue.enqueueIngest(job.id);
     }
   }
+}
+
+function asRecord(body: unknown): Record<string, unknown> {
+  if (body === undefined || body === null) {
+    return {};
+  }
+  if (typeof body !== "object" || Array.isArray(body)) {
+    throw new ApiRequestError(400, "INVALID_REQUEST", INGEST_ERROR_MESSAGES.INVALID_REQUEST);
+  }
+  return body as Record<string, unknown>;
 }

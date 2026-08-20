@@ -22,6 +22,7 @@ import { ChangeSetService } from "./changeset-service.js";
 import { ValidationService } from "./validation-service.js";
 import { DeploymentService } from "./deployment-service.js";
 import { NetworkService } from "./network-service.js";
+import { PublicPartnerService } from "./public-partners-service.js";
 import { PlanService } from "./plan-service.js";
 import { createApiApplication } from "./app.js";
 import { createLogger } from "./logger.js";
@@ -38,7 +39,8 @@ async function main(): Promise<void> {
 
   const queue = createIngestJobQueue(redis);
   const ingest = new IngestRepository(database);
-  const projectsService = new ProjectsService(ingest, queue);
+  const partners = new PartnerRepository(database);
+  const projectsService = new ProjectsService(ingest, queue, partners);
   const analyses = new AnalysisRepository(database);
   const analysisService = new AnalysisService(ingest, analyses, queue);
   const compatibility = new CompatibilityRepository(database);
@@ -80,10 +82,8 @@ async function main(): Promise<void> {
       maxGas: config.MAX_DEPLOYMENT_GAS,
     },
   );
-  const networkService = new NetworkService(
-    new PartnerRepository(database),
-    new EcosystemAnalytics(database),
-  );
+  const networkService = new NetworkService(partners, new EcosystemAnalytics(database));
+  const publicPartnerService = new PublicPartnerService(partners, projectsService);
 
   const app = await createApiApplication({
     logger,
@@ -96,6 +96,7 @@ async function main(): Promise<void> {
     validationService,
     deploymentService,
     networkService,
+    publicPartnerService,
     readinessProbe: async () => {
       await checkDatabase(database);
       await checkRedis(redis);

@@ -101,6 +101,19 @@ See [CHANGESET_ENGINE.md](CHANGESET_ENGINE.md) and [REVISION_STORAGE.md](REVISIO
 
 See [VALIDATION_ENGINE.md](VALIDATION_ENGINE.md) and [SANDBOX_SECURITY.md](SANDBOX_SECURITY.md).
 
+## Partner portal path
+
+1. Foundation creates a `NetworkPartner` against a production registry chain and a unique public slug.
+2. `GET /v1/public/partners/:slug` returns branding + registry network facts (no org internals).
+3. `POST /v1/public/partners/:slug/projects` accepts a GitHub URL and source chain only. Target is
+   `partner.networkKey`. Attribution is `PARTNER_PORTAL` + `networkPartnerId`.
+4. The existing ingest → analysis → compatibility → plan → changeset → validation → deployment
+   pipeline runs unchanged.
+5. The developer is handed off to `/app/projects/:id`. The Foundation console at `/network/:id`
+   sees the journey without source code.
+
+See [PARTNER_PORTAL.md](PARTNER_PORTAL.md).
+
 ## Data
 
 See [DATABASE.md](DATABASE.md).

@@ -1,6 +1,16 @@
-import type { JobStatusEvent, MigrationJob, Project, Repository } from "@chainport/shared";
+import type {
+  JobStatusEvent,
+  MigrationJob,
+  NetworkPartner,
+  Project,
+  Repository,
+} from "@chainport/shared";
+import { presentPartnerLinks, resolvePartnerAccent } from "@chainport/shared";
 
-export function presentProject(project: Project) {
+export function presentProject(
+  project: Project,
+  partner?: Pick<NetworkPartner, "slug" | "displayName" | "networkKey"> | null,
+) {
   return {
     id: project.id,
     name: project.name,
@@ -10,8 +20,80 @@ export function presentProject(project: Project) {
     githubUrl: project.githubUrl,
     status: project.status,
     activeRevisionId: project.activeRevisionId,
+    networkPartnerId: project.networkPartnerId,
+    acquisitionSource: project.acquisitionSource,
+    partner:
+      partner === undefined || partner === null
+        ? null
+        : {
+            slug: partner.slug,
+            displayName: partner.displayName,
+            networkKey: partner.networkKey,
+          },
     createdAt: project.createdAt.toISOString(),
     updatedAt: project.updatedAt.toISOString(),
+  };
+}
+
+export function presentNetworkPartner(partner: NetworkPartner) {
+  return {
+    id: partner.id,
+    organizationId: partner.organizationId,
+    networkKey: partner.networkKey,
+    slug: partner.slug,
+    displayName: partner.displayName,
+    status: partner.status,
+    isDemo: partner.isDemo,
+    logoUrl: partner.logoUrl,
+    primaryAccent: partner.primaryAccent,
+    resolvedAccent: resolvePartnerAccent(partner.primaryAccent),
+    shortDescription: partner.shortDescription,
+    developerPortalEnabled: partner.developerPortalEnabled,
+    docsUrl: partner.docsUrl,
+    faucetUrl: partner.faucetUrl,
+    explorerUrl: partner.explorerUrl,
+    supportUrl: partner.supportUrl,
+    discordUrl: partner.discordUrl,
+    developerDocsUrl: partner.developerDocsUrl,
+    createdAt: partner.createdAt.toISOString(),
+    updatedAt: partner.updatedAt.toISOString(),
+  };
+}
+
+export function presentPublicPartner(
+  partner: NetworkPartner,
+  network: {
+    name: string;
+    chainId: number;
+    nativeCurrency: { name: string; symbol: string; decimals: number };
+    testnet: { key: string; name: string; chainId: number } | null;
+    explorerUrl: string | null;
+    faucetUrl: string | null;
+  },
+) {
+  const links = presentPartnerLinks(partner);
+  const explorer = links.explorer ?? network.explorerUrl;
+  const faucet = links.faucet ?? network.faucetUrl;
+  return {
+    slug: partner.slug,
+    displayName: partner.displayName,
+    networkKey: partner.networkKey,
+    network,
+    logoUrl: partner.logoUrl,
+    primaryAccent: resolvePartnerAccent(partner.primaryAccent),
+    shortDescription: partner.shortDescription,
+    status: partner.status,
+    portal: {
+      enabled: true,
+      creationEnabled: partner.status === "ACTIVE" || partner.status === "PILOT",
+      pilot: partner.status === "PILOT",
+      paused: partner.status === "PAUSED",
+    },
+    links: {
+      ...links,
+      ...(explorer === undefined || explorer === null ? {} : { explorer }),
+      ...(faucet === undefined || faucet === null ? {} : { faucet }),
+    },
   };
 }
 

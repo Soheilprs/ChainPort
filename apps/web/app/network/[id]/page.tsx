@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 
+import { AcquisitionSelect } from "@/components/acquisition-select";
 import { EmptyState } from "@/components/empty-state";
 import { MetricBar } from "@/components/metric-bar";
 import { RangeSelect } from "@/components/range-select";
@@ -18,7 +19,14 @@ interface OverviewPayload {
     testnetDeployed: number;
     overallConversion: number | null;
   };
-  funnel: { stages: Array<{ stage: string; count: number }> };
+  attribution: {
+    version: string;
+    allTargetingNetwork: number;
+    partnerReferred: number;
+    genericTargetingNetwork: number;
+    referralShare: number | null;
+  };
+  funnel: { stages: Array<{ stage: string; count: number }>; acquisition: string };
   topBlockers: Array<{ key: string; title: string; affectedProjects: number }>;
   topGaps: Array<{
     key: string;
@@ -35,11 +43,11 @@ export default async function NetworkOverviewPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ range?: string }>;
+  searchParams: Promise<{ range?: string; acquisition?: string }>;
 }) {
   const { id } = await params;
-  const { range = "all" } = await searchParams;
-  const data = await fetchPartnerJson<OverviewPayload>(id, "/overview", range);
+  const { range = "all", acquisition = "all" } = await searchParams;
+  const data = await fetchPartnerJson<OverviewPayload>(id, "/overview", range, acquisition);
 
   if (data === null) {
     return <p className="text-sm text-muted">Partner not found.</p>;
@@ -53,17 +61,38 @@ export default async function NetworkOverviewPage({
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-muted">
-          Unique projects. Time filter uses project createdAt (UTC).
+          Unique projects. Time filter uses project createdAt (UTC). Funnel filter does not replace
+          Phase 9 KPI definitions.
         </p>
-        <Suspense>
-          <RangeSelect current={range} />
-        </Suspense>
+        <div className="flex flex-wrap gap-2">
+          <Suspense>
+            <AcquisitionSelect current={acquisition} />
+          </Suspense>
+          <Suspense>
+            <RangeSelect current={range} />
+          </Suspense>
+        </div>
       </div>
+
+      <section className="grid gap-3 sm:grid-cols-3">
+        <Kpi
+          label="All targeting network"
+          value={formatCount(data.attribution.allTargetingNetwork)}
+        />
+        <Kpi label="Partner-referred" value={formatCount(data.attribution.partnerReferred)} />
+        <Kpi
+          label="Generic targeting network"
+          value={formatCount(data.attribution.genericTargetingNetwork)}
+          hint={`${formatRate(data.attribution.referralShare)} referred / all targeting`}
+        />
+      </section>
 
       {empty ? (
         <EmptyState title="No developer migration activity yet">
           Activity will appear here once developers analyze projects targeting{" "}
-          {data.partner.displayName}. This view does not insert sample metrics.
+          {data.partner.displayName}
+          {acquisition === "partner" ? " through this partner portal" : ""}. This view does not
+          insert sample metrics.
         </EmptyState>
       ) : (
         <>
@@ -74,7 +103,7 @@ export default async function NetworkOverviewPage({
             <Kpi
               label="Testnet deployed"
               value={formatCount(data.kpis.testnetDeployed)}
-              hint={formatRate(data.kpis.overallConversion)}
+              hint={`${formatRate(data.kpis.overallConversion)} started → deployed`}
             />
           </section>
 
@@ -82,6 +111,11 @@ export default async function NetworkOverviewPage({
             <CardTitle>Migration funnel</CardTitle>
             <CardDescription>
               Each project is counted once at every stage it has reached.
+              {data.funnel.acquisition === "partner"
+                ? " Showing partner-portal referred projects only — not comparable to generic traffic unless labeled."
+                : data.funnel.acquisition === "generic"
+                  ? " Showing generic ChainPort traffic targeting this network."
+                  : " Showing all projects targeting this network."}
             </CardDescription>
             <ul className="mt-4 space-y-3">
               {data.funnel.stages.map((stage) => (
@@ -154,9 +188,7 @@ function Kpi({ label, value, hint }: { label: string; value: string; hint?: stri
     <Card className="py-4">
       <p className="text-xs uppercase tracking-wide text-muted">{label}</p>
       <p className="mt-2 text-2xl font-medium">{value}</p>
-      {hint !== undefined ? (
-        <p className="mt-1 text-xs text-muted">{hint} started → deployed</p>
-      ) : null}
+      {hint !== undefined ? <p className="mt-1 text-xs text-muted">{hint}</p> : null}
     </Card>
   );
 }

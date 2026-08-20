@@ -2,6 +2,7 @@ import {
   assertJobTransition,
   createId,
   type CloneStatus,
+  type AcquisitionSource,
   type DataClassification,
   type IngestErrorCode,
   type JobStatus,
@@ -28,6 +29,10 @@ export interface CreateProjectInput {
   githubRepo: string;
   defaultBranch: string;
   dataClassification?: DataClassification;
+  networkPartnerId?: string | null;
+  acquisitionSource?: AcquisitionSource;
+  referralCode?: string | null;
+  campaign?: string | null;
 }
 
 export interface CreateJobInput {
@@ -85,7 +90,20 @@ export class IngestRepository {
         },
       });
       if (existing !== null) {
-        return mapProject(existing);
+        const partnerId = input.networkPartnerId;
+        if (partnerId === undefined || partnerId === null || existing.networkPartnerId !== null) {
+          return mapProject(existing);
+        }
+        const updated = await this.client.project.update({
+          where: { id: existing.id },
+          data: {
+            networkPartnerId: partnerId,
+            acquisitionSource: input.acquisitionSource ?? "PARTNER_PORTAL",
+            ...(input.referralCode === undefined ? {} : { referralCode: input.referralCode }),
+            ...(input.campaign === undefined ? {} : { campaign: input.campaign }),
+          },
+        });
+        return mapProject(updated);
       }
       const row = await this.client.project.create({
         data: {
@@ -97,6 +115,10 @@ export class IngestRepository {
           githubRepo: input.githubRepo,
           defaultBranch: input.defaultBranch,
           dataClassification: input.dataClassification ?? "PRODUCTION",
+          networkPartnerId: input.networkPartnerId ?? null,
+          acquisitionSource: input.acquisitionSource ?? "GENERIC_PORTAL",
+          referralCode: input.referralCode ?? null,
+          campaign: input.campaign ?? null,
         },
       });
       return mapProject(row);

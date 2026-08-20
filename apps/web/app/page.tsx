@@ -53,7 +53,7 @@ export default function HomePage() {
               href="/network"
               className="inline-flex h-9 items-center rounded-md border border-line-strong px-3.5 text-sm text-foreground hover:bg-surface"
             >
-              Network console
+              Foundation console
             </Link>
           </div>
         </section>
@@ -83,8 +83,8 @@ export default function HomePage() {
             <Badge>Networks</Badge>
             <CardTitle className="mt-4">See what blocks adoption</CardTitle>
             <CardDescription>
-              Foundations, ecosystem teams, and RaaS providers are the paying customer. The console
-              is present, but there are no analyses yet.
+              Foundations receive a branded developer portal and a separate analytics console.
+              Developers arriving through /partners/:slug keep the target network locked.
             </CardDescription>
             <ul className="mt-5 space-y-2 text-sm text-muted">
               {networkNeeds.map((item) => (

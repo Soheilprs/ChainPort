@@ -6,7 +6,8 @@ B2B surface for foundations and ecosystem teams. Distinct from the developer mig
 ## Users
 
 - Developers: `/app/projects` … compatibility, changeset, validation, deployment
-- Networks: `/network/:partnerId` funnel, blockers, gaps, registry
+- Partner portal: `/partners/:slug` network-sponsored onboarding (target locked)
+- Networks: `/network/:partnerId` funnel, blockers, gaps, registry, settings
 
 ## Partner model
 
@@ -26,6 +27,18 @@ must never mix fake rows into a real network's aggregates.
 | Compatibility-ready | Unique projects whose latest completed compatibility run is `READY`            |
 | Validated           | Unique projects with at least one `PASSED` validation                          |
 | Testnet deployed    | Unique projects with `DeploymentRun.status = COMPLETED` on the partner TESTNET |
+
+Phase 10 adds attribution metrics. They do not replace the table above.
+
+| Metric                    | Definition                                                                                      |
+| ------------------------- | ----------------------------------------------------------------------------------------------- |
+| All targeting network     | Unique projects with a job whose `targetChainKey` equals the partner (Phase 9)                  |
+| Partner-referred          | Unique projects with `networkPartnerId` = this partner and `acquisitionSource = PARTNER_PORTAL` |
+| Generic targeting network | All targeting minus partner-referred                                                            |
+| Referral share            | Partner-referred / all targeting (`N/A` when the denominator is 0)                              |
+
+Funnel query `acquisition=partner` restricts stages to partner-referred projects. Do not compare that
+filter to unlabeled generic traffic.
 
 ## Empty state
 
