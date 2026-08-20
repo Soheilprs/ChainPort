@@ -5,6 +5,11 @@ export {
   removeTempDir,
   type RevisionArtifactStore,
 } from "./artifacts.js";
+export {
+  MemoryObjectStore,
+  S3CompatibleArtifactStore,
+  type ObjectStoreTransport,
+} from "./s3-store.js";
 export { applyPatchToWorkingText } from "./apply.js";
 export { unifiedDiff } from "./diff.js";
 export { generatePatch, SAFE_PATCHERS } from "./engine.js";

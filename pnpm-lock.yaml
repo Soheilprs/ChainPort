@@ -38,6 +38,9 @@ importers:
 
   apps/api:
     dependencies:
+      '@chainport/auth':
+        specifier: workspace:*
+        version: link:../../packages/auth
       '@chainport/chain-registry':
         specifier: workspace:*
         version: link:../../packages/chain-registry
@@ -68,6 +71,9 @@ importers:
       '@chainport/validation':
         specifier: workspace:*
         version: link:../../packages/validation
+      '@fastify/cookie':
+        specifier: 11.0.2
+        version: 11.0.2
       '@fastify/cors':
         specifier: 11.1.0
         version: 11.1.0
@@ -175,6 +181,19 @@ importers:
       pino:
         specifier: 10.1.0
         version: 10.1.0
+    devDependencies:
+      '@types/node':
+        specifier: 24.10.1
+        version: 24.10.1
+
+  packages/auth:
+    dependencies:
+      '@chainport/shared':
+        specifier: workspace:*
+        version: link:../shared
+      jose:
+        specifier: 6.1.0
+        version: 6.1.0
     devDependencies:
       '@types/node':
         specifier: 24.10.1
@@ -730,6 +749,9 @@ packages:
 
   '@fastify/ajv-compiler@4.0.6':
     resolution: {integrity: sha512-NtuzM0SfaMJbGlnjr9LWQUN5LzgSrbB8tf/wRZNas+4E1O/Nmzl53e7ruT61HDZyRCJGC6FxIogmNZO1c5ETBA==}
+
+  '@fastify/cookie@11.0.2':
+    resolution: {integrity: sha512-GWdwdGlgJxyvNv+QcKiGNevSspMQXncjMZ1J8IvuDQk0jvkzgWWZFNC2En3s+nHndZBGV8IbLwOI/sxCZw/mzA==}
 
   '@fastify/cors@11.1.0':
     resolution: {integrity: sha512-sUw8ed8wP2SouWZTIbA7V2OQtMNpLj2W6qJOYhNdcmINTu6gsxVYXjQiM9mdi8UUDlcoDDJ/W2syPo1WB2QjYA==}
@@ -1895,6 +1917,9 @@ packages:
     resolution: {integrity: sha512-AC/7JofJvZGrrneWNaEnJeOLUx+JlGt7tNa0wZiRPT4MY1wmfKjt2+6O2p2uz2+skll8OZZmJMNqeke7kKbNgQ==}
     hasBin: true
 
+  jose@6.1.0:
+    resolution: {integrity: sha512-TTQJyoEoKcC1lscpVDCSsVgYzUDg/0Bt3WE//WiTPK6uOCQC2KZS4MpugbMWt/zyjkopgZoXhZuCi00gLudfUA==}
+
   js-yaml@4.3.1:
     resolution: {integrity: sha512-CY6crGq313MX8GkwvB7tzgp99vjQxY1++5y10/BKN/GUfHqWaOGQMNZkBvqSzsZKWk/ijwHlWzzkLulsGHhjWQ==}
     hasBin: true
@@ -2796,6 +2821,11 @@ snapshots:
       ajv: 8.20.0
       ajv-formats: 3.0.1(ajv@8.20.0)
       fast-uri: 4.1.2
+
+  '@fastify/cookie@11.0.2':
+    dependencies:
+      cookie: 1.1.1
+      fastify-plugin: 5.1.0
 
   '@fastify/cors@11.1.0':
     dependencies:
@@ -3879,6 +3909,8 @@ snapshots:
       ws: 8.18.3
 
   jiti@2.7.0: {}
+
+  jose@6.1.0: {}
 
   js-yaml@4.3.1:
     dependencies:

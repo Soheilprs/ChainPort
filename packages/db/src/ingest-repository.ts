@@ -4,6 +4,7 @@ import {
   type CloneStatus,
   type AcquisitionSource,
   type DataClassification,
+  type RepositoryVisibility,
   type IngestErrorCode,
   type JobStatus,
   type MigrationJob,
@@ -19,6 +20,8 @@ export interface UpsertRepositoryInput {
   owner: string;
   name: string;
   normalizedUrl: string;
+  visibility?: RepositoryVisibility;
+  githubInstallationDbId?: string | null;
 }
 
 export interface CreateProjectInput {
@@ -33,6 +36,8 @@ export interface CreateProjectInput {
   acquisitionSource?: AcquisitionSource;
   referralCode?: string | null;
   campaign?: string | null;
+  ownerUserId?: string | null;
+  ownerOrganizationId?: string | null;
 }
 
 export interface CreateJobInput {
@@ -68,9 +73,15 @@ export class IngestRepository {
           owner: input.owner,
           name: input.name,
           normalizedUrl: input.normalizedUrl,
+          visibility: input.visibility ?? "PUBLIC",
+          githubInstallationDbId: input.githubInstallationDbId ?? null,
         },
         update: {
           normalizedUrl: input.normalizedUrl,
+          ...(input.visibility === undefined ? {} : { visibility: input.visibility }),
+          ...(input.githubInstallationDbId === undefined
+            ? {}
+            : { githubInstallationDbId: input.githubInstallationDbId }),
         },
       });
       return mapRepository(row);
@@ -90,6 +101,14 @@ export class IngestRepository {
         },
       });
       if (existing !== null) {
+        if (
+          input.ownerUserId !== undefined &&
+          input.ownerUserId !== null &&
+          existing.ownerUserId !== null &&
+          existing.ownerUserId !== input.ownerUserId
+        ) {
+          return mapProject(existing);
+        }
         const partnerId = input.networkPartnerId;
         if (partnerId === undefined || partnerId === null || existing.networkPartnerId !== null) {
           return mapProject(existing);
@@ -115,6 +134,8 @@ export class IngestRepository {
           githubRepo: input.githubRepo,
           defaultBranch: input.defaultBranch,
           dataClassification: input.dataClassification ?? "PRODUCTION",
+          ownerUserId: input.ownerUserId ?? null,
+          ownerOrganizationId: input.ownerOrganizationId ?? null,
           networkPartnerId: input.networkPartnerId ?? null,
           acquisitionSource: input.acquisitionSource ?? "GENERIC_PORTAL",
           referralCode: input.referralCode ?? null,
@@ -184,6 +205,23 @@ export class IngestRepository {
       take: limit,
     });
     return rows.map(mapProject);
+  }
+
+  public async listProjectsForOwner(ownerUserId: string, limit = 50): Promise<Project[]> {
+    const rows = await this.client.project.findMany({
+      where: { ownerUserId, status: "ACTIVE" },
+      orderBy: { createdAt: "desc" },
+      take: limit,
+    });
+    return rows.map(mapProject);
+  }
+
+  public async archiveProject(id: string): Promise<Project> {
+    const row = await this.client.project.update({
+      where: { id },
+      data: { status: "ARCHIVED" },
+    });
+    return mapProject(row);
   }
 
   public async listJobsForProject(projectId: string): Promise<MigrationJob[]> {

@@ -1,6 +1,7 @@
 export { IngestError } from "./errors.js";
 export {
   cloneIntoWorkspace,
+  type CloneCredential,
   type CloneLimits,
   type CloneResult,
   type CloneSource,

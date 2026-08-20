@@ -1,6 +1,11 @@
 import { z } from "zod";
 
-import { DATABASE_PURPOSES, type DatabasePurpose } from "./enums.js";
+import {
+  AUTH_PROVIDERS,
+  DATABASE_PURPOSES,
+  type AuthProviderName,
+  type DatabasePurpose,
+} from "./enums.js";
 import { ConfigurationError } from "./errors.js";
 
 function isPostgresUrl(value: string): boolean {
@@ -30,14 +35,40 @@ function isHttpUrl(value: string): boolean {
   }
 }
 
+function isHttpsUrl(value: string): boolean {
+  try {
+    return new URL(value).protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
 const nodeEnvironmentSchema = z.enum(["development", "test", "production"]);
 const logLevelSchema = z.enum(["fatal", "error", "warn", "info", "debug", "trace", "silent"]);
 const databasePurposeSchema = z.enum(DATABASE_PURPOSES);
+const authProviderSchema = z.enum(AUTH_PROVIDERS);
+const artifactStoreSchema = z.enum(["filesystem", "s3"]);
 
 const optionalNonEmptyString = z.preprocess(
   (value) => (typeof value === "string" && value.trim() === "" ? undefined : value),
   z.string().trim().min(1).optional(),
 );
+
+const booleanFromEnv = z.preprocess((value) => {
+  if (value === undefined || value === "") {
+    return undefined;
+  }
+  if (value === true || value === false) {
+    return value;
+  }
+  if (value === "true" || value === "1") {
+    return true;
+  }
+  if (value === "false" || value === "0") {
+    return false;
+  }
+  return value;
+}, z.boolean().optional());
 
 const serviceEnvironmentSchema = z.object({
   NODE_ENV: nodeEnvironmentSchema.default("development"),
@@ -66,6 +97,36 @@ const serviceEnvironmentSchema = z.object({
   WORKER_ID: optionalNonEmptyString,
   WORKSPACE_ROOT: optionalNonEmptyString,
   ARTIFACT_ROOT: optionalNonEmptyString,
+  ARTIFACT_STORE: artifactStoreSchema.default("filesystem"),
+  S3_BUCKET: optionalNonEmptyString,
+  S3_ENDPOINT: optionalNonEmptyString,
+  S3_REGION: optionalNonEmptyString,
+  S3_ACCESS_KEY_ID: optionalNonEmptyString,
+  S3_SECRET_ACCESS_KEY: optionalNonEmptyString,
+  AUTH_PROVIDER: authProviderSchema.default("test"),
+  SESSION_SECRET: optionalNonEmptyString,
+  SESSION_TTL_SECONDS: z.coerce.number().int().min(300).max(2_592_000).default(43_200),
+  OIDC_ISSUER: optionalNonEmptyString,
+  OIDC_CLIENT_ID: optionalNonEmptyString,
+  OIDC_CLIENT_SECRET: optionalNonEmptyString,
+  OIDC_REDIRECT_URI: optionalNonEmptyString,
+  GITHUB_APP_ID: optionalNonEmptyString,
+  GITHUB_APP_PRIVATE_KEY: optionalNonEmptyString,
+  GITHUB_APP_CLIENT_ID: optionalNonEmptyString,
+  GITHUB_APP_CLIENT_SECRET: optionalNonEmptyString,
+  ENABLE_VALIDATION: booleanFromEnv.default(true),
+  ENABLE_TESTNET_DEPLOYMENT: booleanFromEnv.default(true),
+  ENABLE_PRIVATE_REPOS: booleanFromEnv.default(true),
+  ARTIFACT_RETENTION_DAYS: z.coerce.number().int().min(1).max(3650).default(90),
+  VALIDATION_LOG_RETENTION_DAYS: z.coerce.number().int().min(1).max(3650).default(30),
+  FAILED_WORKSPACE_RETENTION_HOURS: z.coerce.number().int().min(1).max(168).default(1),
+  RATE_LIMIT_PUBLIC_PER_MINUTE: z.coerce.number().int().min(1).max(10_000).default(60),
+  RATE_LIMIT_AUTH_PER_MINUTE: z.coerce.number().int().min(1).max(1_000).default(20),
+  RATE_LIMIT_MUTATION_PER_MINUTE: z.coerce.number().int().min(1).max(1_000).default(30),
+  MAX_CONCURRENT_INGEST_PER_USER: z.coerce.number().int().min(1).max(50).default(2),
+  MAX_CONCURRENT_ANALYSIS_PER_USER: z.coerce.number().int().min(1).max(50).default(2),
+  MAX_CONCURRENT_VALIDATION_PER_USER: z.coerce.number().int().min(1).max(20).default(1),
+  MAX_CONCURRENT_DEPLOYMENT_PER_USER: z.coerce.number().int().min(1).max(20).default(1),
   CLONE_TIMEOUT_MS: z.coerce.number().int().min(1_000).max(600_000).default(60_000),
   CLONE_MAX_BYTES: z.coerce.number().int().min(1_024).max(5_368_709_120).default(104_857_600),
   ANALYSIS_TIMEOUT_MS: z.coerce.number().int().min(1_000).max(600_000).default(120_000),
@@ -152,13 +213,121 @@ function unwrapConfig<TInput, TOutput>(result: z.SafeParseReturnType<TInput, TOu
 }
 
 export function loadServiceConfig(environment: NodeJS.ProcessEnv = process.env): ServiceConfig {
-  return unwrapConfig(serviceEnvironmentSchema.safeParse(environment));
+  const parsed = unwrapConfig(serviceEnvironmentSchema.safeParse(environment));
+  if (parsed.NODE_ENV === "production") {
+    assertProductionSafety(parsed);
+  }
+  return parsed;
 }
 
 export function loadWebConfig(environment: NodeJS.ProcessEnv = process.env): WebConfig {
-  return unwrapConfig(webEnvironmentSchema.safeParse(environment));
+  const parsed = unwrapConfig(webEnvironmentSchema.safeParse(environment));
+  if (parsed.NODE_ENV === "production") {
+    const api = parsed.NEXT_PUBLIC_API_URL;
+    if (!isHttpsUrl(api) && !api.startsWith("/")) {
+      throw new ConfigurationError(
+        "Invalid ChainPort configuration: production NEXT_PUBLIC_API_URL must be HTTPS",
+      );
+    }
+  }
+  return parsed;
 }
 
 export function resolveDatabasePurpose(config: ServiceConfig): DatabasePurpose | undefined {
   return config.CHAINPORT_DB_PURPOSE;
 }
+
+export function requireSessionSecret(config: ServiceConfig): string {
+  if (config.SESSION_SECRET !== undefined && config.SESSION_SECRET.length >= 32) {
+    return config.SESSION_SECRET;
+  }
+  if (config.NODE_ENV === "production") {
+    throw new ConfigurationError("SESSION_SECRET must be at least 32 characters in production");
+  }
+  return "chainport-dev-session-secret-not-for-production";
+}
+
+const DEFAULT_CREDENTIAL_MARKERS = [
+  "chainport:chainport",
+  "password=chainport",
+  "postgres:postgres",
+];
+
+export function assertProductionSafety(config: ServiceConfig): void {
+  const problems: string[] = [];
+  if (config.AUTH_PROVIDER === "test") {
+    problems.push("AUTH_PROVIDER=test is forbidden in production");
+  }
+  if (config.AUTH_PROVIDER === "oidc") {
+    if (config.OIDC_ISSUER === undefined || !isHttpsUrl(config.OIDC_ISSUER)) {
+      problems.push("OIDC_ISSUER must be an HTTPS URL in production");
+    }
+    if (config.OIDC_CLIENT_ID === undefined) {
+      problems.push("OIDC_CLIENT_ID is required in production");
+    }
+    if (config.OIDC_CLIENT_SECRET === undefined) {
+      problems.push("OIDC_CLIENT_SECRET is required in production");
+    }
+    if (config.OIDC_REDIRECT_URI === undefined || !isHttpsUrl(config.OIDC_REDIRECT_URI)) {
+      problems.push("OIDC_REDIRECT_URI must be an HTTPS URL in production");
+    }
+  }
+  if (config.SESSION_SECRET === undefined || config.SESSION_SECRET.length < 32) {
+    problems.push("SESSION_SECRET must be at least 32 characters in production");
+  }
+  if (
+    config.CHAINPORT_DB_PURPOSE === undefined ||
+    config.CHAINPORT_DB_PURPOSE === "development" ||
+    config.CHAINPORT_DB_PURPOSE === "integration-test"
+  ) {
+    problems.push("CHAINPORT_DB_PURPOSE must be staging or production");
+  }
+  try {
+    const web = new URL(config.WEB_ORIGIN);
+    if (web.protocol !== "https:" || web.hostname === "localhost" || web.hostname === "127.0.0.1") {
+      problems.push("WEB_ORIGIN must be a public HTTPS origin in production");
+    }
+  } catch {
+    problems.push("WEB_ORIGIN is invalid");
+  }
+  if (config.ARTIFACT_STORE !== "s3") {
+    problems.push("ARTIFACT_STORE must be s3 in production");
+  }
+  if (config.S3_BUCKET === undefined) {
+    problems.push("S3_BUCKET is required when ARTIFACT_STORE=s3");
+  }
+  if (config.S3_ACCESS_KEY_ID === undefined || config.S3_SECRET_ACCESS_KEY === undefined) {
+    problems.push("S3 credentials are required in production");
+  }
+  const database = config.DATABASE_URL.toLowerCase();
+  if (DEFAULT_CREDENTIAL_MARKERS.some((marker) => database.includes(marker))) {
+    problems.push("DATABASE_URL uses default sample credentials");
+  }
+  if (database.includes("localhost") || database.includes("127.0.0.1")) {
+    problems.push("DATABASE_URL must not target localhost in production");
+  }
+  if (config.ENABLE_PRIVATE_REPOS === true) {
+    if (config.GITHUB_APP_ID === undefined || config.GITHUB_APP_PRIVATE_KEY === undefined) {
+      problems.push("GitHub App configuration is required when ENABLE_PRIVATE_REPOS=true");
+    }
+  }
+  if (problems.length > 0) {
+    throw new ConfigurationError(`Invalid ChainPort configuration: ${problems.join("; ")}`);
+  }
+}
+
+export function isSecretEnvKey(key: string): boolean {
+  const upper = key.toUpperCase();
+  return (
+    upper.includes("SECRET") ||
+    upper.includes("PASSWORD") ||
+    upper.includes("PRIVATE_KEY") ||
+    upper.includes("ACCESS_KEY") ||
+    upper === "DATABASE_URL" ||
+    upper === "REDIS_URL" ||
+    upper === "ETHERSCAN_API_KEY" ||
+    upper === "CHAINPORT_TESTNET_FUNDER_PRIVATE_KEY"
+  );
+}
+
+export type { AuthProviderName };

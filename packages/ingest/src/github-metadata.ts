@@ -20,6 +20,7 @@ export class HttpGitHubMetadataClient implements GitHubMetadataClient {
   public constructor(
     private readonly apiBaseUrl: string,
     private readonly timeoutMs: number,
+    private readonly authorizationHeader?: string,
   ) {}
 
   public async lookup(ref: GitHubRepositoryRef): Promise<GitHubRepositoryMetadata> {
@@ -34,6 +35,9 @@ export class HttpGitHubMetadataClient implements GitHubMetadataClient {
           Accept: "application/vnd.github+json",
           "User-Agent": "ChainPort",
           "X-GitHub-Api-Version": "2022-11-28",
+          ...(this.authorizationHeader === undefined
+            ? {}
+            : { Authorization: this.authorizationHeader }),
         },
       });
     } catch (error) {
@@ -47,6 +51,9 @@ export class HttpGitHubMetadataClient implements GitHubMetadataClient {
       throw new IngestError("REPOSITORY_NOT_FOUND");
     }
     if (response.status === 401 || response.status === 403) {
+      if (this.authorizationHeader !== undefined) {
+        throw new IngestError("GITHUB_ACCESS_REVOKED", INGEST_ERROR_MESSAGES.GITHUB_ACCESS_REVOKED);
+      }
       throw new IngestError("REPOSITORY_PRIVATE", INGEST_ERROR_MESSAGES.REPOSITORY_PRIVATE);
     }
     if (!response.ok) {

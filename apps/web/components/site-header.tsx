@@ -8,6 +8,7 @@ const links = [
   { href: "/app/projects", label: "Developers" },
   { href: "/network", label: "Networks" },
   { href: "/app/chains", label: "Chains" },
+  { href: "/auth/sign-in", label: "Sign in" },
 ] as const;
 
 export async function SiteHeader({ current }: { current?: string }) {

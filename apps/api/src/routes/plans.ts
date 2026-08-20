@@ -2,13 +2,21 @@ import { asJsonObject } from "@chainport/db";
 import { MIGRATION_STAGES, type PlannedMigration } from "@chainport/shared";
 
 import type { PlanService } from "../plan-service.js";
+import type { AccessControl } from "../access.js";
 import type { ApiInstance } from "../types.js";
 
-export function registerPlanRoutes(app: ApiInstance, service: PlanService): void {
+export function registerPlanRoutes(
+  app: ApiInstance,
+  service: PlanService,
+  access?: AccessControl,
+): void {
   app.post<{ Params: { id: string } }>(
     "/v1/compatibility-runs/:id/migration-plans",
     async (request, reply) => {
       const result = await service.createForCompatibilityRun(request.params.id);
+      if (access !== undefined) {
+        await access.requireProject(request.actor, result.plan.projectId);
+      }
       return reply.status(result.created ? 201 : 200).send({ data: presentPlan(result.plan) });
     },
   );
@@ -23,6 +31,9 @@ export function registerPlanRoutes(app: ApiInstance, service: PlanService): void
 
   app.get<{ Params: { id: string } }>("/v1/migration-plans/:id", async (request) => {
     const details = await service.get(request.params.id);
+    if (access !== undefined) {
+      await access.requireProject(request.actor, details.projectId);
+    }
     const actions = details.actions.map((action) => ({
       id: action.id,
       semanticKey: action.semanticKey,

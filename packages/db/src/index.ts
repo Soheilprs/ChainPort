@@ -36,6 +36,7 @@ export {
   type CreatePartnerInput,
   type UpdatePartnerInput,
 } from "./partner-repository.js";
+export { IdentityRepository } from "./identity-repository.js";
 export {
   mapJobStatusEvent,
   mapMigrationJob,

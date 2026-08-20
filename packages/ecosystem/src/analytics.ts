@@ -137,9 +137,9 @@ export class EcosystemAnalytics {
       const flags = flagsById.get(project.id) ?? emptyFlags();
       return {
         id: project.id,
-        name: project.name,
-        githubOwner: project.githubOwner,
-        githubRepo: project.githubRepo,
+        name: `Project ${project.id.slice(0, 8)}`,
+        githubOwner: null,
+        githubRepo: null,
         sourceChainKey: project.sourceChainKey,
         targetChainKey: partner.networkKey,
         stage: highestStage(flags),

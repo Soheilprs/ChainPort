@@ -1,9 +1,17 @@
 import type { DeploymentRunRecord } from "@chainport/shared";
 
 import type { DeploymentService } from "../deployment-service.js";
+import type { AccessControl } from "../access.js";
 import type { ApiInstance } from "../types.js";
+import { ApiRequestError } from "../errors.js";
+import type { ServiceConfig } from "@chainport/shared";
 
-export function registerDeploymentRoutes(app: ApiInstance, service: DeploymentService): void {
+export function registerDeploymentRoutes(
+  app: ApiInstance,
+  service: DeploymentService,
+  access?: AccessControl,
+  config?: ServiceConfig,
+): void {
   app.get("/v1/deployment-targets", () => ({ data: service.listTargets() }));
 
   app.get<{ Params: { key: string } }>("/v1/chains/:key/deployment-target", (request) => ({
@@ -24,11 +32,21 @@ export function registerDeploymentRoutes(app: ApiInstance, service: DeploymentSe
   });
 
   app.get<{ Params: { id: string } }>("/v1/projects/:id/deployments", async (request) => {
+    if (access !== undefined) {
+      await access.requireProject(request.actor, request.params.id);
+    }
     const runs = await service.listForProject(request.params.id);
     return { data: runs.map(presentRun) };
   });
 
   app.post<{ Params: { id: string } }>("/v1/revisions/:id/deployments", async (request, reply) => {
+    if (config?.ENABLE_TESTNET_DEPLOYMENT === false) {
+      throw new ApiRequestError(
+        503,
+        "DEPLOYMENT_DISABLED",
+        "Testnet deployment is temporarily disabled",
+      );
+    }
     const result = await service.prepare({
       revisionId: request.params.id,
       body: request.body,
@@ -38,6 +56,9 @@ export function registerDeploymentRoutes(app: ApiInstance, service: DeploymentSe
 
   app.get<{ Params: { id: string } }>("/v1/deployments/:id", async (request) => {
     const details = await service.get(request.params.id);
+    if (access !== undefined) {
+      await access.requireProject(request.actor, details.projectId);
+    }
     return {
       data: {
         run: presentRun(details),

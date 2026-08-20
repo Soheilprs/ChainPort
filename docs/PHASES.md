@@ -52,12 +52,18 @@ Unique-project funnel, blocker aggregation, and infrastructure-gap classificatio
 persisted records, attributed by `targetChainKey`. Internal fixtures and Anvil DEVNET runs are
 excluded from partner metrics by default.
 
-## Phase 10 — Partner portal / white-label developer experience (current)
+## Phase 10 — Partner portal / white-label developer experience
 
 A Foundation receives a branded public URL (`/partners/:slug`) that locks the target network,
 reuses `POST /v1/projects` ingest, and records `networkPartnerId` + `PARTNER_PORTAL` separately
 from Phase 9 target-chain attribution. The Foundation console stays at `/network/:id`.
 
-## Recommended next phases
+## Phase 11 — Production hardening, authentication & pilot readiness (current)
 
-11. **Production hardening, authentication & pilot readiness**.
+Session/OIDC authentication, organization memberships, project ownership, IDOR protections,
+GitHub App private-repo ingest, Redis rate limits, production fail-closed config, audit events,
+durable artifact-store abstraction, and pilot runbooks. Feature development stops after this phase.
+
+## Recommended next step
+
+**PILOT 1 — Controlled network pilot.** Do not start another feature phase.

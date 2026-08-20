@@ -120,6 +120,7 @@ export async function createProject(input: {
   const response = await fetch(`${API_URL}/v1/projects`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
+    credentials: "include",
     body: JSON.stringify(input),
   });
   const body = await readJson(response);
@@ -146,6 +147,7 @@ export async function createPartnerProject(input: {
   const response = await fetch(`${API_URL}/v1/public/partners/${input.slug}/projects`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
+    credentials: "include",
     body: JSON.stringify({
       repositoryUrl: input.repositoryUrl,
       sourceChainKey: input.sourceChainKey,

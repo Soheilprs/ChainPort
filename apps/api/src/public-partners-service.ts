@@ -1,3 +1,4 @@
+import type { Actor } from "@chainport/auth";
 import { getChainByKey, getOfficialDeploymentTestnet } from "@chainport/chain-registry";
 import type { PartnerRepository } from "@chainport/db";
 import {
@@ -22,7 +23,7 @@ export class PublicPartnerService {
     return presentPublicPartner(partner, networkInfo(partner.networkKey));
   }
 
-  public async createProject(slugParam: string, body: unknown) {
+  public async createProject(slugParam: string, body: unknown, actor?: Actor) {
     const partner = await this.requirePublicPartner(slugParam);
     if (!portalCreationEnabled(partner)) {
       throw new ApiRequestError(
@@ -31,7 +32,7 @@ export class PublicPartnerService {
         "This partner portal is not accepting new migrations",
       );
     }
-    return this.projects.createFromPartner(partner, body);
+    return this.projects.createFromPartner(partner, body, actor);
   }
 
   private async requirePublicPartner(slugParam: string) {

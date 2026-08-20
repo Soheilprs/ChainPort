@@ -42,6 +42,9 @@ import type {
   DataClassification,
   NetworkPartnerStatus,
   AcquisitionSource,
+  MembershipRole,
+  RepositoryVisibility,
+  AuditAction,
   RevisionCompleteness,
   RevisionType,
   RemediationType,
@@ -64,6 +67,56 @@ export interface User {
   email: string;
   name: string | null;
   organizationId: string | null;
+  issuer: string | null;
+  subject: string | null;
+  isPlatformAdmin: boolean;
+  lastLoginAt: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface OrganizationMembership {
+  id: string;
+  userId: string;
+  organizationId: string;
+  role: MembershipRole;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface SessionRecord {
+  id: string;
+  userId: string;
+  tokenHash: string;
+  csrfHash: string;
+  expiresAt: Date;
+  revokedAt: Date | null;
+  rotatedFromId: string | null;
+  createdAt: Date;
+  lastSeenAt: Date;
+  ip: string | null;
+  userAgent: string | null;
+}
+
+export interface AuditEventRecord {
+  id: string;
+  actorUserId: string | null;
+  organizationId: string | null;
+  projectId: string | null;
+  action: AuditAction;
+  targetType: string;
+  targetId: string | null;
+  requestId: string | null;
+  metadata: JsonObject;
+  createdAt: Date;
+}
+
+export interface GitHubInstallationRecord {
+  id: string;
+  userId: string;
+  installationId: string;
+  accountLogin: string;
+  revokedAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -74,6 +127,8 @@ export interface Repository {
   owner: string;
   name: string;
   normalizedUrl: string;
+  visibility: RepositoryVisibility;
+  githubInstallationDbId: string | null;
   defaultBranch: string | null;
   resolvedCommitSha: string | null;
   cloneStatus: CloneStatus;
@@ -88,6 +143,8 @@ export interface Repository {
 export interface Project {
   id: string;
   organizationId: string | null;
+  ownerUserId: string | null;
+  ownerOrganizationId: string | null;
   repositoryId: string;
   name: string;
   githubUrl: string;

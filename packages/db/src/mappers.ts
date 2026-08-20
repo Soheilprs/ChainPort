@@ -11,6 +11,7 @@ import type {
   NetworkPartnerStatus,
   Repository,
   RepositoryProvider,
+  RepositoryVisibility,
 } from "@chainport/shared";
 import type {
   JobStatusEvent as PrismaJobStatusEvent,
@@ -35,6 +36,8 @@ export function mapRepository(row: PrismaRepository): Repository {
     owner: row.owner,
     name: row.name,
     normalizedUrl: row.normalizedUrl,
+    visibility: row.visibility as RepositoryVisibility,
+    githubInstallationDbId: row.githubInstallationDbId,
     defaultBranch: row.defaultBranch,
     resolvedCommitSha: row.resolvedCommitSha,
     cloneStatus: row.cloneStatus as CloneStatus,
@@ -51,6 +54,8 @@ export function mapProject(row: PrismaProject): Project {
   return {
     id: row.id,
     organizationId: row.organizationId,
+    ownerUserId: row.ownerUserId,
+    ownerOrganizationId: row.ownerOrganizationId,
     repositoryId: row.repositoryId,
     name: row.name,
     githubUrl: row.githubUrl,

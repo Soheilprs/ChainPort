@@ -10,6 +10,7 @@ import {
   ValidationRepository,
   DeploymentRepository,
   PartnerRepository,
+  IdentityRepository,
 } from "@chainport/db";
 import { EcosystemAnalytics } from "@chainport/ecosystem";
 import { DockerSandboxRunner } from "@chainport/sandbox";
@@ -27,6 +28,9 @@ import { PlanService } from "./plan-service.js";
 import { createApiApplication } from "./app.js";
 import { createLogger } from "./logger.js";
 import { ProjectsService } from "./projects-service.js";
+import { AuthService } from "./auth-service.js";
+import { AccessControl } from "./access.js";
+import { RateLimiter } from "./rate-limit.js";
 import { createIngestJobQueue } from "./queue.js";
 import { checkRedis } from "./redis.js";
 
@@ -40,6 +44,10 @@ async function main(): Promise<void> {
   const queue = createIngestJobQueue(redis);
   const ingest = new IngestRepository(database);
   const partners = new PartnerRepository(database);
+  const identities = new IdentityRepository(database);
+  const authService = new AuthService(identities, config);
+  const access = new AccessControl(ingest, partners);
+  const rateLimiter = new RateLimiter(redis);
   const projectsService = new ProjectsService(ingest, queue, partners);
   const analyses = new AnalysisRepository(database);
   const analysisService = new AnalysisService(ingest, analyses, queue);
@@ -88,6 +96,10 @@ async function main(): Promise<void> {
   const app = await createApiApplication({
     logger,
     webOrigin: config.WEB_ORIGIN,
+    config,
+    authService,
+    access,
+    rateLimiter,
     projectsService,
     analysisService,
     compatibilityService,

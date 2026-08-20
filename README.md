@@ -8,11 +8,11 @@ a target chain, and how to migrate it safely.
 It is not an RPC provider, explorer, indexer, generic AI coding assistant, generic GitHub scanner,
 or generic CI/CD tool.
 
-> **CURRENT STATUS: PHASE 10 — PARTNER PORTAL**
+> **CURRENT STATUS: PHASE 11 — PILOT HARDENING**
 >
-> Networks can send developers a branded ChainPort URL (`/partners/:slug`) with the target chain
-> locked. The Foundation console remains at `/network/:id` and can separate partner-referred
-> traffic from generic targeting.
+> Authentication, authorization, rate limits, audit, and production fail-closed configuration are
+> in place so a controlled network pilot can start. External gates (real OIDC, GitHub App, object
+> storage, public testnet funder) may still be unconfigured.
 
 ## Prerequisites
 

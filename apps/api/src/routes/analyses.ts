@@ -1,8 +1,16 @@
 import type { AnalysisService } from "../analysis-service.js";
+import type { AccessControl } from "../access.js";
 import type { ApiInstance } from "../types.js";
 
-export function registerAnalysisRoutes(app: ApiInstance, service: AnalysisService): void {
+export function registerAnalysisRoutes(
+  app: ApiInstance,
+  service: AnalysisService,
+  access?: AccessControl,
+): void {
   app.post<{ Params: { id: string } }>("/v1/projects/:id/analyses", async (request, reply) => {
+    if (access !== undefined) {
+      await access.requireProject(request.actor, request.params.id);
+    }
     const result = await service.createForProject(request.params.id);
     return reply.status(result.created ? 201 : 200).send({
       data: presentAnalysis(result.analysis),
@@ -10,12 +18,18 @@ export function registerAnalysisRoutes(app: ApiInstance, service: AnalysisServic
   });
 
   app.get<{ Params: { id: string } }>("/v1/projects/:id/analyses", async (request) => {
+    if (access !== undefined) {
+      await access.requireProject(request.actor, request.params.id);
+    }
     const analyses = await service.listForProject(request.params.id);
     return { data: analyses.map(presentAnalysis) };
   });
 
   app.get<{ Params: { id: string } }>("/v1/analyses/:id", async (request) => {
     const details = await service.get(request.params.id);
+    if (access !== undefined) {
+      await access.requireProject(request.actor, details.projectId);
+    }
     return {
       data: {
         analysis: presentAnalysis(details),
@@ -33,11 +47,17 @@ export function registerAnalysisRoutes(app: ApiInstance, service: AnalysisServic
 
   app.get<{ Params: { id: string } }>("/v1/analyses/:id/requirements", async (request) => {
     const details = await service.get(request.params.id);
+    if (access !== undefined) {
+      await access.requireProject(request.actor, details.projectId);
+    }
     return { data: details.requirements };
   });
 
   app.get<{ Params: { id: string } }>("/v1/analyses/:id/components", async (request) => {
     const details = await service.get(request.params.id);
+    if (access !== undefined) {
+      await access.requireProject(request.actor, details.projectId);
+    }
     return { data: details.components };
   });
 }

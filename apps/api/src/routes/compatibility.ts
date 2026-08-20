@@ -1,6 +1,7 @@
 import { asJsonObject } from "@chainport/db";
 
 import type { CompatibilityService } from "../compatibility-service.js";
+import type { AccessControl } from "../access.js";
 import type { ApiInstance } from "../types.js";
 
 const STATUS_ORDER = ["BLOCKER", "WARNING", "UNKNOWN", "PASS"] as const;
@@ -10,10 +11,17 @@ function statusRank(status: string): number {
   return index === -1 ? STATUS_ORDER.length : index;
 }
 
-export function registerCompatibilityRoutes(app: ApiInstance, service: CompatibilityService): void {
+export function registerCompatibilityRoutes(
+  app: ApiInstance,
+  service: CompatibilityService,
+  access?: AccessControl,
+): void {
   app.post<{ Params: { id: string } }>(
     "/v1/projects/:id/compatibility-runs",
     async (request, reply) => {
+      if (access !== undefined) {
+        await access.requireProject(request.actor, request.params.id);
+      }
       const result = await service.createForProject(request.params.id, request.body);
       return reply.status(result.created ? 201 : 200).send({
         data: presentRun(result.run),
@@ -22,6 +30,9 @@ export function registerCompatibilityRoutes(app: ApiInstance, service: Compatibi
   );
 
   app.get<{ Params: { id: string } }>("/v1/projects/:id/compatibility-runs", async (request) => {
+    if (access !== undefined) {
+      await access.requireProject(request.actor, request.params.id);
+    }
     const runs = await service.listForProject(request.params.id);
     return { data: runs.map(presentRun) };
   });
@@ -33,6 +44,9 @@ export function registerCompatibilityRoutes(app: ApiInstance, service: Compatibi
 
   app.get<{ Params: { id: string } }>("/v1/compatibility-runs/:id", async (request) => {
     const details = await service.get(request.params.id);
+    if (access !== undefined) {
+      await access.requireProject(request.actor, details.projectId);
+    }
     const findings = [...details.findings].sort(
       (left, right) => statusRank(left.status) - statusRank(right.status),
     );

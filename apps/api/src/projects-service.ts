@@ -1,4 +1,5 @@
 import { getChainByKey } from "@chainport/chain-registry";
+import type { Actor } from "@chainport/auth";
 import {
   UniqueConstraintError,
   type IngestRepository,
@@ -61,18 +62,23 @@ export class ProjectsService {
     return parsed.data;
   }
 
-  public async create(body: unknown): Promise<{ data: ProjectResponse; created: boolean }> {
+  public async create(
+    body: unknown,
+    actor?: Actor,
+  ): Promise<{ data: ProjectResponse; created: boolean }> {
     const request = this.parseCreateRequest(body);
     return this.ingestAndEnqueue({
       ...request,
       acquisitionSource: "GENERIC_PORTAL",
       networkPartnerId: null,
+      ownerUserId: actor?.userId ?? null,
     });
   }
 
   public async createFromPartner(
     partner: NetworkPartner,
     body: unknown,
+    actor?: Actor,
   ): Promise<{ data: ProjectResponse; created: boolean }> {
     const record = asRecord(body);
     if (
@@ -96,6 +102,7 @@ export class ProjectsService {
       targetChainKey: partner.networkKey,
       acquisitionSource: "PARTNER_PORTAL",
       networkPartnerId: partner.id,
+      ownerUserId: actor?.userId ?? null,
     });
   }
 
@@ -112,6 +119,7 @@ export class ProjectsService {
     targetChainKey: string;
     acquisitionSource: AcquisitionSource;
     networkPartnerId: string | null;
+    ownerUserId: string | null;
   }): Promise<{ data: ProjectResponse; created: boolean }> {
     let ref;
     try {
@@ -140,7 +148,19 @@ export class ProjectsService {
       defaultBranch: "main",
       networkPartnerId: request.networkPartnerId,
       acquisitionSource: request.acquisitionSource,
+      ownerUserId: request.ownerUserId,
     });
+    if (
+      request.ownerUserId !== null &&
+      project.ownerUserId !== null &&
+      project.ownerUserId !== request.ownerUserId
+    ) {
+      throw new ApiRequestError(
+        409,
+        "REPOSITORY_ALREADY_CLAIMED",
+        "This repository already belongs to another developer",
+      );
+    }
 
     const idempotencyKey = buildIngestIdempotencyKey({
       owner: ref.owner,
@@ -202,8 +222,18 @@ export class ProjectsService {
     return { project, repository, job };
   }
 
-  public async listProjects() {
-    return this.ingest.listProjects();
+  public async listProjects(actor?: Actor) {
+    if (actor === undefined) {
+      return this.ingest.listProjects();
+    }
+    if (actor.isPlatformAdmin) {
+      return this.ingest.listProjects();
+    }
+    return this.ingest.listProjectsForOwner(actor.userId);
+  }
+
+  public async archive(projectId: string) {
+    return this.ingest.archiveProject(projectId);
   }
 
   public async listProjectJobs(projectId: string) {

@@ -3,11 +3,25 @@ import { compareValidations } from "@chainport/validation";
 import type { ValidationRunRecord } from "@chainport/shared";
 
 import type { ValidationService } from "../validation-service.js";
+import type { AccessControl } from "../access.js";
 import type { ApiInstance } from "../types.js";
+import { ApiRequestError } from "../errors.js";
+import type { ServiceConfig } from "@chainport/shared";
 
-export function registerValidationRoutes(app: ApiInstance, service: ValidationService): void {
+export function registerValidationRoutes(
+  app: ApiInstance,
+  service: ValidationService,
+  access?: AccessControl,
+  config?: ServiceConfig,
+): void {
   app.post<{ Params: { id: string } }>("/v1/revisions/:id/validations", async (request, reply) => {
+    if (config?.ENABLE_VALIDATION === false) {
+      throw new ApiRequestError(503, "VALIDATION_DISABLED", "Validation is temporarily disabled");
+    }
     const result = await service.createForRevision(request.params.id);
+    if (access !== undefined) {
+      await access.requireProject(request.actor, result.run.projectId);
+    }
     return reply.status(result.created ? 201 : 200).send({ data: presentRun(result.run) });
   });
 
@@ -39,6 +53,9 @@ export function registerValidationRoutes(app: ApiInstance, service: ValidationSe
 
   app.get<{ Params: { id: string } }>("/v1/validations/:id", async (request) => {
     const details = await service.get(request.params.id);
+    if (access !== undefined) {
+      await access.requireProject(request.actor, details.projectId);
+    }
     return {
       data: {
         run: presentRun({ ...details, limitsJson: asJsonObject(details.limitsJson) }),

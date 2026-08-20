@@ -18,6 +18,10 @@ export interface CloneLimits {
   maxBytes: number;
 }
 
+export interface CloneCredential {
+  authorizationHeader: string;
+}
+
 export interface CloneSource {
   kind: "github" | "fixture";
   ref?: GitHubRepositoryRef;
@@ -43,6 +47,7 @@ export async function cloneIntoWorkspace(input: {
   workspace: Workspace;
   limits: CloneLimits;
   metadata?: GitHubMetadataClient;
+  credential?: CloneCredential;
 }): Promise<CloneResult> {
   const started = Date.now();
   const destination = path.join(input.workspace.root, "repo");
@@ -76,8 +81,16 @@ export async function cloneIntoWorkspace(input: {
   }
   cloneArgs.push(remote, destination);
 
+  const extraConfig =
+    input.credential === undefined
+      ? []
+      : ([
+          "-c",
+          `http.extraHeader=Authorization: ${input.credential.authorizationHeader}`,
+        ] as const);
   const clone = await runGit(cloneArgs, {
     timeoutMs: input.limits.timeoutMs,
+    extraConfig: [...extraConfig],
     ...(input.source.kind === "fixture" ? { allowLocalPath: true } : {}),
   });
   if (clone.code !== 0) {

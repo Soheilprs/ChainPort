@@ -21,6 +21,8 @@
     "@chainport/ecosystem": "workspace:*",
     "@chainport/scanner": "workspace:*",
     "@chainport/shared": "workspace:*",
+    "@chainport/auth": "workspace:*",
+    "@fastify/cookie": "11.0.2",
     "@fastify/cors": "11.1.0",
     "bullmq": "5.61.0",
     "fastify": "5.6.2",

@@ -19,6 +19,7 @@ export function presentProject(
     githubRepo: project.githubRepo,
     githubUrl: project.githubUrl,
     status: project.status,
+    ownerUserId: project.ownerUserId,
     activeRevisionId: project.activeRevisionId,
     networkPartnerId: project.networkPartnerId,
     acquisitionSource: project.acquisitionSource,

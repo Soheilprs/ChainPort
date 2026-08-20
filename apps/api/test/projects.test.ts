@@ -20,6 +20,8 @@ function entities() {
     owner: "acme",
     name: "wallet",
     normalizedUrl: "https://github.com/acme/wallet",
+    visibility: "PUBLIC",
+    githubInstallationDbId: null,
     defaultBranch: null,
     resolvedCommitSha: null,
     cloneStatus: "PENDING",
@@ -33,6 +35,8 @@ function entities() {
   const project: Project = {
     id: "22222222-2222-4222-8222-222222222222",
     organizationId: null,
+    ownerUserId: null,
+    ownerOrganizationId: null,
     repositoryId: repository.id,
     name: "acme/wallet",
     githubUrl: repository.normalizedUrl,

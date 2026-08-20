@@ -21,6 +21,42 @@ export type NetworkPartnerStatus = (typeof NETWORK_PARTNER_STATUSES)[number];
 export const ACQUISITION_SOURCES = ["GENERIC_PORTAL", "PARTNER_PORTAL", "INTERNAL", "API"] as const;
 export type AcquisitionSource = (typeof ACQUISITION_SOURCES)[number];
 
+export const MEMBERSHIP_ROLES = ["OWNER", "ADMIN", "MEMBER", "VIEWER"] as const;
+export type MembershipRole = (typeof MEMBERSHIP_ROLES)[number];
+
+export const FOUNDATION_ROLES = ["FOUNDATION_ADMIN", "FOUNDATION_ANALYST"] as const;
+export type FoundationRole = (typeof FOUNDATION_ROLES)[number];
+
+export const AUTH_PROVIDERS = ["test", "oidc"] as const;
+export type AuthProviderName = (typeof AUTH_PROVIDERS)[number];
+
+export const REPOSITORY_VISIBILITIES = ["PUBLIC", "PRIVATE"] as const;
+export type RepositoryVisibility = (typeof REPOSITORY_VISIBILITIES)[number];
+
+export const AUDIT_ACTIONS = [
+  "LOGIN",
+  "LOGOUT",
+  "PROJECT_CREATED",
+  "PROJECT_ARCHIVED",
+  "PRIVATE_REPO_CONNECTED",
+  "ANALYSIS_STARTED",
+  "CHANGESET_FINALIZED",
+  "VALIDATION_STARTED",
+  "DEPLOYMENT_PREPARED",
+  "DEPLOYMENT_CONFIRMED",
+  "DEPLOYMENT_COMPLETED",
+  "PARTNER_SETTINGS_UPDATED",
+  "MEMBER_ADDED",
+  "ROLE_CHANGED",
+  "ACCESS_DENIED",
+] as const;
+export type AuditAction = (typeof AUDIT_ACTIONS)[number];
+
+export const TEST_IDENTITY_ISSUER = "https://chainport.test/idp";
+export const SESSION_COOKIE_NAME = "chainport_session";
+export const CSRF_COOKIE_NAME = "chainport_csrf";
+export const CSRF_HEADER_NAME = "x-csrf-token";
+
 export const ANALYTICS_ACQUISITION_FILTERS = ["all", "partner", "generic"] as const;
 export type AnalyticsAcquisitionFilter = (typeof ANALYTICS_ACQUISITION_FILTERS)[number];
 
@@ -441,6 +477,7 @@ export const DATABASE_PURPOSES = [
   "integration-test",
   "validation",
   "customer",
+  "staging",
   "production",
 ] as const;
 export type DatabasePurpose = (typeof DATABASE_PURPOSES)[number];
@@ -469,6 +506,26 @@ export function isNetworkPartnerStatus(value: unknown): value is NetworkPartnerS
 
 export function isAcquisitionSource(value: unknown): value is AcquisitionSource {
   return isOneOf(value, ACQUISITION_SOURCES);
+}
+
+export function isMembershipRole(value: unknown): value is MembershipRole {
+  return isOneOf(value, MEMBERSHIP_ROLES);
+}
+
+export function isFoundationRole(value: unknown): value is FoundationRole {
+  return isOneOf(value, FOUNDATION_ROLES);
+}
+
+export function isAuthProviderName(value: unknown): value is AuthProviderName {
+  return isOneOf(value, AUTH_PROVIDERS);
+}
+
+export function isRepositoryVisibility(value: unknown): value is RepositoryVisibility {
+  return isOneOf(value, REPOSITORY_VISIBILITIES);
+}
+
+export function isAuditAction(value: unknown): value is AuditAction {
+  return isOneOf(value, AUDIT_ACTIONS);
 }
 
 export function isAnalyticsAcquisitionFilter(value: unknown): value is AnalyticsAcquisitionFilter {

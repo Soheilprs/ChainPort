@@ -19,6 +19,8 @@ function makeEntities() {
     owner: "acme",
     name: "wallet",
     normalizedUrl: "https://github.com/acme/wallet",
+    visibility: "PUBLIC",
+    githubInstallationDbId: null,
     defaultBranch: "main",
     resolvedCommitSha: null,
     cloneStatus: "PENDING",
@@ -32,6 +34,8 @@ function makeEntities() {
   const project: Project = {
     id: "22222222-2222-4222-8222-222222222222",
     organizationId: null,
+    ownerUserId: null,
+    ownerOrganizationId: null,
     repositoryId: repository.id,
     name: "acme/wallet",
     githubUrl: repository.normalizedUrl,

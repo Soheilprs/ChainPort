@@ -1,9 +1,14 @@
 import type { ChangeSetRecord } from "@chainport/shared";
 
 import type { ChangeSetService } from "../changeset-service.js";
+import type { AccessControl } from "../access.js";
 import type { ApiInstance } from "../types.js";
 
-export function registerChangeSetRoutes(app: ApiInstance, service: ChangeSetService): void {
+export function registerChangeSetRoutes(
+  app: ApiInstance,
+  service: ChangeSetService,
+  access?: AccessControl,
+): void {
   app.post<{ Params: { id: string } }>(
     "/v1/migration-plans/:id/change-sets",
     async (request, reply) => {
@@ -21,17 +26,27 @@ export function registerChangeSetRoutes(app: ApiInstance, service: ChangeSetServ
 
   app.get<{ Params: { id: string } }>("/v1/change-sets/:id", async (request) => {
     const details = await service.get(request.params.id);
+    if (access !== undefined) {
+      await access.requireProject(request.actor, details.projectId);
+    }
     return { data: presentDetails(details) };
   });
 
   app.get<{ Params: { id: string } }>("/v1/change-sets/:id/changes", async (request) => {
     const details = await service.get(request.params.id);
+    if (access !== undefined) {
+      await access.requireProject(request.actor, details.projectId);
+    }
     return { data: details.changes.map(presentChange) };
   });
 
   app.post<{ Params: { id: string; changeId: string } }>(
     "/v1/change-sets/:id/changes/:changeId/accept",
     async (request) => {
+      const existing = await service.get(request.params.id);
+      if (access !== undefined) {
+        await access.requireProject(request.actor, existing.projectId);
+      }
       await service.accept(request.params.id, request.params.changeId);
       const details = await service.get(request.params.id);
       return { data: presentDetails(details) };
@@ -41,6 +56,10 @@ export function registerChangeSetRoutes(app: ApiInstance, service: ChangeSetServ
   app.post<{ Params: { id: string; changeId: string } }>(
     "/v1/change-sets/:id/changes/:changeId/reject",
     async (request) => {
+      const existing = await service.get(request.params.id);
+      if (access !== undefined) {
+        await access.requireProject(request.actor, existing.projectId);
+      }
       await service.reject(request.params.id, request.params.changeId);
       const details = await service.get(request.params.id);
       return { data: presentDetails(details) };
@@ -48,18 +67,30 @@ export function registerChangeSetRoutes(app: ApiInstance, service: ChangeSetServ
   );
 
   app.post<{ Params: { id: string } }>("/v1/change-sets/:id/accept-all", async (request) => {
+    const existing = await service.get(request.params.id);
+    if (access !== undefined) {
+      await access.requireProject(request.actor, existing.projectId);
+    }
     await service.acceptAll(request.params.id);
     const details = await service.get(request.params.id);
     return { data: presentDetails(details) };
   });
 
   app.post<{ Params: { id: string } }>("/v1/change-sets/:id/finalize", async (request) => {
+    const existing = await service.get(request.params.id);
+    if (access !== undefined) {
+      await access.requireProject(request.actor, existing.projectId);
+    }
     await service.finalize(request.params.id);
     const details = await service.get(request.params.id);
     return { data: presentDetails(details) };
   });
 
   app.post<{ Params: { id: string } }>("/v1/change-sets/:id/rollback", async (request) => {
+    const existing = await service.get(request.params.id);
+    if (access !== undefined) {
+      await access.requireProject(request.actor, existing.projectId);
+    }
     await service.rollback(request.params.id);
     const details = await service.get(request.params.id);
     return { data: presentDetails(details) };

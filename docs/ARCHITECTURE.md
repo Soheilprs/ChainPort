@@ -21,6 +21,7 @@ packages/
   validation/   Profiles, parsers, log redaction, regression comparison
   deployment/   Eligibility, candidates, RPC proxy, disposable credentials, preflight
   ecosystem/    Partner funnel, blockers, infrastructure gaps, KPI aggregations
+  auth/         OIDC adapter, sessions, GitHub App JWT, authorization policy
   db/           Prisma schema and client
 ```
 

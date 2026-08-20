@@ -41,13 +41,18 @@ export interface GitResult {
 
 export async function runGit(
   args: readonly string[],
-  options: { cwd?: string; timeoutMs: number; allowLocalPath?: boolean },
+  options: {
+    cwd?: string;
+    timeoutMs: number;
+    allowLocalPath?: boolean;
+    extraConfig?: readonly string[];
+  },
 ): Promise<GitResult> {
   return new Promise((resolve, reject) => {
     const config =
       options.allowLocalPath === true
-        ? SAFE_GIT_CONFIG
-        : [...SAFE_GIT_CONFIG, ...REMOTE_ONLY_GIT_CONFIG];
+        ? [...SAFE_GIT_CONFIG, ...(options.extraConfig ?? [])]
+        : [...SAFE_GIT_CONFIG, ...REMOTE_ONLY_GIT_CONFIG, ...(options.extraConfig ?? [])];
     const child = spawn("git", [...config, ...args], {
       cwd: options.cwd,
       env: safeGitEnv(),

@@ -39,6 +39,36 @@ enum AcquisitionSource {
   API
 }
 
+enum MembershipRole {
+  OWNER
+  ADMIN
+  MEMBER
+  VIEWER
+}
+
+enum RepositoryVisibility {
+  PUBLIC
+  PRIVATE
+}
+
+enum AuditAction {
+  LOGIN
+  LOGOUT
+  PROJECT_CREATED
+  PROJECT_ARCHIVED
+  PRIVATE_REPO_CONNECTED
+  ANALYSIS_STARTED
+  CHANGESET_FINALIZED
+  VALIDATION_STARTED
+  DEPLOYMENT_PREPARED
+  DEPLOYMENT_CONFIRMED
+  DEPLOYMENT_COMPLETED
+  PARTNER_SETTINGS_UPDATED
+  MEMBER_ADDED
+  ROLE_CHANGED
+  ACCESS_DENIED
+}
+
 enum RepositoryProvider {
   GITHUB
 }
@@ -391,15 +421,18 @@ enum FindingCategory {
 }
 
 model Organization {
-  id        String           @id @db.Uuid
-  name      String
-  slug      String           @unique
-  kind      OrganizationKind
-  createdAt DateTime         @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt DateTime         @updatedAt @map("updated_at") @db.Timestamptz(3)
+  id              String                    @id @db.Uuid
+  name            String
+  slug            String                    @unique
+  kind            OrganizationKind
+  createdAt       DateTime                  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt       DateTime                  @updatedAt @map("updated_at") @db.Timestamptz(3)
   users           User[]
+  memberships     OrganizationMembership[]
   projects        Project[]
+  ownedProjects   Project[]                 @relation("ProjectOwnerOrganization")
   networkPartners NetworkPartner[]
+  auditEvents     AuditEvent[]
 
   @@map("organizations")
 }
@@ -434,33 +467,118 @@ model NetworkPartner {
 }
 
 model User {
-  id             String        @id @db.Uuid
-  email          String        @unique
-  name           String?
-  organizationId String?       @map("organization_id") @db.Uuid
-  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
-  createdAt      DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt      DateTime      @updatedAt @map("updated_at") @db.Timestamptz(3)
+  id                 String                    @id @db.Uuid
+  email              String                    @unique
+  name               String?
+  organizationId     String?                   @map("organization_id") @db.Uuid
+  organization       Organization?             @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  issuer             String?
+  subject            String?
+  isPlatformAdmin    Boolean                   @default(false) @map("is_platform_admin")
+  lastLoginAt        DateTime?                 @map("last_login_at") @db.Timestamptz(3)
+  createdAt          DateTime                  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt          DateTime                  @updatedAt @map("updated_at") @db.Timestamptz(3)
+  memberships        OrganizationMembership[]
+  sessions           Session[]
+  ownedProjects      Project[]                 @relation("ProjectOwner")
+  githubInstallations GitHubInstallation[]
+  auditEvents        AuditEvent[]
 
+  @@unique([issuer, subject])
   @@index([organizationId])
   @@map("users")
 }
 
+model OrganizationMembership {
+  id             String           @id @db.Uuid
+  userId         String           @map("user_id") @db.Uuid
+  user           User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organizationId String           @map("organization_id") @db.Uuid
+  organization   Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  role           MembershipRole
+  createdAt      DateTime         @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt      DateTime         @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@unique([userId, organizationId])
+  @@index([organizationId, role])
+  @@map("organization_memberships")
+}
+
+model Session {
+  id            String    @id @db.Uuid
+  userId        String    @map("user_id") @db.Uuid
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash     String    @unique @map("token_hash")
+  csrfHash      String    @map("csrf_hash")
+  expiresAt     DateTime  @map("expires_at") @db.Timestamptz(3)
+  revokedAt     DateTime? @map("revoked_at") @db.Timestamptz(3)
+  rotatedFromId String?   @map("rotated_from_id") @db.Uuid
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  lastSeenAt    DateTime  @default(now()) @map("last_seen_at") @db.Timestamptz(3)
+  ip            String?
+  userAgent     String?   @map("user_agent")
+
+  @@index([userId, expiresAt])
+  @@index([expiresAt])
+  @@map("sessions")
+}
+
+model AuditEvent {
+  id             String        @id @db.Uuid
+  actorUserId    String?       @map("actor_user_id") @db.Uuid
+  actor          User?         @relation(fields: [actorUserId], references: [id], onDelete: SetNull)
+  organizationId String?       @map("organization_id") @db.Uuid
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  projectId      String?       @map("project_id") @db.Uuid
+  project        Project?      @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  action         AuditAction
+  targetType     String        @map("target_type")
+  targetId       String?       @map("target_id")
+  requestId      String?       @map("request_id")
+  metadata       Json
+  createdAt      DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  @@index([actorUserId, createdAt])
+  @@index([organizationId, createdAt])
+  @@index([projectId, createdAt])
+  @@index([action, createdAt])
+  @@map("audit_events")
+}
+
+model GitHubInstallation {
+  id             String    @id @db.Uuid
+  userId         String    @map("user_id") @db.Uuid
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  installationId String    @map("installation_id")
+  accountLogin   String    @map("account_login")
+  revokedAt      DateTime? @map("revoked_at") @db.Timestamptz(3)
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt      DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
+  repositories   Repository[]
+
+  @@unique([userId, installationId])
+  @@index([installationId])
+  @@map("github_installations")
+}
+
 model Repository {
-  id                 String             @id @db.Uuid
-  provider           RepositoryProvider @default(GITHUB)
-  owner              String
-  name               String
-  normalizedUrl      String             @map("normalized_url")
-  defaultBranch      String?            @map("default_branch")
-  resolvedCommitSha  String?            @map("resolved_commit_sha")
-  cloneStatus        CloneStatus        @default(PENDING) @map("clone_status")
-  clonedAt           DateTime?          @map("cloned_at") @db.Timestamptz(3)
-  sizeBytes          BigInt?            @map("size_bytes")
-  ingestErrorCode    String?            @map("ingest_error_code")
-  ingestErrorMessage String?            @map("ingest_error_message")
-  createdAt          DateTime           @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt          DateTime           @updatedAt @map("updated_at") @db.Timestamptz(3)
+  id                     String                @id @db.Uuid
+  provider               RepositoryProvider    @default(GITHUB)
+  owner                  String
+  name                   String
+  normalizedUrl          String                @map("normalized_url")
+  visibility             RepositoryVisibility  @default(PUBLIC)
+  githubInstallationDbId String?               @map("github_installation_db_id") @db.Uuid
+  githubInstallation     GitHubInstallation?   @relation(fields: [githubInstallationDbId], references: [id], onDelete: SetNull)
+  defaultBranch          String?               @map("default_branch")
+  resolvedCommitSha      String?               @map("resolved_commit_sha")
+  cloneStatus            CloneStatus           @default(PENDING) @map("clone_status")
+  clonedAt               DateTime?             @map("cloned_at") @db.Timestamptz(3)
+  sizeBytes              BigInt?               @map("size_bytes")
+  ingestErrorCode        String?               @map("ingest_error_code")
+  ingestErrorMessage     String?               @map("ingest_error_message")
+  createdAt              DateTime              @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt              DateTime              @updatedAt @map("updated_at") @db.Timestamptz(3)
   projects            Project[]
   jobs                MigrationJob[]
   analyses            RepositoryAnalysis[]
@@ -474,18 +592,22 @@ model Repository {
 }
 
 model Project {
-  id                 String              @id @db.Uuid
-  organizationId     String?             @map("organization_id") @db.Uuid
-  organization       Organization?       @relation(fields: [organizationId], references: [id], onDelete: SetNull)
-  repositoryId       String              @map("repository_id") @db.Uuid
-  repository         Repository          @relation(fields: [repositoryId], references: [id], onDelete: Restrict)
-  name               String
-  githubUrl          String              @map("github_url")
-  githubOwner        String              @map("github_owner")
-  githubRepo         String              @map("github_repo")
-  defaultBranch      String              @default("main") @map("default_branch")
-  status             ProjectStatus       @default(ACTIVE)
-  dataClassification DataClassification  @default(PRODUCTION) @map("data_classification")
+  id                   String              @id @db.Uuid
+  organizationId       String?             @map("organization_id") @db.Uuid
+  organization         Organization?       @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  ownerUserId          String?             @map("owner_user_id") @db.Uuid
+  ownerUser            User?               @relation("ProjectOwner", fields: [ownerUserId], references: [id], onDelete: SetNull)
+  ownerOrganizationId  String?             @map("owner_organization_id") @db.Uuid
+  ownerOrganization    Organization?       @relation("ProjectOwnerOrganization", fields: [ownerOrganizationId], references: [id], onDelete: SetNull)
+  repositoryId         String              @map("repository_id") @db.Uuid
+  repository           Repository          @relation(fields: [repositoryId], references: [id], onDelete: Restrict)
+  name                 String
+  githubUrl            String              @map("github_url")
+  githubOwner          String              @map("github_owner")
+  githubRepo           String              @map("github_repo")
+  defaultBranch        String              @default("main") @map("default_branch")
+  status               ProjectStatus       @default(ACTIVE)
+  dataClassification   DataClassification  @default(PRODUCTION) @map("data_classification")
   networkPartnerId   String?             @map("network_partner_id") @db.Uuid
   networkPartner     NetworkPartner?     @relation(fields: [networkPartnerId], references: [id], onDelete: SetNull)
   acquisitionSource  AcquisitionSource   @default(GENERIC_PORTAL) @map("acquisition_source")
@@ -503,10 +625,13 @@ model Project {
   changeSets         ChangeSet[]
   validationRuns     ValidationRun[]
   deploymentRuns     DeploymentRun[]
+  auditEvents        AuditEvent[]
 
   @@unique([githubOwner, githubRepo])
   @@unique([repositoryId])
   @@index([organizationId])
+  @@index([ownerUserId])
+  @@index([ownerOrganizationId])
   @@index([activeRevisionId])
   @@index([dataClassification, createdAt])
   @@index([networkPartnerId])

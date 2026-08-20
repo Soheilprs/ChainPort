@@ -70,6 +70,15 @@ Phase 9 adds partner analytics tables and classification:
 - `projects.data_classification` (`PRODUCTION` or `INTERNAL_TEST`)
 - indexes on target chain, readiness, validation outcome, and deployment status
 
+Phase 11 adds identity and audit:
+
+- `organization_memberships`
+- `sessions` (token hash only)
+- `audit_events` (append-only from the application)
+- `github_installations` (installation id, never the token)
+- `projects.owner_user_id` / `owner_organization_id`
+- `repositories.visibility`
+
 Phase 10 extends partners and projects for the public portal:
 
 - `network_partners.slug` (unique, URL-safe) plus structured branding and link columns

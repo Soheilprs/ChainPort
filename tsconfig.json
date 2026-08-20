@@ -14,6 +14,7 @@
     { "path": "packages/ingest" },
     { "path": "packages/db" },
     { "path": "packages/ecosystem" },
+    { "path": "packages/auth" },
     { "path": "apps/api" },
     { "path": "apps/worker" }
   ]
