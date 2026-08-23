@@ -1,13 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
 import { AnalyzeButton } from "@/components/analysis-panel";
 import { EvaluateCompatibilityButton } from "@/components/evaluate-compatibility";
 import { PartnerContextBanner } from "@/components/partner-context-banner";
 import { PhaseBanner } from "@/components/phase-banner";
 import { SiteHeader } from "@/components/site-header";
-import { API_URL, type PartnerSummary } from "@/lib/api";
+import type { PartnerSummary } from "@/lib/api";
+import { serverApiFetch } from "@/lib/server-api";
 
 interface ProjectPageProps {
   params: Promise<{ id: string }>;
@@ -19,9 +20,7 @@ export const metadata: Metadata = {
 
 export default async function ProjectDetailPage({ params }: ProjectPageProps) {
   const { id } = await params;
-  const response = await fetch(`${API_URL}/v1/projects/${id}`, { cache: "no-store" }).catch(
-    () => null,
-  );
+  const response = await serverApiFetch(`/v1/projects/${id}`).catch(() => null);
   if (response === null) {
     return (
       <div>
@@ -31,6 +30,9 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
         </main>
       </div>
     );
+  }
+  if (response.status === 401) {
+    redirect(`/auth/sign-in?returnTo=/app/projects/${id}`);
   }
   if (response.status === 404) {
     notFound();
@@ -45,9 +47,7 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
       repository: { resolvedCommitSha: string | null };
     };
   };
-  const analysesResponse = await fetch(`${API_URL}/v1/projects/${id}/analyses`, {
-    cache: "no-store",
-  }).catch(() => null);
+  const analysesResponse = await serverApiFetch(`/v1/projects/${id}/analyses`).catch(() => null);
   const analysesBody =
     analysesResponse?.ok === true
       ? ((await analysesResponse.json()) as {
@@ -55,9 +55,9 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
         })
       : { data: [] };
   const latestAnalysis = analysesBody.data[0];
-  const runsResponse = await fetch(`${API_URL}/v1/projects/${id}/compatibility-runs`, {
-    cache: "no-store",
-  }).catch(() => null);
+  const runsResponse = await serverApiFetch(`/v1/projects/${id}/compatibility-runs`).catch(
+    () => null,
+  );
   const runsBody =
     runsResponse?.ok === true
       ? ((await runsResponse.json()) as {
@@ -97,6 +97,7 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
           <AnalyzeButton
             projectId={body.data.project.id}
             ingestComplete={body.data.job.status === "COMPLETED"}
+            returnTo={`/app/projects/${body.data.project.id}`}
           />
           {latestAnalysis ? (
             <div className="rounded-xl border border-line bg-surface/80 p-5">
@@ -111,6 +112,7 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
                   projectId={body.data.project.id}
                   analysisId={latestAnalysis.id}
                   analysisComplete={latestAnalysis.status === "COMPLETED"}
+                  returnTo={`/app/projects/${body.data.project.id}`}
                 />
               </div>
               <p className="mt-3 text-xs text-muted">

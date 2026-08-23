@@ -67,7 +67,7 @@ export const rpcCapabilityRule: CompatibilityRule = {
       targetValue: "UNKNOWN",
       confidence: "LOW",
       remediationType: "UNKNOWN",
-      registryEvidence,
+      registryEvidence: { ...registryEvidence, nextAction: "VERIFY_RPC_METHOD" },
     });
   },
 };

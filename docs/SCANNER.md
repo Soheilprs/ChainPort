@@ -7,7 +7,7 @@ repository files as data. It never executes them.
 
 `repositoryId + commitSha + scannerVersion`
 
-`scannerVersion` is currently `"1"`. A new version may re-analyze the same SHA without overwriting
+`scannerVersion` is currently `"2"`. A new version may re-analyze the same SHA without overwriting
 the previous analysis row.
 
 ## Workflow
@@ -31,11 +31,16 @@ on `analysis_detector_runs` and does not fail the whole analysis.
 - Package managers: pnpm, npm, yarn (from lockfiles)
 - Libraries: viem, ethers, wagmi
 - Solidity inventory: pragma, contracts, interfaces, libraries, imports
-- Named tokens: USDC, USDT, WETH (known addresses only)
-- Protocols: Chainlink, Uniswap V2/V3, Permit2, Safe, LayerZero
+- Named tokens: USDC, USDT, WETH, LINK (known addresses and identifier context)
+- Protocols: Chainlink, Chainlink Functions, Uniswap V2/V3, Permit2, Safe, LayerZero
+- Project deployments: address-book identifiers that match contracts in the same repository
 - Network: hardcoded `chainId` in configs
 - RPC methods and redacted RPC URLs
 - Environment template keys with secret values redacted
+
+Address extraction requires an exact 40-hex EVM address. Transaction hashes, `bytes32`
+storage slots, and OpenZeppelin / broadcast / deployments history are not requirements.
+Multiple evidence locations for the same capability collapse into one requirement.
 
 ## Evidence
 

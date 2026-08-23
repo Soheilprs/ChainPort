@@ -119,6 +119,14 @@ describe("compatibility rules", () => {
     expect(report.findings[0]?.status).toBe("UNKNOWN");
   });
 
+  it("Chainlink Functions is PASS on Optimism from official router data", () => {
+    const report = evaluateAgainst("optimism", [protocolReq("CHAINLINK_FUNCTIONS", "ORACLE")]);
+    expect(report.findings[0]?.status).toBe("PASS");
+    expect(report.findings[0]?.targetValue?.toLowerCase()).toBe(
+      "0xaa8aaa682c9ef150c0c8e96a8d60945bcb21faad",
+    );
+  });
+
   it("ETH/USD feed is PASS on Base when declared available", () => {
     const report = evaluateAgainst("base", [
       requirement({
@@ -183,6 +191,56 @@ describe("compatibility rules", () => {
       category: "CONFIGURATION",
       remediationType: "CONFIG_CHANGE",
     });
+  });
+
+  it("treats project deployments as warnings, not unknowns", () => {
+    const report = evaluateAgainst("optimism", [
+      requirement({
+        category: "CONFIGURATION",
+        key: "PROJECT_DEPLOYMENT",
+        requirementType: "PROJECT_DEPLOYMENT",
+        detectedValue: "0x2222222222222222222222222222222222222222",
+        normalizedValue: "IndexFactory",
+      }),
+    ]);
+    expect(report.findings[0]).toMatchObject({
+      status: "WARNING",
+      ruleId: "project-deployment",
+      remediationType: "CONFIG_CHANGE",
+    });
+    expect(report.findings[0]?.title).toContain("IndexFactory");
+    expect(report.findings[0]?.registryEvidence).toMatchObject({
+      nextAction: "VERIFY_PROTOCOL_DEPLOYMENT",
+    });
+  });
+
+  it("maps USDC environment keys to token remaps instead of unmapped UNKNOWN", () => {
+    const report = evaluateAgainst("optimism", [
+      requirement({
+        category: "CONFIGURATION",
+        key: "ENV_KEY",
+        detectedValue: "ARBITRUM_USDC_ADDRESS",
+        normalizedValue: "ARBITRUM_USDC_ADDRESS=[REDACTED]",
+        evidenceFilePaths: [".env.example"],
+      }),
+    ]);
+    expect(report.findings[0]).toMatchObject({
+      status: "WARNING",
+      category: "TOKENS",
+      remediationType: "ADDRESS_MAPPING",
+    });
+  });
+
+  it("skips unrelated decimals env keys", () => {
+    const report = evaluateAgainst("optimism", [
+      requirement({
+        category: "CONFIGURATION",
+        key: "ENV_KEY",
+        detectedValue: "USDC_DECIMALS",
+        normalizedValue: "USDC_DECIMALS=6",
+      }),
+    ]);
+    expect(report.findings).toHaveLength(0);
   });
 
   it("does not treat .env private-key hex as an unmapped contract", () => {

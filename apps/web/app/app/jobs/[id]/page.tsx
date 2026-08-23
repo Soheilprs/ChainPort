@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
 import { JobDetail } from "@/components/job-detail";
 import { PhaseBanner } from "@/components/phase-banner";
 import { SiteHeader } from "@/components/site-header";
-import { API_URL } from "@/lib/api";
+import { serverApiFetch } from "@/lib/server-api";
 
 interface JobPageProps {
   params: Promise<{ id: string }>;
@@ -15,9 +15,13 @@ export const metadata: Metadata = {
   title: "Job",
 };
 
-export default async function JobPage({ params }: JobPageProps) {
+export default async function JobPage({
+  params,
+  searchParams,
+}: JobPageProps & { searchParams: Promise<{ error?: string }> }) {
   const { id } = await params;
-  const response = await fetch(`${API_URL}/v1/jobs/${id}`, { cache: "no-store" }).catch(() => null);
+  const query = await searchParams;
+  const response = await serverApiFetch(`/v1/jobs/${id}`).catch(() => null);
   if (response === null) {
     return (
       <div>
@@ -27,6 +31,9 @@ export default async function JobPage({ params }: JobPageProps) {
         </main>
       </div>
     );
+  }
+  if (response.status === 401) {
+    redirect(`/auth/sign-in?returnTo=/app/jobs/${id}`);
   }
   if (response.status === 404) {
     notFound();
@@ -58,6 +65,7 @@ export default async function JobPage({ params }: JobPageProps) {
             initialJob={body.data.job}
             initialProject={body.data.project}
             initialRepository={body.data.repository}
+            analyzeError={query.error}
           />
         </div>
       </main>

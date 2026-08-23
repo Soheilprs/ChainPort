@@ -2,6 +2,7 @@ import type { CompatibilityRule } from "../types.js";
 import { chainIdCompatibilityRule } from "./chain-id.js";
 import { envConfigRule } from "./env-config.js";
 import { hardcodedAddressRule } from "./hardcoded-address.js";
+import { projectDeploymentRule } from "./project-deployment.js";
 import { infrastructureContractRule } from "./infrastructure.js";
 import { layerZeroRule } from "./layerzero.js";
 import { oracleAvailabilityRule } from "./oracle.js";
@@ -20,6 +21,7 @@ export const COMPATIBILITY_RULES: readonly CompatibilityRule[] = [
   infrastructureContractRule,
   uniswapRule,
   layerZeroRule,
+  projectDeploymentRule,
   hardcodedAddressRule,
 ];
 

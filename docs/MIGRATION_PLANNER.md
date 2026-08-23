@@ -21,7 +21,7 @@ Rules are pure. They read persisted compatibility findings, evidence, and the **
 snapshot from the compatibility run. They never use the latest registry to rewrite historical
 target values.
 
-`migrationRulesetVersion` is `"1"`. Identity:
+`migrationRulesetVersion` is `"2"`. Identity:
 
 `compatibilityRunId + migrationRulesetVersion`
 
@@ -65,6 +65,7 @@ no-op representation.
 - `WARNING` findings are the main source of work. Semantic duplicates merge.
 - Every `BLOCKER` becomes a prominent `BLOCKED` action.
 - Every important `UNKNOWN` becomes a verification action. UNKNOWN is never MANUAL or BLOCKED.
+- Unclassified hardcoded addresses merge into one verification action with combined evidence.
 
 ## Stages
 

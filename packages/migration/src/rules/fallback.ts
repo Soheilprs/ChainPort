@@ -32,7 +32,7 @@ export const fallbackMigrationRule: MigrationRule = {
       return [
         draft({
           finding,
-          key: `unknown:${finding.id}`,
+          key: `unknown:${finding.ruleId}`,
           ruleId: this.id,
           ruleVersion: this.version,
           title: finding.title,

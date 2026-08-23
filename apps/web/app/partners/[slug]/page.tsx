@@ -137,7 +137,7 @@ export default async function PartnerLandingPage({ params }: PartnerLandingProps
           {partner.portal.creationEnabled ? (
             <Link
               href={`/partners/${partner.slug}/migrate`}
-              className="inline-flex h-10 items-center justify-center rounded-md px-4 text-sm font-medium text-background"
+              className="inline-flex h-10 items-center justify-center rounded-md px-4 text-sm font-medium text-white"
               style={{ backgroundColor: partner.primaryAccent }}
             >
               Start migration

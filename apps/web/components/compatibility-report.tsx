@@ -1,7 +1,4 @@
-"use client";
-
 import Link from "next/link";
-import { useMemo, useState } from "react";
 
 import { BuildMigrationPlanButton } from "@/components/build-plan";
 import { Badge } from "@/components/ui/badge";
@@ -74,7 +71,59 @@ export interface CompatibilityReportPayload {
   }>;
 }
 
-type Filter = "ALL" | "BLOCKER" | "WARNING" | "UNKNOWN" | "PASS";
+const FILTERS = [
+  ["ALL", "All"],
+  ["BLOCKER", "Blockers"],
+  ["WARNING", "Warnings"],
+  ["UNKNOWN", "Unknown"],
+  ["PASS", "Pass"],
+] as const;
+
+type Filter = (typeof FILTERS)[number][0];
+
+function isFilter(value: string | undefined): value is Filter {
+  return FILTERS.some(([id]) => id === value);
+}
+
+function reportHref(
+  runId: string,
+  filter: Filter,
+  findingId?: string,
+  extras?: { category?: string | undefined; q?: string | undefined },
+): string {
+  const params = new URLSearchParams();
+  if (filter !== "ALL") {
+    params.set("filter", filter);
+  }
+  if (extras?.category !== undefined && extras.category !== "" && extras.category !== "ALL") {
+    params.set("category", extras.category);
+  }
+  if (extras?.q !== undefined && extras.q.trim() !== "") {
+    params.set("q", extras.q.trim());
+  }
+  if (findingId !== undefined && findingId !== "") {
+    params.set("finding", findingId);
+  }
+  const query = params.toString();
+  return query === "" ? `/app/compatibility/${runId}` : `/app/compatibility/${runId}?${query}`;
+}
+
+const NEXT_ACTION_COPY: Record<string, string> = {
+  VERIFY_TARGET_TOKEN_ADDRESS: "Verify the canonical token deployment on the target chain.",
+  VERIFY_PROTOCOL_DEPLOYMENT: "Verify or redeploy this contract on the target chain.",
+  VERIFY_RPC_METHOD: "Verify this RPC method or endpoint on the target chain.",
+  VERIFY_ORACLE_FEED: "Verify the oracle feed or Functions router on the target chain.",
+  IDENTIFY_EXTERNAL_ADDRESS: "Identify the contract behind this address before mapping it.",
+  REVIEW_DYNAMIC_CONFIGURATION: "Confirm whether this configuration is target-chain specific.",
+};
+
+function nextActionLabel(evidence: Record<string, unknown>): string | null {
+  const value = evidence.nextAction;
+  if (typeof value !== "string" || value === "") {
+    return null;
+  }
+  return NEXT_ACTION_COPY[value] ?? value.replaceAll("_", " ").toLowerCase();
+}
 
 function toneForStatus(status: string): "pass" | "warning" | "blocker" | "unknown" | "default" {
   if (status === "PASS") return "pass";
@@ -117,18 +166,106 @@ function formatAddress(value: string): string {
   return `${value.slice(0, 6)}…${value.slice(-4)}`;
 }
 
-export function CompatibilityReport({ payload }: { payload: CompatibilityReportPayload }) {
-  const [filter, setFilter] = useState<Filter>("ALL");
-  const [openId, setOpenId] = useState<string | null>(payload.findings[0]?.id ?? null);
+type Finding = CompatibilityReportPayload["findings"][number];
+
+function groupFindings(findings: Finding[]): Array<{
+  key: string;
+  title: string;
+  status: Finding["status"];
+  category: string;
+  ruleId: string;
+  findings: Finding[];
+  evidenceCount: number;
+}> {
+  const groups = new Map<
+    string,
+    {
+      key: string;
+      title: string;
+      status: Finding["status"];
+      category: string;
+      ruleId: string;
+      findings: Finding[];
+      evidenceCount: number;
+    }
+  >();
+  for (const finding of findings) {
+    const key = `${finding.status}|${finding.ruleId}|${finding.title}`;
+    const evidenceCount = finding.requirement?.evidence.length ?? 1;
+    const existing = groups.get(key);
+    if (existing !== undefined) {
+      existing.findings.push(finding);
+      existing.evidenceCount += evidenceCount;
+      continue;
+    }
+    groups.set(key, {
+      key,
+      title: finding.title,
+      status: finding.status,
+      category: finding.category,
+      ruleId: finding.ruleId,
+      findings: [finding],
+      evidenceCount,
+    });
+  }
+  return [...groups.values()];
+}
+
+export function CompatibilityReport({
+  payload,
+  filter: filterParam,
+  findingId,
+  planError,
+  category: categoryParam,
+  query: queryParam,
+}: {
+  payload: CompatibilityReportPayload;
+  filter?: string | undefined;
+  findingId?: string | undefined;
+  planError?: string | undefined;
+  category?: string | undefined;
+  query?: string | undefined;
+}) {
+  const filter: Filter = isFilter(filterParam) ? filterParam : "ALL";
+  const categoryFilter = categoryParam?.toUpperCase() ?? "ALL";
+  const search = queryParam?.trim() ?? "";
   const blocked = payload.run.readiness === "BLOCKED" || payload.run.blockerCount > 0;
   const applicable = payload.categories.filter((item) => item.applicable);
-  const visible = useMemo(() => {
-    if (filter === "ALL") {
-      return payload.findings;
-    }
-    return payload.findings.filter((item) => item.status === filter);
-  }, [filter, payload.findings]);
-  const selected = payload.findings.find((item) => item.id === openId) ?? visible[0];
+  const extras: { category?: string; q?: string } = {};
+  if (categoryFilter !== "ALL") {
+    extras.category = categoryFilter;
+  }
+  if (search !== "") {
+    extras.q = search;
+  }
+  const statusFiltered =
+    filter === "ALL" ? payload.findings : payload.findings.filter((item) => item.status === filter);
+  const categoryFiltered =
+    categoryFilter === "ALL"
+      ? statusFiltered
+      : statusFiltered.filter((item) => item.category === categoryFilter);
+  const visible =
+    search === ""
+      ? categoryFiltered
+      : categoryFiltered.filter((item) => {
+          const haystack =
+            `${item.title} ${item.summary} ${item.sourceValue ?? ""} ${item.category}`.toLowerCase();
+          return haystack.includes(search.toLowerCase());
+        });
+  const groups = groupFindings(visible);
+  const selected =
+    visible.find((item) => item.id === findingId) ?? groups[0]?.findings[0] ?? visible[0];
+  const reportBase = `/app/compatibility/${payload.run.id}`;
+  const uniqueCount = groupFindings(payload.findings).length;
+  const evidenceOccurrences = payload.findings.reduce(
+    (sum, item) => sum + (item.requirement?.evidence.length ?? 1),
+    0,
+  );
+  const topIssues = [
+    ...groupFindings(payload.findings.filter((item) => item.status === "BLOCKER")),
+    ...groupFindings(payload.findings.filter((item) => item.status === "WARNING")),
+    ...groupFindings(payload.findings.filter((item) => item.status === "UNKNOWN")),
+  ].slice(0, 6);
 
   if (payload.run.status === "FAILED") {
     return (
@@ -157,7 +294,12 @@ export function CompatibilityReport({ payload }: { payload: CompatibilityReportP
         </Badge>
       </div>
       {payload.run.status === "COMPLETED" ? (
-        <BuildMigrationPlanButton compatibilityRunId={payload.run.id} compatibilityComplete />
+        <BuildMigrationPlanButton
+          compatibilityRunId={payload.run.id}
+          compatibilityComplete
+          returnTo={reportBase}
+          error={planError}
+        />
       ) : null}
 
       {blocked ? (
@@ -194,8 +336,43 @@ export function CompatibilityReport({ payload }: { payload: CompatibilityReportP
             <Count label="Unknown" value={payload.run.unknownCount} className="text-unknown" />
             <Count label="Pass" value={payload.run.passCount} className="text-pass" />
           </div>
+          <p className="mt-3 text-xs text-muted">
+            {uniqueCount} unique requirement{uniqueCount === 1 ? "" : "s"} across{" "}
+            {evidenceOccurrences} evidence location{evidenceOccurrences === 1 ? "" : "s"}.
+          </p>
         </Card>
       </div>
+
+      {topIssues.length > 0 ? (
+        <div>
+          <h2 className="text-sm font-medium">Top migration issues</h2>
+          <ol className="mt-3 space-y-2">
+            {topIssues.map((group, index) => (
+              <li key={group.key}>
+                <a
+                  href={reportHref(
+                    payload.run.id,
+                    group.status as Filter,
+                    group.findings[0]?.id,
+                    extras,
+                  )}
+                  className="flex items-start gap-3 rounded-xl border border-line bg-surface/60 px-4 py-3 text-sm hover:bg-surface-hover"
+                >
+                  <span className="font-mono text-xs text-muted">{index + 1}</span>
+                  <span className="min-w-0 flex-1">
+                    <span className="font-medium">{group.title}</span>
+                    <span className="mt-1 block text-xs text-muted">
+                      {group.findings.length} finding{group.findings.length === 1 ? "" : "s"} ·{" "}
+                      {group.evidenceCount} evidence location{group.evidenceCount === 1 ? "" : "s"}
+                    </span>
+                  </span>
+                  <Badge tone={toneForStatus(group.status)}>{group.status}</Badge>
+                </a>
+              </li>
+            ))}
+          </ol>
+        </div>
+      ) : null}
 
       <div>
         <h2 className="text-sm font-medium">Category breakdown</h2>
@@ -229,26 +406,58 @@ export function CompatibilityReport({ payload }: { payload: CompatibilityReportP
         </div>
       </div>
 
+      <form
+        method="get"
+        action={reportBase}
+        className="flex flex-wrap items-end gap-3 rounded-xl border border-line bg-surface/40 px-4 py-3"
+      >
+        {filter !== "ALL" ? <input type="hidden" name="filter" value={filter} /> : null}
+        <label className="space-y-1 text-xs text-muted">
+          Search
+          <input
+            name="q"
+            defaultValue={search}
+            placeholder="token, RPC, contract…"
+            className="block h-9 w-56 rounded-md border border-line bg-background px-3 text-sm text-foreground"
+          />
+        </label>
+        <label className="space-y-1 text-xs text-muted">
+          Category
+          <select
+            name="category"
+            defaultValue={categoryFilter}
+            className="block h-9 rounded-md border border-line bg-background px-3 text-sm text-foreground"
+          >
+            <option value="ALL">All categories</option>
+            {applicable.map((item) => (
+              <option key={item.category} value={item.category}>
+                {item.category.toLowerCase().replaceAll("_", " ")}
+              </option>
+            ))}
+          </select>
+        </label>
+        <button
+          type="submit"
+          className="inline-flex h-9 cursor-pointer items-center rounded-md px-3.5 text-sm font-semibold"
+          style={{ backgroundColor: "#f4f4f5", color: "#09090b" }}
+        >
+          Apply
+        </button>
+      </form>
+
       <div className="flex flex-wrap gap-1 border-b border-line">
-        {(
-          [
-            ["ALL", "All"],
-            ["BLOCKER", "Blockers"],
-            ["WARNING", "Warnings"],
-            ["UNKNOWN", "Unknown"],
-            ["PASS", "Pass"],
-          ] as const
-        ).map(([id, label]) => (
-          <button
+        {FILTERS.map(([id, label]) => (
+          <a
             key={id}
-            type="button"
+            href={reportHref(payload.run.id, id, undefined, extras)}
             className={`-mb-px border-b px-3 py-2 text-sm ${
-              filter === id ? "border-foreground text-foreground" : "border-transparent text-muted"
+              filter === id
+                ? "border-foreground text-foreground"
+                : "border-transparent text-muted hover:text-foreground"
             }`}
-            onClick={() => setFilter(id)}
           >
             {label}
-          </button>
+          </a>
         ))}
       </div>
 
@@ -260,26 +469,31 @@ export function CompatibilityReport({ payload }: { payload: CompatibilityReportP
       ) : (
         <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
           <div className="space-y-2">
-            {visible.map((finding) => (
-              <button
-                key={finding.id}
-                type="button"
-                onClick={() => setOpenId(finding.id)}
-                className={`w-full rounded-xl border px-4 py-3 text-left transition-colors ${
-                  selected?.id === finding.id
-                    ? "border-line-strong bg-surface-hover"
-                    : "border-line bg-surface/60 hover:bg-surface-hover"
-                }`}
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <p className="text-sm font-medium">{finding.title}</p>
-                  <Badge tone={toneForStatus(finding.status)}>{finding.status}</Badge>
-                </div>
-                <p className="mt-1 text-xs text-muted">
-                  {finding.category} · {finding.ruleId} v{finding.ruleVersion}
-                </p>
-              </button>
-            ))}
+            {groups.map((group) => {
+              const active = group.findings.some((item) => item.id === selected?.id);
+              return (
+                <a
+                  key={group.key}
+                  href={reportHref(payload.run.id, filter, group.findings[0]?.id, extras)}
+                  className={`block w-full rounded-xl border px-4 py-3 text-left transition-colors ${
+                    active
+                      ? "border-line-strong bg-surface-hover"
+                      : "border-line bg-surface/60 hover:bg-surface-hover"
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <p className="text-sm font-medium">{group.title}</p>
+                    <Badge tone={toneForStatus(group.status)}>{group.status}</Badge>
+                  </div>
+                  <p className="mt-1 text-xs text-muted">
+                    {group.category} · {group.findings.length} unique
+                    {group.evidenceCount > group.findings.length
+                      ? ` · ${group.evidenceCount} evidence locations`
+                      : ""}
+                  </p>
+                </a>
+              );
+            })}
           </div>
           {selected ? (
             <FindingDetail finding={selected} analysisId={payload.run.analysisId} />
@@ -322,6 +536,11 @@ function FindingDetail({
       </div>
       <CardTitle className="mt-4">{finding.title}</CardTitle>
       <CardDescription>{finding.summary}</CardDescription>
+      {nextActionLabel(finding.registryEvidence) !== null ? (
+        <p className="mt-3 text-sm text-muted-strong">
+          Next step: {nextActionLabel(finding.registryEvidence)}
+        </p>
+      ) : null}
       <dl className="mt-4 space-y-3 text-sm">
         <Row label="Current" value={finding.sourceValue} />
         <Row label="Target" value={finding.targetValue} />
@@ -340,7 +559,7 @@ function FindingDetail({
         <div className="mt-5">
           <p className="text-xs uppercase tracking-[0.14em] text-muted">Source evidence</p>
           <ul className="mt-2 space-y-2">
-            {finding.requirement.evidence.slice(0, 4).map((entry) => (
+            {finding.requirement.evidence.slice(0, 8).map((entry) => (
               <li key={entry.id} className="rounded-lg border border-line bg-background/50 p-3">
                 <p className="font-mono text-[11px] text-muted">
                   {entry.filePath}:{entry.startLine}
@@ -351,6 +570,12 @@ function FindingDetail({
               </li>
             ))}
           </ul>
+          {finding.requirement.evidence.length > 8 ? (
+            <p className="mt-2 text-xs text-muted">
+              {finding.requirement.evidence.length - 8} more evidence location
+              {finding.requirement.evidence.length - 8 === 1 ? "" : "s"}.
+            </p>
+          ) : null}
           <Link
             href={`/app/analyses/${analysisId}`}
             className="mt-3 inline-block text-xs text-accent"

@@ -20,7 +20,11 @@ interface CompatibilityRule {
 Rules are pure. They receive normalized requirements, source/target identity, and a capability
 snapshot. They do not access the database, the network, or the repository filesystem.
 
-`compatibilityRulesetVersion` is `"1"`. Each finding stores `ruleId` and `ruleVersion`.
+`compatibilityRulesetVersion` is `"2"`. Each finding stores `ruleId` and `ruleVersion`.
+
+Findings represent unique compatibility requirements. Evidence occurrences (files/lines) attach
+to those requirements; they do not inflate the finding count. Coverage uses unique findings,
+not raw source matches.
 
 ## Severity semantics
 
@@ -100,7 +104,7 @@ Confidence label:
 
 ## Registry snapshot / versioning
 
-`REGISTRY_VERSION = "1"` lives in `@chainport/chain-registry`.
+`REGISTRY_VERSION = "2"` lives in `@chainport/chain-registry`.
 
 Each run stores:
 
@@ -145,8 +149,13 @@ is no compatibility worker queue in Phase 4.
 | `uniswap`                 | Uniswap V2 / V3 (no version substitution)          |
 | `layerzero`               | LayerZero (no bridge substitution)                 |
 | `hardcoded-address`       | Unclassified contract addresses                    |
+| `project-deployment`      | Repository-owned deployments that must be remapped |
 | `framework-compatibility` | Single category-level Solidity/EVM `PASS`          |
 | `unmapped-requirement`    | Fallback `UNKNOWN`                                 |
+
+UNKNOWN findings include a deterministic `nextAction` in registry evidence when one exists
+(`VERIFY_TARGET_TOKEN_ADDRESS`, `VERIFY_PROTOCOL_DEPLOYMENT`, `VERIFY_RPC_METHOD`,
+`VERIFY_ORACLE_FEED`, `IDENTIFY_EXTERNAL_ADDRESS`, `REVIEW_DYNAMIC_CONFIGURATION`).
 
 Skipped as non-actionable: Solidity pragmas/imports, Foundry/Hardhat, Next.js, secret env keys,
 viem/wagmi packages, standard `eth_*` JSON-RPC methods, and hex values found only in `.env` files.

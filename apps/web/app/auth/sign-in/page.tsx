@@ -1,77 +1,68 @@
-"use client";
+import Link from "next/link";
 
-import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useState } from "react";
-
-import { Button } from "@/components/ui/button";
-import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { API_URL } from "@/lib/api";
+import { SiteHeader } from "@/components/site-header";
 
-function SignInForm() {
-  const router = useRouter();
-  const params = useSearchParams();
-  const returnTo = params.get("returnTo") ?? "/app/projects";
-  const [email, setEmail] = useState("developer@chainport.test");
-  const [error, setError] = useState<string | null>(null);
-  const [pending, setPending] = useState(false);
+const ERRORS: Record<string, string> = {
+  failed: "Sign in failed. Try again.",
+  "api-unavailable": "API unavailable. Start the API and try again.",
+  "invalid-email": "Enter a valid email address.",
+  "oidc-required": "This environment requires OIDC sign-in.",
+};
 
-  async function onSubmit() {
-    setPending(true);
-    setError(null);
-    try {
-      const response = await fetch(`${API_URL}/v1/auth/test/login`, {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, name: email.split("@")[0] }),
-      });
-      if (response.status === 404) {
-        window.location.href = `${API_URL}/v1/auth/oidc/start?returnTo=${encodeURIComponent(returnTo)}`;
-        return;
-      }
-      if (!response.ok) {
-        setError("Sign in failed");
-        return;
-      }
-      router.push(returnTo);
-      router.refresh();
-    } catch {
-      setError("API unavailable");
-    } finally {
-      setPending(false);
-    }
-  }
+export default async function SignInPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ returnTo?: string; error?: string }>;
+}) {
+  const params = await searchParams;
+  const returnTo =
+    params.returnTo !== undefined &&
+    params.returnTo.startsWith("/") &&
+    !params.returnTo.startsWith("//")
+      ? params.returnTo
+      : "/app/projects";
+  const error = params.error !== undefined ? (ERRORS[params.error] ?? "Sign in failed.") : null;
 
   return (
-    <Card className="mx-auto max-w-md">
-      <CardTitle>Sign in</CardTitle>
-      <CardDescription>
-        Development uses a deterministic test identity provider. Production uses OIDC and rejects
-        this path.
-      </CardDescription>
-      <div className="mt-4 space-y-3">
-        <Input
-          type="email"
-          value={email}
-          onChange={(event) => setEmail(event.target.value)}
-          aria-label="Email"
-        />
-        <Button onClick={() => void onSubmit()} disabled={pending}>
-          {pending ? "Signing in…" : "Sign in"}
-        </Button>
-        {error !== null ? <p className="text-sm text-blocker">{error}</p> : null}
-      </div>
-    </Card>
-  );
-}
-
-export default function SignInPage() {
-  return (
-    <main className="mx-auto max-w-6xl px-5 py-16">
-      <Suspense>
-        <SignInForm />
-      </Suspense>
-    </main>
+    <div>
+      <SiteHeader />
+      <main className="mx-auto max-w-6xl px-5 py-16">
+        <form
+          method="post"
+          action="/auth/login"
+          className="relative z-10 mx-auto w-full max-w-md rounded-xl border border-line-strong bg-surface p-6"
+        >
+          <h1 className="text-xl font-medium tracking-tight">Sign in to ChainPort</h1>
+          <p className="mt-2 text-sm leading-6 text-muted">
+            Local development uses a test identity. Use the Continue button below.
+          </p>
+          <input type="hidden" name="returnTo" value={returnTo} />
+          <label className="mt-6 block space-y-2 text-sm">
+            <span className="text-muted-strong">Email</span>
+            <Input
+              type="email"
+              name="email"
+              defaultValue="developer@chainport.test"
+              autoComplete="username"
+              required
+            />
+          </label>
+          <button
+            type="submit"
+            className="relative z-10 mt-5 flex h-11 w-full cursor-pointer items-center justify-center rounded-md text-sm font-semibold"
+            style={{ backgroundColor: "#f4f4f5", color: "#09090b" }}
+          >
+            Continue
+          </button>
+          {error !== null ? <p className="mt-3 text-sm text-blocker">{error}</p> : null}
+          <p className="mt-4 text-xs text-muted">
+            <Link href="/" className="underline hover:text-foreground">
+              Back to home
+            </Link>
+          </p>
+        </form>
+      </main>
+    </div>
   );
 }

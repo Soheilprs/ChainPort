@@ -1,4 +1,21 @@
+import { CSRF_COOKIE_NAME, CSRF_HEADER_NAME } from "@chainport/shared";
+
 export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
+
+export function clientApiUrl(): string {
+  if (typeof window === "undefined") {
+    return API_URL;
+  }
+  try {
+    const url = new URL(API_URL, window.location.origin);
+    if (url.hostname === "localhost" || url.hostname === "127.0.0.1") {
+      return "/backend";
+    }
+    return url.origin === window.location.origin ? API_URL : API_URL;
+  } catch {
+    return API_URL.startsWith("/") ? API_URL : "/backend";
+  }
+}
 
 export interface ApiHealth {
   status: "ok" | "unreachable";
@@ -71,6 +88,56 @@ async function readJson(response: Response): Promise<unknown> {
   return response.json() as Promise<unknown>;
 }
 
+function readCookie(name: string): string | undefined {
+  if (typeof document === "undefined") {
+    return undefined;
+  }
+  const prefix = `${name}=`;
+  for (const part of document.cookie.split("; ")) {
+    if (part.startsWith(prefix)) {
+      return decodeURIComponent(part.slice(prefix.length));
+    }
+  }
+  return undefined;
+}
+
+const CSRF_STORAGE_KEY = "chainport_csrf";
+
+export function rememberCsrfToken(token: string): void {
+  if (typeof window === "undefined" || token === "") {
+    return;
+  }
+  window.sessionStorage.setItem(CSRF_STORAGE_KEY, token);
+}
+
+function mutationHeaders(): Record<string, string> {
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  const csrf =
+    readCookie(CSRF_COOKIE_NAME) ??
+    (typeof window === "undefined" ? undefined : window.sessionStorage.getItem(CSRF_STORAGE_KEY));
+  if (csrf !== undefined && csrf !== null && csrf !== "") {
+    headers[CSRF_HEADER_NAME] = csrf;
+  }
+  return headers;
+}
+
+function redirectToSignIn(): void {
+  if (typeof window === "undefined") {
+    return;
+  }
+  const next = `${window.location.pathname}${window.location.search}`;
+  window.location.assign(`/auth/sign-in?returnTo=${encodeURIComponent(next)}`);
+}
+
+function asApiError(body: unknown, fallback: string): ApiError {
+  const error = body as ApiError;
+  return {
+    status: "error",
+    code: typeof error.code === "string" ? error.code : "INTERNAL_ERROR",
+    message: typeof error.message === "string" ? error.message : fallback,
+  };
+}
+
 export async function fetchApiHealth(): Promise<ApiHealth> {
   try {
     const response = await fetch(`${API_URL}/health`, {
@@ -117,23 +184,22 @@ export async function createProject(input: {
   sourceChainKey: string;
   targetChainKey: string;
 }): Promise<CreateProjectResult> {
-  const response = await fetch(`${API_URL}/v1/projects`, {
+  const response = await fetch(`${clientApiUrl()}/v1/projects`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: mutationHeaders(),
     credentials: "include",
     body: JSON.stringify(input),
   });
   const body = await readJson(response);
-  if (!response.ok) {
-    const error = body as ApiError;
+  if (response.status === 401) {
+    redirectToSignIn();
     return {
       ok: false,
-      error: {
-        status: "error",
-        code: typeof error.code === "string" ? error.code : "INTERNAL_ERROR",
-        message: typeof error.message === "string" ? error.message : "Request failed",
-      },
+      error: asApiError(body, "Sign in is required to start ingest"),
     };
+  }
+  if (!response.ok) {
+    return { ok: false, error: asApiError(body, "Request failed") };
   }
   const payload = body as { data: { project: ProjectSummary; job: JobSummary } };
   return { ok: true, project: payload.data.project, job: payload.data.job };
@@ -144,9 +210,9 @@ export async function createPartnerProject(input: {
   repositoryUrl: string;
   sourceChainKey: string;
 }): Promise<CreateProjectResult> {
-  const response = await fetch(`${API_URL}/v1/public/partners/${input.slug}/projects`, {
+  const response = await fetch(`${clientApiUrl()}/v1/public/partners/${input.slug}/projects`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: mutationHeaders(),
     credentials: "include",
     body: JSON.stringify({
       repositoryUrl: input.repositoryUrl,
@@ -154,19 +220,32 @@ export async function createPartnerProject(input: {
     }),
   });
   const body = await readJson(response);
-  if (!response.ok) {
-    const error = body as ApiError;
+  if (response.status === 401) {
+    redirectToSignIn();
     return {
       ok: false,
-      error: {
-        status: "error",
-        code: typeof error.code === "string" ? error.code : "INTERNAL_ERROR",
-        message: typeof error.message === "string" ? error.message : "Request failed",
-      },
+      error: asApiError(body, "Sign in is required to start ingest"),
     };
+  }
+  if (!response.ok) {
+    return { ok: false, error: asApiError(body, "Request failed") };
   }
   const payload = body as { data: { project: ProjectSummary; job: JobSummary } };
   return { ok: true, project: payload.data.project, job: payload.data.job };
+}
+
+export async function fetchCurrentUser(): Promise<{ id: string; email: string } | null> {
+  const response = await fetch(`${clientApiUrl()}/v1/auth/me`, {
+    cache: "no-store",
+    credentials: "include",
+  });
+  if (!response.ok) {
+    return null;
+  }
+  const body = (await readJson(response)) as {
+    data?: { user?: { id: string; email: string } | null };
+  };
+  return body.data?.user ?? null;
 }
 
 export async function fetchJob(jobId: string): Promise<{
@@ -174,7 +253,10 @@ export async function fetchJob(jobId: string): Promise<{
   project: ProjectSummary;
   repository: RepositorySummary;
 } | null> {
-  const response = await fetch(`${API_URL}/v1/jobs/${jobId}`, { cache: "no-store" });
+  const response = await fetch(`${clientApiUrl()}/v1/jobs/${jobId}`, {
+    cache: "no-store",
+    credentials: "include",
+  });
   if (response.status === 404) {
     return null;
   }

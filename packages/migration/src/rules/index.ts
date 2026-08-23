@@ -4,6 +4,7 @@ import { crossChainMigrationRule } from "./cross-chain.js";
 import { envConfigMigrationRule } from "./env-config.js";
 import { fallbackMigrationRule } from "./fallback.js";
 import { unknownAddressMigrationRule } from "./hardcoded-address.js";
+import { projectDeploymentMigrationRule } from "./project-deployment.js";
 import { infrastructureAddressMigrationRule } from "./infrastructure.js";
 import { oracleMigrationRule } from "./oracle.js";
 import { rpcCapabilityMigrationRule } from "./rpc-capability.js";
@@ -19,6 +20,7 @@ export const MIGRATION_RULES: readonly MigrationRule[] = [
   oracleMigrationRule,
   rpcCapabilityMigrationRule,
   crossChainMigrationRule,
+  projectDeploymentMigrationRule,
   unknownAddressMigrationRule,
   fallbackMigrationRule,
 ];

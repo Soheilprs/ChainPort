@@ -13,10 +13,12 @@ export function JobDetail({
   initialJob,
   initialProject,
   initialRepository,
+  analyzeError,
 }: {
   initialJob: JobSummary;
   initialProject: ProjectSummary;
   initialRepository: RepositorySummary;
+  analyzeError?: string | undefined;
 }) {
   const [job, setJob] = useState(initialJob);
   const [repository, setRepository] = useState(initialRepository);
@@ -89,7 +91,12 @@ export function JobDetail({
         </Card>
       </div>
       {job.status === "COMPLETED" ? (
-        <AnalyzeButton projectId={initialProject.id} ingestComplete />
+        <AnalyzeButton
+          projectId={initialProject.id}
+          ingestComplete
+          returnTo={`/app/jobs/${job.id}`}
+          error={analyzeError}
+        />
       ) : null}
       {job.status === "FAILED" ? (
         <Card className="border-blocker/30">

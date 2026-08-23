@@ -5,6 +5,6 @@ import { MIGRATION_IMPLEMENTATION_STATUS, MIGRATION_RULESET_VERSION } from "../s
 describe("migration contract", () => {
   it("is implemented for phase 5", () => {
     expect(MIGRATION_IMPLEMENTATION_STATUS).toBe("implemented");
-    expect(MIGRATION_RULESET_VERSION).toBe("1");
+    expect(MIGRATION_RULESET_VERSION).toBe("2");
   });
 });

@@ -16,6 +16,12 @@ export interface ImportHit {
   line: number;
 }
 
+export interface AddressBinding {
+  address: string;
+  line: number;
+  names: string[];
+}
+
 function lineOf(sourceFile: ts.SourceFile, node: ts.Node): number {
   return sourceFile.getLineAndCharacterOfPosition(node.getStart(sourceFile)).line + 1;
 }
@@ -32,6 +38,7 @@ export function parseTypeScriptSource(filePath: string, text: string) {
   const stringLiterals: StringLiteralHit[] = [];
   const imports: ImportHit[] = [];
   const identifiers = new Set<string>();
+  const addressBindings: AddressBinding[] = [];
 
   function visit(node: ts.Node): void {
     if (ts.isImportDeclaration(node) && ts.isStringLiteral(node.moduleSpecifier)) {
@@ -60,10 +67,48 @@ export function parseTypeScriptSource(filePath: string, text: string) {
     }
     if (ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node)) {
       stringLiterals.push({ value: node.text, line: lineOf(sourceFile, node) });
+      if (/^0x[a-fA-F0-9]{40}$/.test(node.text)) {
+        addressBindings.push({
+          address: node.text,
+          line: lineOf(sourceFile, node),
+          names: bindingNames(node),
+        });
+      }
     }
     ts.forEachChild(node, visit);
   }
 
   visit(sourceFile);
-  return { numericProperties, stringLiterals, imports, identifiers: [...identifiers] };
+  return {
+    numericProperties,
+    stringLiterals,
+    imports,
+    identifiers: [...identifiers],
+    addressBindings,
+  };
+}
+
+function bindingNames(node: ts.Node): string[] {
+  const names: string[] = [];
+  let current: ts.Node | undefined = node.parent;
+  while (current !== undefined) {
+    if (ts.isVariableDeclaration(current) && ts.isIdentifier(current.name)) {
+      names.push(current.name.text);
+    } else if (ts.isPropertyAssignment(current)) {
+      if (ts.isIdentifier(current.name) || ts.isStringLiteral(current.name)) {
+        names.push(current.name.text);
+      } else if (
+        ts.isComputedPropertyName(current.name) &&
+        (ts.isStringLiteral(current.name.expression) ||
+          ts.isNoSubstitutionTemplateLiteral(current.name.expression) ||
+          ts.isIdentifier(current.name.expression))
+      ) {
+        names.push(current.name.expression.text);
+      }
+    } else if (ts.isPropertyDeclaration(current) && ts.isIdentifier(current.name)) {
+      names.push(current.name.text);
+    }
+    current = current.parent;
+  }
+  return names;
 }

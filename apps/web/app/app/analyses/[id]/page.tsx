@@ -1,21 +1,26 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
 import { AnalysisDetail } from "@/components/analysis-detail";
 import { PhaseBanner } from "@/components/phase-banner";
 import { SiteHeader } from "@/components/site-header";
-import { API_URL } from "@/lib/api";
+import { serverApiFetch } from "@/lib/server-api";
 
 export const metadata: Metadata = {
   title: "Analysis",
 };
 
-export default async function AnalysisPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function AnalysisPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ tab?: string; requirement?: string; error?: string }>;
+}) {
   const { id } = await params;
-  const response = await fetch(`${API_URL}/v1/analyses/${id}`, { cache: "no-store" }).catch(
-    () => null,
-  );
+  const query = await searchParams;
+  const response = await serverApiFetch(`/v1/analyses/${id}`).catch(() => null);
   if (response === null) {
     return (
       <div>
@@ -25,6 +30,9 @@ export default async function AnalysisPage({ params }: { params: Promise<{ id: s
         </main>
       </div>
     );
+  }
+  if (response.status === 401) {
+    redirect(`/auth/sign-in?returnTo=/app/analyses/${id}`);
   }
   if (response.status === 404) {
     notFound();
@@ -46,7 +54,12 @@ export default async function AnalysisPage({ params }: { params: Promise<{ id: s
           ← Projects
         </Link>
         <div className="mt-4">
-          <AnalysisDetail initial={body.data} />
+          <AnalysisDetail
+            initial={body.data}
+            tab={query.tab}
+            requirementId={query.requirement}
+            evaluateError={query.error}
+          />
         </div>
       </main>
     </div>

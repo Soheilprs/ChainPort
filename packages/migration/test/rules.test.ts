@@ -138,6 +138,31 @@ describe("migration rules", () => {
     ).toBe(true);
   });
 
+  it("merges unclassified address findings into one verification action", () => {
+    const plan = createMigrationPlan({
+      context: context(),
+      findings: [
+        finding({
+          id: "f1",
+          ruleId: "hardcoded-address",
+          status: "UNKNOWN",
+          title: "unknown a",
+          sourceValue: "0x1111111111111111111111111111111111111111",
+        }),
+        finding({
+          id: "f2",
+          ruleId: "hardcoded-address",
+          status: "UNKNOWN",
+          title: "unknown b",
+          sourceValue: "0x2222222222222222222222222222222222222222",
+        }),
+      ],
+    });
+    expect(plan.actions).toHaveLength(1);
+    expect(plan.actions[0]?.key).toBe("unknown-address");
+    expect(plan.actions[0]?.findingIds).toEqual(["f1", "f2"]);
+  });
+
   it("G: PASS-only findings produce an empty READY_TO_APPLY plan", () => {
     const plan = createMigrationPlan({
       context: context(),

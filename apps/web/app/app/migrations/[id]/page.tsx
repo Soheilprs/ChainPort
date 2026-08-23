@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
 import { MigrationPlanView, type MigrationPlanPayload } from "@/components/migration-plan";
 import { PhaseBanner } from "@/components/phase-banner";
 import { SiteHeader } from "@/components/site-header";
-import { API_URL } from "@/lib/api";
+import { serverApiFetch } from "@/lib/server-api";
 
 export const metadata: Metadata = {
   title: "Migration plan",
@@ -13,9 +13,7 @@ export const metadata: Metadata = {
 
 export default async function MigrationPlanPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const response = await fetch(`${API_URL}/v1/migration-plans/${id}`, { cache: "no-store" }).catch(
-    () => null,
-  );
+  const response = await serverApiFetch(`/v1/migration-plans/${id}`).catch(() => null);
   if (response === null) {
     return (
       <div>
@@ -25,6 +23,9 @@ export default async function MigrationPlanPage({ params }: { params: Promise<{ 
         </main>
       </div>
     );
+  }
+  if (response.status === 401) {
+    redirect(`/auth/sign-in?returnTo=/app/migrations/${id}`);
   }
   if (response.status === 404) {
     notFound();

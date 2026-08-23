@@ -4,7 +4,7 @@ import { hashTargetSnapshot, REGISTRY_VERSION, snapshotForChainKey } from "../sr
 
 describe("target capability snapshots", () => {
   it("versions the in-code registry", () => {
-    expect(REGISTRY_VERSION).toBe("1");
+    expect(REGISTRY_VERSION).toBe("2");
   });
 
   it("hashes canonical capability data independently of key order", () => {
@@ -16,6 +16,25 @@ describe("target capability snapshots", () => {
     });
     expect(hashed.hash).toBe(again.hash);
     expect(hashed.hash).toMatch(/^[a-f0-9]{64}$/);
+  });
+
+  it("records official LINK and Chainlink Functions data as declared/verified, not guessed", () => {
+    const optimism = snapshotForChainKey("optimism");
+    expect(optimism.snapshot.tokens.find((item) => item.symbol === "LINK")).toMatchObject({
+      availability: "AVAILABLE",
+      provenance: "VERIFIED",
+      address: "0x350a791Bfc2C21F9Ed5d10980Dad2e2638ffa7f6",
+    });
+    expect(
+      optimism.snapshot.protocols.find((item) => item.id === "CHAINLINK_FUNCTIONS"),
+    ).toMatchObject({
+      availability: "AVAILABLE",
+      provenance: "DECLARED",
+    });
+    const unichain = snapshotForChainKey("unichain");
+    expect(
+      unichain.snapshot.protocols.find((item) => item.id === "CHAINLINK_FUNCTIONS")?.availability,
+    ).toBe("UNKNOWN");
   });
 
   it("keeps Base USDC verified and Unichain USDC unknown", () => {

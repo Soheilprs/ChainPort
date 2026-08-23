@@ -11,11 +11,11 @@ export const unknownAddressMigrationRule: MigrationRule = {
     return [
       draft({
         finding,
-        key: `unknown-address:${finding.sourceValue ?? finding.id}`,
+        key: "unknown-address",
         ruleId: this.id,
         ruleVersion: this.version,
-        title: `Unclassified contract address needs verification on ${context.targetChainName}`,
-        description: `A hardcoded address is not in the token or infrastructure catalog, so ChainPort cannot map it. This is not a fabricated equivalent and not a blocker.`,
+        title: `Identify unclassified hardcoded addresses on ${context.targetChainName}`,
+        description: `Hardcoded addresses are not in the token or infrastructure catalog, so ChainPort cannot map them. Identify each contract and confirm whether a ${context.targetChainName} deployment exists. This is not a fabricated equivalent and not a blocker.`,
         technicalReason: finding.technicalReason,
         category: "UNKNOWN_ADDRESS",
         stage: "MANUAL_REVIEW",

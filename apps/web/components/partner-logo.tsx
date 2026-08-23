@@ -21,7 +21,7 @@ export function PartnerLogo({
   if (url === null || failed) {
     return (
       <div
-        className={`flex shrink-0 items-center justify-center rounded-lg font-medium text-background ${dimension}`}
+        className={`flex shrink-0 items-center justify-center rounded-lg font-medium text-white ${dimension}`}
         style={{ backgroundColor: accent }}
         aria-hidden
       >

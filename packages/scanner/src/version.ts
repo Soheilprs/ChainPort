@@ -1,1 +1,1 @@
-export const SCANNER_VERSION = "1";
+export const SCANNER_VERSION = "2";

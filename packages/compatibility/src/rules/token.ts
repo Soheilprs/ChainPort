@@ -6,7 +6,7 @@ import { evaluation } from "../evaluation.js";
 import { looksLikeAddress } from "../paths.js";
 import type { CompatibilityRule } from "../types.js";
 
-const TOKEN_KEYS = new Set(["USDC", "USDT", "WETH"]);
+const TOKEN_KEYS = new Set(["USDC", "USDT", "WETH", "LINK"]);
 
 function sameAddress(left: string, right: string): boolean {
   try {
@@ -58,14 +58,14 @@ export const tokenAvailabilityRule: CompatibilityRule = {
         status: "UNKNOWN",
         category: "TOKENS",
         requirementId: requirement.id,
-        title: `${requirement.key} target availability is unverified`,
-        summary: `The project requires ${requirement.key}, but ChainPort has no verified ${context.targetChainName} deployment.`,
+        title: `${requirement.key} deployment on ${context.targetChainName} could not be verified`,
+        summary: `The project requires ${requirement.key}, but ChainPort has no verified ${context.targetChainName} deployment. Confirm the canonical address from official issuer documentation.`,
         technicalReason: "UNKNOWN is not treated as unavailable.",
         sourceValue: requirement.detectedValue,
         targetValue: "UNKNOWN",
         confidence: "LOW",
         remediationType: "UNKNOWN",
-        registryEvidence,
+        registryEvidence: { ...registryEvidence, nextAction: "VERIFY_TARGET_TOKEN_ADDRESS" },
       });
     }
 
@@ -79,14 +79,14 @@ export const tokenAvailabilityRule: CompatibilityRule = {
         category: "TOKENS",
         requirementId: requirement.id,
         title: `${requirement.key} must be remapped to the target deployment`,
-        summary: `${requirement.key} exists on ${context.targetChainName}, but the application hardcodes a source-chain address.`,
+        summary: `${requirement.key} exists on ${context.targetChainName}, but the application hardcodes a source-chain address. Replace it with the verified target deployment before launch.`,
         technicalReason:
           "The dependency is available. The source-chain address is not valid on the target and requires ADDRESS_MAPPING.",
         sourceValue: requirement.detectedValue,
         targetValue: targetAddress,
         confidence: findingConfidence(requirement.confidence, provenance),
         remediationType: "ADDRESS_MAPPING",
-        registryEvidence,
+        registryEvidence: { ...registryEvidence, nextAction: "VERIFY_TARGET_TOKEN_ADDRESS" },
       });
     }
 

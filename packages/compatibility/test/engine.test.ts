@@ -15,7 +15,7 @@ describe("compatibility engine", () => {
     const second = evaluateAgainst("optimism", requirements, { hasSolidityContracts: true });
     expect(first).toEqual(second);
     expect(first.registrySnapshotHash).toBe(snapshotForChainKey("optimism").hash);
-    expect(first.rulesetVersion).toBe("1");
+    expect(first.rulesetVersion).toBe("2");
   });
 
   it("changes identity when the registry snapshot changes", () => {

@@ -45,7 +45,7 @@ export default function HomePage() {
           <div className="mt-8 flex flex-wrap gap-3">
             <Link
               href="/app/projects"
-              className="inline-flex h-9 items-center rounded-md bg-foreground px-3.5 text-sm font-medium text-background"
+              className="inline-flex h-9 items-center rounded-md bg-paper px-3.5 text-sm font-medium text-ink hover:bg-white"
             >
               Developer workspace
             </Link>

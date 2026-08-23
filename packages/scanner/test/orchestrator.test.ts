@@ -46,6 +46,37 @@ describe("analyzeRepository", () => {
     expect(result.requirements.some((item) => item.key === "ENV_KEY")).toBe(true);
   });
 
+  it("normalizes address-book and identifier context without hashing bytes32 or OpenZeppelin history", async () => {
+    const result = await analyzeRepository(path.join(fixtures, "quality"));
+    expect(result.scannerVersion).toBe(SCANNER_VERSION);
+    expect(result.files.some((file) => file.path.includes(".openzeppelin"))).toBe(false);
+    expect(
+      result.requirements.some(
+        (item) =>
+          item.key === "UNKNOWN_EVM_ADDRESS" &&
+          item.detectedValue.toLowerCase().startsWith("0x5f4253eb"),
+      ),
+    ).toBe(false);
+    expect(
+      result.requirements.some(
+        (item) => item.key === "USDC" && item.requirementType === "NAMED_ADDRESS",
+      ),
+    ).toBe(true);
+    expect(
+      result.requirements.some(
+        (item) => item.key === "PROJECT_DEPLOYMENT" && item.normalizedValue === "IndexFactory",
+      ),
+    ).toBe(true);
+    expect(
+      result.requirements.some(
+        (item) => item.detectedValue === "0x4444444444444444444444444444444444444444",
+      ),
+    ).toBe(false);
+    expect(result.requirements.some((item) => item.detectedValue === "DATABASE_URL")).toBe(false);
+    expect(result.requirements.some((item) => item.detectedValue === "USDC_DECIMALS")).toBe(false);
+    expect(result.requirements.some((item) => item.detectedValue === "USDC_ADDRESS")).toBe(true);
+  });
+
   it("does not treat markdown noise as high-confidence infrastructure", async () => {
     const result = await analyzeRepository(path.join(fixtures, "noisy"));
     expect(result.requirements.some((item) => item.key === "USDC")).toBe(false);

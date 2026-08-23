@@ -100,6 +100,7 @@ export function PartnerMigrationForm({
       <Button
         type="submit"
         disabled={pending || paused}
+        className={paused ? undefined : "text-white"}
         style={{ backgroundColor: paused ? undefined : partner.primaryAccent }}
       >
         {pending ? "Starting…" : `Start migration to ${partner.displayName}`}

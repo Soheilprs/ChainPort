@@ -16,6 +16,8 @@
   --warning: #fbbf24;
   --blocker: #f87171;
   --unknown: #94a3b8;
+  --paper: #f4f4f5;
+  --ink: #09090b;
 }
 
 @theme inline {
@@ -33,6 +35,8 @@
   --color-warning: var(--warning);
   --color-blocker: var(--blocker);
   --color-unknown: var(--unknown);
+  --color-paper: var(--paper);
+  --color-ink: var(--ink);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }

@@ -8,6 +8,7 @@ import type { InventoriedFile, ScannerLimits } from "./types.js";
 const SKIP_DIRECTORIES = new Set([
   ".git",
   "node_modules",
+  "lib",
   "dist",
   "build",
   "coverage",
@@ -18,6 +19,11 @@ const SKIP_DIRECTORIES = new Set([
   "target",
   ".turbo",
   ".pnpm-store",
+  ".openzeppelin",
+  "broadcast",
+  "deployments",
+  "typechain",
+  "typechain-types",
 ]);
 
 export function categorizeFile(relativePath: string): FileCategory {

@@ -1,50 +1,16 @@
-"use client";
-
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-
-import { Button } from "@/components/ui/button";
-import { API_URL } from "@/lib/api";
-
 export function EvaluateCompatibilityButton({
   projectId,
   analysisId,
   analysisComplete,
+  returnTo,
+  error,
 }: {
   projectId: string;
-  analysisId?: string;
+  analysisId?: string | undefined;
   analysisComplete: boolean;
+  returnTo: string;
+  error?: string | null | undefined;
 }) {
-  const router = useRouter();
-  const [error, setError] = useState<string | null>(null);
-  const [pending, setPending] = useState(false);
-
-  async function onClick() {
-    setError(null);
-    setPending(true);
-    try {
-      const response = await fetch(`${API_URL}/v1/projects/${projectId}/compatibility-runs`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(analysisId === undefined ? {} : { analysisId }),
-      });
-      const body = (await response.json()) as {
-        data?: { id: string };
-        message?: string;
-        code?: string;
-      };
-      if (!response.ok || body.data?.id === undefined) {
-        setError(body.message ?? body.code ?? "Unable to evaluate compatibility");
-        return;
-      }
-      router.push(`/app/compatibility/${body.data.id}`);
-    } catch {
-      setError("API unavailable");
-    } finally {
-      setPending(false);
-    }
-  }
-
   if (!analysisComplete) {
     return (
       <p className="text-sm text-muted">
@@ -53,12 +19,31 @@ export function EvaluateCompatibilityButton({
     );
   }
 
+  const message =
+    error === "evaluate-failed"
+      ? "Unable to evaluate compatibility."
+      : error === "api-unavailable"
+        ? "API unavailable. Confirm the API is running."
+        : error;
+
   return (
     <div className="space-y-2">
-      <Button onClick={() => void onClick()} disabled={pending}>
-        {pending ? "Evaluating…" : "Evaluate target compatibility"}
-      </Button>
-      {error !== null ? <p className="text-sm text-blocker">{error}</p> : null}
+      <form method="post" action={`/app/projects/${projectId}/compatibility`}>
+        <input type="hidden" name="returnTo" value={returnTo} />
+        {analysisId !== undefined ? (
+          <input type="hidden" name="analysisId" value={analysisId} />
+        ) : null}
+        <button
+          type="submit"
+          className="inline-flex h-9 cursor-pointer items-center justify-center rounded-md px-3.5 text-sm font-semibold"
+          style={{ backgroundColor: "#f4f4f5", color: "#09090b" }}
+        >
+          Evaluate target compatibility
+        </button>
+      </form>
+      {message !== undefined && message !== null && message !== "" ? (
+        <p className="text-sm text-blocker">{message}</p>
+      ) : null}
       <p className="text-xs text-muted">
         Compares recorded requirements with the selected target chain. This does not modify the
         repository.

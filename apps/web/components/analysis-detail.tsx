@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { EvaluateCompatibilityButton } from "@/components/evaluate-compatibility";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
-import { API_URL } from "@/lib/api";
+import { clientApiUrl } from "@/lib/api";
 
 interface AnalysisPayload {
   analysis: {
@@ -57,38 +57,52 @@ function statusLabel(status: string): string {
   }
 }
 
-export function AnalysisDetail({ initial }: { initial: AnalysisPayload }) {
+const TABS = [
+  "overview",
+  "structure",
+  "contracts",
+  "dependencies",
+  "network",
+  "rpc",
+  "evidence",
+] as const;
+
+export function AnalysisDetail({
+  initial,
+  tab = "overview",
+  requirementId,
+  evaluateError,
+}: {
+  initial: AnalysisPayload;
+  tab?: string | undefined;
+  requirementId?: string | undefined;
+  evaluateError?: string | undefined;
+}) {
   const [payload, setPayload] = useState(initial);
   const active = ["QUEUED", "MATERIALIZING", "INVENTORYING", "ANALYZING"].includes(
     payload.analysis.status,
   );
+  const currentTab = (TABS as readonly string[]).includes(tab) ? tab : "overview";
+  const analysisHref = `/app/analyses/${payload.analysis.id}`;
 
   useEffect(() => {
     if (!active) {
       return;
     }
     const timer = window.setInterval(() => {
-      void fetch(`${API_URL}/v1/analyses/${payload.analysis.id}`, { cache: "no-store" })
+      void fetch(`${clientApiUrl()}/v1/analyses/${payload.analysis.id}`, {
+        cache: "no-store",
+        credentials: "include",
+      })
         .then((response) => response.json())
         .then((body: { data: AnalysisPayload }) => setPayload(body.data));
     }, 1500);
     return () => window.clearInterval(timer);
   }, [active, payload.analysis.id]);
 
-  const [tab, setTab] = useState("overview");
-  const [selected, setSelected] = useState<string | null>(null);
-  const selectedRequirement = payload.requirements.find((item) => item.id === selected);
+  const selectedRequirement = payload.requirements.find((item) => item.id === requirementId);
   const frameworks = payload.components.filter((item) => item.kind === "FRAMEWORK");
   const contracts = payload.components.filter((item) => item.kind === "CONTRACT");
-  const tabs = [
-    "overview",
-    "structure",
-    "contracts",
-    "dependencies",
-    "network",
-    "rpc",
-    "evidence",
-  ] as const;
 
   const grouped = useMemo(() => {
     return {
@@ -119,6 +133,8 @@ export function AnalysisDetail({ initial }: { initial: AnalysisPayload }) {
           projectId={payload.analysis.projectId}
           analysisId={payload.analysis.id}
           analysisComplete
+          returnTo={analysisHref}
+          error={evaluateError}
         />
       ) : null}
       {payload.analysis.status === "FAILED" ? (
@@ -130,20 +146,21 @@ export function AnalysisDetail({ initial }: { initial: AnalysisPayload }) {
         </Card>
       ) : null}
       <div className="flex flex-wrap gap-1 border-b border-line">
-        {tabs.map((item) => (
-          <button
+        {TABS.map((item) => (
+          <a
             key={item}
-            type="button"
+            href={`${analysisHref}?tab=${item}`}
             className={`-mb-px border-b px-3 py-2 text-sm capitalize ${
-              tab === item ? "border-foreground text-foreground" : "border-transparent text-muted"
+              currentTab === item
+                ? "border-foreground text-foreground"
+                : "border-transparent text-muted hover:text-foreground"
             }`}
-            onClick={() => setTab(item)}
           >
             {item}
-          </button>
+          </a>
         ))}
       </div>
-      {tab === "overview" ? (
+      {currentTab === "overview" ? (
         <div className="grid gap-4 md:grid-cols-3">
           <Card>
             <CardTitle>Frameworks</CardTitle>
@@ -165,7 +182,7 @@ export function AnalysisDetail({ initial }: { initial: AnalysisPayload }) {
           </Card>
         </div>
       ) : null}
-      {tab === "structure" ? (
+      {currentTab === "structure" ? (
         <ul className="space-y-1 font-mono text-xs text-muted">
           {payload.files.slice(0, 200).map((file) => (
             <li key={file.path}>
@@ -175,7 +192,7 @@ export function AnalysisDetail({ initial }: { initial: AnalysisPayload }) {
           ))}
         </ul>
       ) : null}
-      {tab === "contracts" ? (
+      {currentTab === "contracts" ? (
         <ul className="space-y-2 text-sm">
           {contracts.map((item) => (
             <li key={item.id}>
@@ -184,34 +201,16 @@ export function AnalysisDetail({ initial }: { initial: AnalysisPayload }) {
           ))}
         </ul>
       ) : null}
-      {tab === "dependencies" ? (
-        <RequirementList
-          items={grouped.protocol}
-          onSelect={(id) => {
-            setSelected(id);
-            setTab("evidence");
-          }}
-        />
+      {currentTab === "dependencies" ? (
+        <RequirementList items={grouped.protocol} analysisHref={analysisHref} />
       ) : null}
-      {tab === "network" ? (
-        <RequirementList
-          items={grouped.network}
-          onSelect={(id) => {
-            setSelected(id);
-            setTab("evidence");
-          }}
-        />
+      {currentTab === "network" ? (
+        <RequirementList items={grouped.network} analysisHref={analysisHref} />
       ) : null}
-      {tab === "rpc" ? (
-        <RequirementList
-          items={grouped.rpc}
-          onSelect={(id) => {
-            setSelected(id);
-            setTab("evidence");
-          }}
-        />
+      {currentTab === "rpc" ? (
+        <RequirementList items={grouped.rpc} analysisHref={analysisHref} />
       ) : null}
-      {tab === "evidence" && selectedRequirement !== undefined ? (
+      {currentTab === "evidence" && selectedRequirement !== undefined ? (
         <div className="space-y-3">
           <h2 className="text-sm font-medium">
             {selectedRequirement.key} · {selectedRequirement.normalizedValue}
@@ -226,7 +225,7 @@ export function AnalysisDetail({ initial }: { initial: AnalysisPayload }) {
           ))}
         </div>
       ) : null}
-      {tab === "evidence" && selectedRequirement === undefined ? (
+      {currentTab === "evidence" && selectedRequirement === undefined ? (
         <p className="text-sm text-muted">Select a requirement to inspect evidence.</p>
       ) : null}
     </div>
@@ -235,10 +234,10 @@ export function AnalysisDetail({ initial }: { initial: AnalysisPayload }) {
 
 function RequirementList({
   items,
-  onSelect,
+  analysisHref,
 }: {
   items: AnalysisPayload["requirements"];
-  onSelect: (id: string) => void;
+  analysisHref: string;
 }) {
   if (items.length === 0) {
     return <p className="text-sm text-muted">None detected.</p>;
@@ -247,14 +246,13 @@ function RequirementList({
     <ul className="space-y-2">
       {items.map((item) => (
         <li key={item.id}>
-          <button
-            type="button"
+          <a
+            href={`${analysisHref}?tab=evidence&requirement=${item.id}`}
             className="text-left text-sm hover:text-accent"
-            onClick={() => onSelect(item.id)}
           >
             {item.key}: {item.normalizedValue}{" "}
             <span className="text-muted">({item.confidence})</span>
-          </button>
+          </a>
         </li>
       ))}
     </ul>

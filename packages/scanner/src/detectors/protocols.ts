@@ -20,6 +20,13 @@ const RULES: readonly ProtocolRule[] = [
     packageNames: ["@chainlink/contracts"],
   },
   {
+    key: "CHAINLINK_FUNCTIONS",
+    category: "ORACLE",
+    importIncludes: ["FunctionsClient", "@chainlink/functions"],
+    identifiers: ["FunctionsClient", "FunctionsRequest"],
+    packageNames: ["@chainlink/functions-contract"],
+  },
+  {
     key: "UNISWAP_V3",
     category: "PROTOCOL",
     importIncludes: ["@uniswap/v3-"],

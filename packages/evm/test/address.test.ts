@@ -15,4 +15,16 @@ describe("EVM addresses", () => {
     const text = `const USDC = "${vitalik.toLowerCase()}"; const again = "${vitalik}";`;
     expect(extractAddresses(text)).toEqual([vitalik]);
   });
+
+  it("does not treat transaction hashes or bytes32 values as addresses", () => {
+    const txHash = "0x5f4253ebb09e9b5f4fd60ae91ddd68e06cb77ef2b2185c45543aa6e79b65e58d";
+    const slot = "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef";
+    expect(extractAddresses(`"txHash": "${txHash}"`)).toEqual([]);
+    expect(extractAddresses(`bytes32 constant SLOT = ${slot};`)).toEqual([]);
+  });
+
+  it("ignores the zero address and native-token sentinel", () => {
+    expect(extractAddresses("address a = 0x0000000000000000000000000000000000000000;")).toEqual([]);
+    expect(extractAddresses("address a = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;")).toEqual([]);
+  });
 });

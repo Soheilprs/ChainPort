@@ -11,7 +11,12 @@ export const metadata: Metadata = {
   title: "New migration",
 };
 
-export default async function NewMigrationPage() {
+export default async function NewMigrationPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ repositoryUrl?: string }>;
+}) {
+  const params = await searchParams;
   let chains: Awaited<ReturnType<typeof fetchChains>> = [];
   let loadError: string | null = null;
   try {
@@ -42,7 +47,7 @@ export default async function NewMigrationPage() {
               The chain catalog could not be loaded, so a migration cannot be started.
             </EmptyState>
           ) : (
-            <NewMigrationForm chains={chains} />
+            <NewMigrationForm chains={chains} initialRepositoryUrl={params.repositoryUrl ?? ""} />
           )}
         </div>
       </main>

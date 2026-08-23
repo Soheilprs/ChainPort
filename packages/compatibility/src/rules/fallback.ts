@@ -35,8 +35,8 @@ export const unmappedRequirementRule: CompatibilityRule = {
       status: "UNKNOWN",
       category: categoryFor(requirement),
       requirementId: requirement.id,
-      title: `No compatibility rule claimed ${requirement.key}`,
-      summary: `Requirement ${requirement.key} was recorded, but ruleset 1 has no dedicated comparison for it on ${context.targetChainName}.`,
+      title: `${requirement.key} could not be evaluated on ${context.targetChainName}`,
+      summary: `Requirement ${requirement.key} was recorded, but this ruleset has no dedicated comparison for it on ${context.targetChainName}. Verify whether it is a target-network dependency before treating it as a migration task.`,
       technicalReason: "Unmapped requirements stay UNKNOWN instead of being guessed.",
       sourceValue: requirement.detectedValue,
       targetValue: null,
@@ -45,6 +45,7 @@ export const unmappedRequirementRule: CompatibilityRule = {
       registryEvidence: {
         requirementKey: requirement.key,
         requirementType: requirement.requirementType,
+        nextAction: "REVIEW_DYNAMIC_CONFIGURATION",
       },
     });
   },

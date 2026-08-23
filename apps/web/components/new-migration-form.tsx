@@ -1,26 +1,44 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 
-import { createProject, type ChainSummary } from "@/lib/api";
+import { createProject, fetchCurrentUser, type ChainSummary } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
-export function NewMigrationForm({ chains }: { chains: readonly ChainSummary[] }) {
+export function NewMigrationForm({
+  chains,
+  initialRepositoryUrl = "",
+}: {
+  chains: readonly ChainSummary[];
+  initialRepositoryUrl?: string;
+}) {
   const router = useRouter();
   const sources = useMemo(() => chains.filter((chain) => chain.roles.includes("source")), [chains]);
   const targets = useMemo(() => chains.filter((chain) => chain.roles.includes("target")), [chains]);
-  const [repositoryUrl, setRepositoryUrl] = useState("");
+  const [repositoryUrl, setRepositoryUrl] = useState(initialRepositoryUrl);
   const [sourceChainKey, setSourceChainKey] = useState(sources[0]?.key ?? "");
   const [targetChainKey, setTargetChainKey] = useState(
     targets.find((chain) => chain.key !== sources[0]?.key)?.key ?? "",
   );
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+  const [signedIn, setSignedIn] = useState(false);
+
+  useEffect(() => {
+    void fetchCurrentUser()
+      .then((user) => setSignedIn(user !== null))
+      .catch(() => setSignedIn(false));
+  }, []);
 
   async function onSubmit(event: FormEvent) {
     event.preventDefault();
+    if (signedIn !== true) {
+      const next = `/app/projects/new?repositoryUrl=${encodeURIComponent(repositoryUrl)}`;
+      router.push(`/auth/sign-in?returnTo=${encodeURIComponent(next)}`);
+      return;
+    }
     setError(null);
     setPending(true);
     try {
@@ -38,7 +56,7 @@ export function NewMigrationForm({ chains }: { chains: readonly ChainSummary[] }
   }
 
   return (
-    <form onSubmit={(event) => void onSubmit(event)} className="max-w-xl space-y-5">
+    <form method="post" onSubmit={(event) => void onSubmit(event)} className="max-w-xl space-y-5">
       <label className="block space-y-2 text-sm">
         <span className="text-muted-strong">GitHub repository URL</span>
         <Input
@@ -80,8 +98,11 @@ export function NewMigrationForm({ chains }: { chains: readonly ChainSummary[] }
         </label>
       </div>
       {error !== null ? <p className="text-sm text-blocker">{error}</p> : null}
+      {signedIn === false ? (
+        <p className="text-sm text-warning">Sign in is required before ingest can start.</p>
+      ) : null}
       <Button type="submit" disabled={pending}>
-        {pending ? "Starting…" : "Start ingest"}
+        {pending ? "Starting…" : signedIn ? "Start ingest" : "Sign in to start ingest"}
       </Button>
     </form>
   );

@@ -1,1 +1,1 @@
-export const MIGRATION_RULESET_VERSION = "1";
+export const MIGRATION_RULESET_VERSION = "2";

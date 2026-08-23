@@ -13,7 +13,11 @@ const SKIP_KEYS = new Set([
   "ETHERS",
 ]);
 
-const SKIP_ENV_KEYS = /PRIVATE_KEY|API_KEY|SECRET|PASSWORD|TLS|CONTAINER|MNEMONIC/i;
+const SKIP_ENV_KEYS =
+  /PRIVATE_KEY|API_KEY|SECRET|PASSWORD|TLS|CONTAINER|MNEMONIC|DECIMALS|DATABASE|JWT|SENTRY|EMAIL|NEXTAUTH/i;
+
+const NON_SOURCE_PATH =
+  /(?:^|\/)(?:test|tests|mocks|fixtures)(?:\/|$)|\.test\.|\.spec\.|\.t\.sol$|\.openzeppelin(?:\/|$)|(?:^|\/)broadcast(?:\/|$)|(?:^|\/)deployments(?:\/|$)/i;
 
 const STANDARD_RPC = new Set(STANDARD_JSON_RPC_METHODS);
 
@@ -29,7 +33,9 @@ export function shouldSkipRequirement(requirement: CompatibilityRequirement): bo
   }
   if (
     requirement.key === "UNKNOWN_EVM_ADDRESS" &&
-    requirement.evidenceFilePaths.every((path) => path.includes(".env") || path.endsWith(".md"))
+    requirement.evidenceFilePaths.every(
+      (path) => path.includes(".env") || path.endsWith(".md") || NON_SOURCE_PATH.test(path),
+    )
   ) {
     return true;
   }

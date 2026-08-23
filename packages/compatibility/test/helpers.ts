@@ -26,7 +26,7 @@ export function requirement(
 }
 
 export function tokenReq(
-  symbol: "USDC" | "USDT" | "WETH",
+  symbol: "USDC" | "USDT" | "WETH" | "LINK",
   address: string,
   confidence: DetectionConfidence = "DETECTED",
 ): CompatibilityRequirement {

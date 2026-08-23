@@ -2,6 +2,7 @@ export {
   checksumAddress,
   extractAddresses,
   isEvmAddress,
+  isSentinelAddress,
   isTransactionHash,
   type HexAddress,
 } from "./address.js";

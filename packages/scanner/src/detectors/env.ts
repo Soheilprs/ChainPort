@@ -2,7 +2,9 @@ import type { Detector, RequirementDraft } from "../types.js";
 import { boundExcerpt, looksLikeSecretValue } from "../redaction.js";
 
 const INTERESTING =
-  /RPC|CHAIN_ID|USDC|USDT|WETH|CHAINLINK|LAYERZERO|PERMIT|SAFE|PRIVATE_KEY|API_KEY/i;
+  /RPC|CHAIN_ID|USDC|USDT|WETH|\bLINK\b|CHAINLINK|LAYERZERO|PERMIT|SAFE|PRIVATE_KEY|API_KEY|EXPLORER|NETWORK/i;
+
+const NON_NETWORK = /DECIMALS|DATABASE|JWT|SENTRY|EMAIL|NEXTAUTH|PASSWORD|MNEMONIC|TLS|CONTAINER/i;
 
 export const envDetector: Detector = {
   id: "env",
@@ -22,7 +24,7 @@ export const envDetector: Detector = {
         }
         const [rawKey, ...rest] = line.split("=");
         const key = rawKey?.trim() ?? "";
-        if (!INTERESTING.test(key)) {
+        if (!INTERESTING.test(key) || NON_NETWORK.test(key)) {
           continue;
         }
         const rawValue = rest.join("=").trim();
