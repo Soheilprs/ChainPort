@@ -20,7 +20,7 @@ interface CompatibilityRule {
 Rules are pure. They receive normalized requirements, source/target identity, and a capability
 snapshot. They do not access the database, the network, or the repository filesystem.
 
-`compatibilityRulesetVersion` is `"2"`. Each finding stores `ruleId` and `ruleVersion`.
+`compatibilityRulesetVersion` is `"3"`. Each finding stores `ruleId` and `ruleVersion`.
 
 Findings represent unique compatibility requirements. Evidence occurrences (files/lines) attach
 to those requirements; they do not inflate the finding count. Coverage uses unique findings,
@@ -104,7 +104,7 @@ Confidence label:
 
 ## Registry snapshot / versioning
 
-`REGISTRY_VERSION = "2"` lives in `@chainport/chain-registry`.
+`REGISTRY_VERSION = "3"` lives in `@chainport/chain-registry`.
 
 Each run stores:
 

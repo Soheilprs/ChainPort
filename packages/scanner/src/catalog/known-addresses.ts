@@ -25,6 +25,17 @@ const RAW: Array<[string, KnownAddress["symbol"], KnownAddress["key"], KnownAddr
     ["0x88Fb150BDc53A65fe94Dea0c9BA0a6dAf8C6e196", "LINK", "LINK", "TOKEN"],
     ["0xf97f4df75117a78c1A5a0DBb814Af92458539FB4", "LINK", "LINK", "TOKEN"],
     ["0xb1D4538B4571d411F07960EF2838Ce337FE1E80E", "LINK", "LINK", "TOKEN"],
+    ["0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f", "UniswapV2Factory", "UNISWAP_V2", "PROTOCOL"],
+    ["0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D", "UniswapV2Router02", "UNISWAP_V2", "PROTOCOL"],
+    ["0x1F98431c8aD98523631AE4a59f267346ea31F984", "UniswapV3Factory", "UNISWAP_V3", "PROTOCOL"],
+    [
+      "0xC36442b4a4522E871399CD717aBDD847Ab11FE88",
+      "NonfungiblePositionManager",
+      "UNISWAP_V3",
+      "PROTOCOL",
+    ],
+    ["0xE592427A0AEce92De3Edee1F18E0157C05861564", "SwapRouter", "UNISWAP_V3", "PROTOCOL"],
+    ["0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45", "SwapRouter02", "UNISWAP_V3", "PROTOCOL"],
   ];
 
 export const KNOWN_ADDRESSES = new Map(

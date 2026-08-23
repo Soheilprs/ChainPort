@@ -16,6 +16,7 @@ function isNoisePath(path: string): boolean {
     segments.includes("test") ||
     segments.includes("tests") ||
     segments.includes("mocks") ||
+    segments.includes("tasks") ||
     lower.includes(".test.") ||
     lower.includes(".spec.") ||
     lower.endsWith(".t.sol") ||
@@ -27,7 +28,7 @@ function isNoisePath(path: string): boolean {
 
 export const addressesDetector: Detector = {
   id: "addresses",
-  version: "2",
+  version: "3",
   detect(context) {
     const requirements: RequirementDraft[] = [];
     const seen = new Map<string, RequirementDraft>();
@@ -72,7 +73,7 @@ export const addressesDetector: Detector = {
           semantic.kind === "project"
             ? `PROJECT_DEPLOYMENT:${semantic.name}`
             : semantic.kind === "named"
-              ? `${semantic.key}:${checksummed}`
+              ? `NAMED:${semantic.key}`
               : `UNKNOWN_EVM_ADDRESS:${checksummed}`;
         const existing = seen.get(mergeKey);
         if (existing !== undefined) {
@@ -115,7 +116,41 @@ function namesForFile(path: string, text: string): Map<string, string[]> {
       add(entry.address, [entry.name]);
     }
   }
+  if (path.endsWith(".json")) {
+    try {
+      collectJsonAddressNames(JSON.parse(text), [fileStem(path)], add);
+    } catch {
+      // ignore invalid JSON
+    }
+  }
   return names;
+}
+
+function fileStem(path: string): string {
+  const base = path.split("/").at(-1) ?? path;
+  return base.replace(/\.[^.]+$/, "");
+}
+
+function collectJsonAddressNames(
+  value: unknown,
+  names: readonly string[],
+  add: (address: string, extra: readonly string[]) => void,
+): void {
+  if (typeof value === "string") {
+    add(value, names);
+    return;
+  }
+  if (Array.isArray(value)) {
+    for (const item of value) {
+      collectJsonAddressNames(item, names, add);
+    }
+    return;
+  }
+  if (typeof value === "object" && value !== null) {
+    for (const [key, nested] of Object.entries(value)) {
+      collectJsonAddressNames(nested, [...names, key], add);
+    }
+  }
 }
 
 function toDraft(
@@ -132,7 +167,7 @@ function toDraft(
       normalizedValue: semantic.key,
       confidence: "DETECTED",
       detector: "addresses",
-      detectorVersion: "2",
+      detectorVersion: "3",
       evidence: [evidence],
     };
   }
@@ -145,7 +180,7 @@ function toDraft(
       normalizedValue: semantic.name,
       confidence: "DETECTED",
       detector: "addresses",
-      detectorVersion: "2",
+      detectorVersion: "3",
       evidence: [evidence],
     };
   }

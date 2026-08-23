@@ -4,7 +4,7 @@ import { findingConfidence } from "../confidence.js";
 import { evaluation } from "../evaluation.js";
 import type { CompatibilityRule } from "../types.js";
 
-const UNISWAP_KEYS = new Set(["UNISWAP_V2", "UNISWAP_V3"]);
+const UNISWAP_KEYS = new Set(["UNISWAP_V2", "UNISWAP_V3", "UNISWAP_V4"]);
 
 export const uniswapRule: CompatibilityRule = {
   id: "uniswap",

@@ -24,6 +24,17 @@ export interface EvaluateCompatibilityInput {
   hasSolidityContracts: boolean;
 }
 
+function dedupeFindings(findings: CompatibilityEvaluation[]): CompatibilityEvaluation[] {
+  const seen = new Map<string, CompatibilityEvaluation>();
+  for (const item of findings) {
+    const key = `${item.ruleId}|${item.status}|${item.category}|${item.title}|${item.sourceValue ?? ""}`;
+    if (!seen.has(key)) {
+      seen.set(key, item);
+    }
+  }
+  return [...seen.values()];
+}
+
 export function evaluateCompatibility(input: EvaluateCompatibilityInput): CompatibilityReport {
   const hashed = hashTargetSnapshot(input.snapshot);
   const context: CompatibilityContext = {
@@ -56,7 +67,8 @@ export function evaluateCompatibility(input: EvaluateCompatibilityInput): Compat
     findings.push(evmSolidityPass(context));
   }
 
-  const scored = scoreFindings(findings);
+  const unique = dedupeFindings(findings);
+  const scored = scoreFindings(unique);
   return {
     rulesetVersion: COMPATIBILITY_RULESET_VERSION,
     registryVersion: hashed.snapshot.registryVersion,
@@ -72,7 +84,7 @@ export function evaluateCompatibility(input: EvaluateCompatibilityInput): Compat
       unknownCount: scored.counts.unknown,
       coverage: scored.coverage,
     }),
-    findings,
+    findings: unique,
     categories: scored.categories,
     counts: scored.counts,
   };

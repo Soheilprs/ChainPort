@@ -245,6 +245,7 @@ export function protocolsForChain(chainKey: string): readonly ProtocolCapability
       UNISWAP_V2_DECLARED.has(chainKey) ? "AVAILABLE" : "UNKNOWN",
       UNISWAP_V2_DECLARED.has(chainKey) ? "DECLARED" : "UNKNOWN",
     ),
+    protocol("UNISWAP_V4", "UNKNOWN", "UNKNOWN"),
     protocol(
       "LAYERZERO",
       LAYERZERO_DECLARED.has(chainKey) ? "AVAILABLE" : "UNKNOWN",

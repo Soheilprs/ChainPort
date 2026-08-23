@@ -7,7 +7,7 @@ repository files as data. It never executes them.
 
 `repositoryId + commitSha + scannerVersion`
 
-`scannerVersion` is currently `"2"`. A new version may re-analyze the same SHA without overwriting
+`scannerVersion` is currently `"3"`. A new version may re-analyze the same SHA without overwriting
 the previous analysis row.
 
 ## Workflow
@@ -39,7 +39,9 @@ on `analysis_detector_runs` and does not fail the whole analysis.
 - Environment template keys with secret values redacted
 
 Address extraction requires an exact 40-hex EVM address. Transaction hashes, `bytes32`
-storage slots, and OpenZeppelin / broadcast / deployments history are not requirements.
+storage slots, and OpenZeppelin / broadcast / deployments / Hardhat `tasks` history are not
+requirements. JSON address maps contribute the object key and filename as identifier context
+(for example `layerzeroEndpoints.json` or `v3Factory` struct fields).
 Multiple evidence locations for the same capability collapse into one requirement.
 
 ## Evidence

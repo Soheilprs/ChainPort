@@ -12,6 +12,50 @@ describe("address semantics", () => {
     ).toMatchObject({ kind: "named", key: "USDC" });
   });
 
+  it("classifies Uniswap factory struct fields without a Uniswap prefix", () => {
+    expect(
+      classifyAddressContext({
+        address: UNKNOWN,
+        names: ["v3Factory", "v2Factory"],
+        contractNames: ["UniversalRouter"],
+      }),
+    ).toMatchObject({ kind: "named", key: "UNISWAP_V3" });
+  });
+
+  it("classifies Uniswap WETH9 and position/pool manager identifiers", () => {
+    expect(
+      classifyAddressContext({
+        address: UNKNOWN,
+        names: ["weth9"],
+        contractNames: ["UniversalRouter"],
+      }),
+    ).toMatchObject({ kind: "named", key: "WETH" });
+    expect(
+      classifyAddressContext({
+        address: UNKNOWN,
+        names: ["v3NFTPositionManager"],
+        contractNames: ["UniversalRouter"],
+      }),
+    ).toMatchObject({ kind: "named", key: "UNISWAP_V3" });
+    expect(
+      classifyAddressContext({
+        address: UNKNOWN,
+        names: ["v4PoolManager"],
+        contractNames: ["UniversalRouter"],
+      }),
+    ).toMatchObject({ kind: "named", key: "UNISWAP_V4" });
+  });
+
+  it("classifies LayerZero endpoint JSON catalogs from the filename", () => {
+    expect(
+      classifyAddressContext({
+        address: UNKNOWN,
+        names: ["layerzeroEndpoints", "ethereum"],
+        contractNames: [],
+      }),
+    ).toMatchObject({ kind: "named", key: "LAYERZERO" });
+  });
+
   it("classifies USDC from an identifier when the address is otherwise unknown", () => {
     expect(
       classifyAddressContext({

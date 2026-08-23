@@ -15,7 +15,7 @@ describe("compatibility engine", () => {
     const second = evaluateAgainst("optimism", requirements, { hasSolidityContracts: true });
     expect(first).toEqual(second);
     expect(first.registrySnapshotHash).toBe(snapshotForChainKey("optimism").hash);
-    expect(first.rulesetVersion).toBe("2");
+    expect(first.rulesetVersion).toBe("3");
   });
 
   it("changes identity when the registry snapshot changes", () => {
@@ -34,6 +34,15 @@ describe("compatibility engine", () => {
     expect(mutated.registrySnapshotHash).not.toBe(original.registrySnapshotHash);
     expect(mutated.findings[0]?.status).toBe("BLOCKER");
     expect(original.findings[0]?.status).toBe("PASS");
+  });
+
+  it("collapses duplicate protocol findings with the same title and source", () => {
+    const report = evaluateAgainst("unichain", [
+      protocolReq("LAYERZERO", "CROSS_CHAIN"),
+      protocolReq("LAYERZERO", "CROSS_CHAIN"),
+    ]);
+    const layerzero = report.findings.filter((item) => item.ruleId === "layerzero");
+    expect(layerzero).toHaveLength(1);
   });
 
   it("adds a single EVM Solidity PASS instead of one row per pragma", () => {

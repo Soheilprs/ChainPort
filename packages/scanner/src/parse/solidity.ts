@@ -31,6 +31,8 @@ const ADDRESS_CONSTANT_PATTERN =
   /\b(?:address|IERC20|IERC20Metadata|I[A-Z][A-Za-z0-9_]*)\b[\s\w]*(?:constant|immutable)?[\s\w]*\b([A-Za-z_][A-Za-z0-9_]*)\s*=[\s\w(]*(0x[a-fA-F0-9]{40})(?![a-fA-F0-9])/;
 const NAMED_ADDRESS_PATTERN =
   /\b([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(?:payable\s*)?(0x[a-fA-F0-9]{40})(?![a-fA-F0-9])/;
+const STRUCT_FIELD_ADDRESS_PATTERN =
+  /\b([A-Za-z_][A-Za-z0-9_]*)\s*:\s*(0x[a-fA-F0-9]{40})(?![a-fA-F0-9])/;
 
 export function parseSoliditySource(text: string): SolidityFileFacts {
   const lines = text.split("\n");
@@ -63,7 +65,8 @@ export function parseSoliditySource(text: string): SolidityFileFacts {
     if (!/\bbytes32\b/i.test(line)) {
       const typed = ADDRESS_CONSTANT_PATTERN.exec(line);
       const named = NAMED_ADDRESS_PATTERN.exec(line);
-      const hit = typed ?? named;
+      const field = STRUCT_FIELD_ADDRESS_PATTERN.exec(line);
+      const hit = typed ?? named ?? field;
       if (hit?.[1] !== undefined && hit[2] !== undefined) {
         facts.addressConstants.push({ name: hit[1], address: hit[2], line: i + 1 });
       }

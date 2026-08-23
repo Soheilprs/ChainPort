@@ -77,6 +77,30 @@ describe("analyzeRepository", () => {
     expect(result.requirements.some((item) => item.detectedValue === "USDC_ADDRESS")).toBe(true);
   });
 
+  it("reads JSON address-book keys and Solidity struct fields as identifiers", async () => {
+    const result = await analyzeRepository(path.join(fixtures, "quality"));
+    expect(
+      result.requirements.some(
+        (item) => item.key === "LAYERZERO" && item.requirementType === "PROTOCOL",
+      ),
+    ).toBe(true);
+    expect(
+      result.requirements.some(
+        (item) => item.key === "UNISWAP_V3" && item.detectedValue.startsWith("0x3333"),
+      ),
+    ).toBe(true);
+    expect(
+      result.requirements.some(
+        (item) => item.key === "WETH" && item.detectedValue.startsWith("0x5555"),
+      ),
+    ).toBe(true);
+    expect(
+      result.requirements.some(
+        (item) => item.key === "UNISWAP_V4" && item.detectedValue.startsWith("0x6666"),
+      ),
+    ).toBe(true);
+  });
+
   it("does not treat markdown noise as high-confidence infrastructure", async () => {
     const result = await analyzeRepository(path.join(fixtures, "noisy"));
     expect(result.requirements.some((item) => item.key === "USDC")).toBe(false);

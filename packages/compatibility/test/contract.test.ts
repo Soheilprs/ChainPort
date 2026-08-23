@@ -8,6 +8,6 @@ import {
 describe("compatibility contract", () => {
   it("is implemented for phase 4", () => {
     expect(COMPATIBILITY_IMPLEMENTATION_STATUS).toBe("implemented");
-    expect(COMPATIBILITY_RULESET_VERSION).toBe("2");
+    expect(COMPATIBILITY_RULESET_VERSION).toBe("3");
   });
 });

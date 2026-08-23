@@ -17,7 +17,7 @@ const SKIP_ENV_KEYS =
   /PRIVATE_KEY|API_KEY|SECRET|PASSWORD|TLS|CONTAINER|MNEMONIC|DECIMALS|DATABASE|JWT|SENTRY|EMAIL|NEXTAUTH/i;
 
 const NON_SOURCE_PATH =
-  /(?:^|\/)(?:test|tests|mocks|fixtures)(?:\/|$)|\.test\.|\.spec\.|\.t\.sol$|\.openzeppelin(?:\/|$)|(?:^|\/)broadcast(?:\/|$)|(?:^|\/)deployments(?:\/|$)/i;
+  /(?:^|\/)(?:test|tests|mocks|fixtures|tasks)(?:\/|$)|\.test\.|\.spec\.|\.t\.sol$|\.openzeppelin(?:\/|$)|(?:^|\/)broadcast(?:\/|$)|(?:^|\/)deployments(?:\/|$)/i;
 
 const STANDARD_RPC = new Set(STANDARD_JSON_RPC_METHODS);
 

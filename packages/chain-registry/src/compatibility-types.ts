@@ -1,6 +1,6 @@
 import type { CapabilityAvailability, CapabilityProvenance } from "@chainport/shared";
 
-export const REGISTRY_VERSION = "2";
+export const REGISTRY_VERSION = "3";
 
 export interface TokenCapability {
   symbol: "USDC" | "USDT" | "WETH" | "LINK";

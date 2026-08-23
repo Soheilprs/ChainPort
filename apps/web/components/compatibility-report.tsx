@@ -190,7 +190,10 @@ function groupFindings(findings: Finding[]): Array<{
     }
   >();
   for (const finding of findings) {
-    const key = `${finding.status}|${finding.ruleId}|${finding.title}`;
+    const key =
+      finding.ruleId === "hardcoded-address"
+        ? `${finding.status}|${finding.ruleId}`
+        : `${finding.status}|${finding.ruleId}|${finding.title}`;
     const evidenceCount = finding.requirement?.evidence.length ?? 1;
     const existing = groups.get(key);
     if (existing !== undefined) {
@@ -200,7 +203,10 @@ function groupFindings(findings: Finding[]): Array<{
     }
     groups.set(key, {
       key,
-      title: finding.title,
+      title:
+        finding.ruleId === "hardcoded-address"
+          ? "Unclassified hardcoded addresses need identification"
+          : finding.title,
       status: finding.status,
       category: finding.category,
       ruleId: finding.ruleId,

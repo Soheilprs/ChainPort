@@ -27,6 +27,17 @@ const NETWORK_WORDS = new Set([
   "linea",
   "scroll",
   "unichain",
+  "bsc",
+  "fantom",
+  "celo",
+  "blast",
+  "zora",
+  "monad",
+  "soneium",
+  "ink",
+  "fuji",
+  "mumbai",
+  "goerli",
   "testnet",
   "predeployed",
 ]);
@@ -44,6 +55,10 @@ function compact(name: string): string {
   return tokenize(name)
     .filter((token) => !NETWORK_WORDS.has(token) && token !== "address" && token !== "addresses")
     .join("");
+}
+
+function compactBlob(names: readonly string[]): string {
+  return names.map(compact).join(" ");
 }
 
 function matchContract(label: string, contractNames: readonly string[]): string | undefined {
@@ -75,14 +90,22 @@ function projectNameFromIdentifier(name: string): string | undefined {
       /^(sepolia|goerli|holesky|mainnet|ethereum|optimism|base|arbitrum|polygon|pre_?deployed)_?/i,
       "",
     )
-    .replace(/(Addresses|Address|Addr)$/i, "");
+    .replace(/(Addresses|Address|Addr)$/i, "")
+    .replace(/V\d+(?:_\d+)*$/i, "")
+    .replace(/_+$/g, "");
   if (stripped.length < 4) {
     return undefined;
   }
-  if (stripped === name && !/Address(es)?$/i.test(name)) {
+  if (NETWORK_WORDS.has(stripped.toLowerCase())) {
     return undefined;
   }
-  return stripped;
+  if (stripped === name && !/Address(es)?$/i.test(name) && stripped.length < 8) {
+    return undefined;
+  }
+  if (stripped.length >= 6) {
+    return stripped;
+  }
+  return undefined;
 }
 
 export function classifyAddressContext(input: {
@@ -101,13 +124,14 @@ export function classifyAddressContext(input: {
   }
 
   const tokens = new Set(input.names.flatMap(tokenize));
+  const blob = compactBlob(input.names);
   if (tokens.has("usdc")) {
     return { kind: "named", key: "USDC", category: "TOKEN", requirementType: "NAMED_ADDRESS" };
   }
   if (tokens.has("usdt")) {
     return { kind: "named", key: "USDT", category: "TOKEN", requirementType: "NAMED_ADDRESS" };
   }
-  if (tokens.has("weth")) {
+  if (tokens.has("weth") || tokens.has("weth9") || blob.includes("weth9")) {
     return { kind: "named", key: "WETH", category: "TOKEN", requirementType: "NAMED_ADDRESS" };
   }
   if (tokens.has("link")) {
@@ -121,7 +145,12 @@ export function classifyAddressContext(input: {
       requirementType: "NAMED_ADDRESS",
     };
   }
-  if (tokens.has("layerzero") || (tokens.has("lz") && tokens.has("endpoint"))) {
+  if (
+    tokens.has("layerzero") ||
+    tokens.has("layerzeroendpoints") ||
+    blob.includes("layerzeroendpoint") ||
+    (tokens.has("lz") && tokens.has("endpoint"))
+  ) {
     return {
       kind: "named",
       key: "LAYERZERO",
@@ -130,12 +159,31 @@ export function classifyAddressContext(input: {
     };
   }
   if (
-    tokens.has("uniswap") &&
-    (tokens.has("v3") || tokens.has("nfp") || tokens.has("poolmanager"))
+    tokens.has("v4") &&
+    (tokens.has("poolmanager") ||
+      tokens.has("position") ||
+      tokens.has("uniswap") ||
+      blob.includes("poolmanager") ||
+      blob.includes("positionmanager"))
+  ) {
+    return { kind: "named", key: "UNISWAP_V4", category: "PROTOCOL", requirementType: "PROTOCOL" };
+  }
+  if (
+    tokens.has("v3") &&
+    (tokens.has("factory") ||
+      tokens.has("router") ||
+      tokens.has("nft") ||
+      tokens.has("position") ||
+      tokens.has("nfp") ||
+      tokens.has("uniswap") ||
+      blob.includes("positionmanager"))
   ) {
     return { kind: "named", key: "UNISWAP_V3", category: "PROTOCOL", requirementType: "PROTOCOL" };
   }
-  if (tokens.has("uniswap") && tokens.has("v2")) {
+  if (
+    tokens.has("v2") &&
+    (tokens.has("factory") || tokens.has("router") || tokens.has("pair") || tokens.has("uniswap"))
+  ) {
     return { kind: "named", key: "UNISWAP_V2", category: "PROTOCOL", requirementType: "PROTOCOL" };
   }
   if (

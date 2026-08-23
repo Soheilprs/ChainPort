@@ -4,7 +4,7 @@ import { hashTargetSnapshot, REGISTRY_VERSION, snapshotForChainKey } from "../sr
 
 describe("target capability snapshots", () => {
   it("versions the in-code registry", () => {
-    expect(REGISTRY_VERSION).toBe("2");
+    expect(REGISTRY_VERSION).toBe("3");
   });
 
   it("hashes canonical capability data independently of key order", () => {
